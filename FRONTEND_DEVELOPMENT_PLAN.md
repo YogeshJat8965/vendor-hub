@@ -1,10 +1,54 @@
 # 🎨 FRONTEND DEVELOPMENT PLAN
-## Marketplace Platform - Next.js + React + TypeScript
+## Marketplace Platform - Premium Design & Mobile-First Architecture
 
-**Tech Stack:** Next.js 15, React 18, TypeScript, Tailwind CSS, shadcn/ui  
+**Tech Stack:** Next.js 15, React 18, TypeScript, Tailwind CSS, Framer Motion, shadcn/ui  
+**Design Philosophy:** Mobile-First, Premium UI/UX, High-Performance Animations  
 **Development Approach:** Phase-by-phase with testing after each phase  
 **Estimated Timeline:** 5-6 phases, test after each  
 **Prerequisites:** Backend must be running on http://localhost:8080
+
+---
+
+## 🎯 DESIGN PRINCIPLES
+
+### **Mobile-First Strategy (80% Users on Mobile)**
+- All components designed for mobile FIRST, then scaled up
+- Touch-friendly targets (min 44x44px)
+- Smooth scrolling with momentum
+- Swipe gestures for navigation
+- Bottom-sheet modals for mobile
+- Sticky CTAs on mobile
+
+### **Premium Visual Design**
+- **NOT Template-Looking** - Custom design system
+- **Professional Color Psychology:**
+  - Primary: Deep Blue (#2563eb) - Trust, reliability
+  - Secondary: Vibrant Orange (#f97316) - Action, urgency
+  - Success: Fresh Green (#10b981) - Verified, success
+  - Neutral: Warm Grays (#64748b) - Modern, clean
+- **Typography Hierarchy:**
+  - Headlines: Manrope/Inter (700-800 weight)
+  - Body: Inter (400-500 weight)
+  - Scale: 12px → 14px → 16px → 20px → 24px → 32px → 40px
+- **Spacing System:** 4px base (4, 8, 12, 16, 24, 32, 48, 64, 96)
+
+### **Animation Philosophy**
+- **Framer Motion** for all animations
+- 60fps performance guaranteed
+- Purposeful animations (not decorative)
+- Micro-interactions on every touchpoint
+- Page transitions with stagger effects
+- Scroll-triggered reveals
+- Loading states with skeleton screens
+- Smooth state transitions
+
+### **UI/UX Excellence**
+- ✨ **Micro-interactions:** Button presses, hover states, focus states
+- 🎭 **Visual Feedback:** Loading states, success/error animations
+- 🌊 **Flow States:** Smooth multi-step forms with progress
+- 🎨 **Depth & Elevation:** Proper shadow hierarchy
+- 💫 **Delight Moments:** Success celebrations, empty states
+- 🔍 **Accessibility:** WCAG 2.1 AA compliant
 
 ---
 
@@ -109,20 +153,30 @@ npx create-next-app@latest marketplace-frontend --typescript --tailwind --app --
 
 cd marketplace-frontend
 
-# 2. Install dependencies
+# 2. Install core dependencies
 npm install
+npm install framer-motion
 npm install lucide-react
 npm install class-variance-authority clsx tailwind-merge
+npm install react-intersection-observer
+npm install @tanstack/react-query
+npm install axios
+npm install react-hook-form
+npm install zod
+npm install @hookform/resolvers
+npm install embla-carousel-react
+npm install vaul # For mobile bottom sheets
+npm install sonner # For toast notifications
 
 # 3. Initialize shadcn/ui
 npx shadcn@latest init
 
 # Choose:
-# - Style: Default
-# - Base color: Slate
+# - Style: New York (more polished)
+# - Base color: Blue
 # - CSS variables: Yes
 
-# 4. Install shadcn components
+# 4. Install shadcn components (Premium Set)
 npx shadcn@latest add button
 npx shadcn@latest add input
 npx shadcn@latest add card
@@ -132,6 +186,14 @@ npx shadcn@latest add dropdown-menu
 npx shadcn@latest add dialog
 npx shadcn@latest add toast
 npx shadcn@latest add skeleton
+npx shadcn@latest add tabs
+npx shadcn@latest add select
+npx shadcn@latest add textarea
+npx shadcn@latest add scroll-area
+npx shadcn@latest add separator
+npx shadcn@latest add sheet
+npx shadcn@latest add slider
+npx shadcn@latest add switch
 ```
 
 ### **Files to Create:**
@@ -162,7 +224,7 @@ const nextConfig = {
 module.exports = nextConfig;
 ```
 
-#### **3. app/globals.css**
+#### **3. app/globals.css** (Premium Design System)
 ```css
 @tailwind base;
 @tailwind components;
@@ -170,22 +232,45 @@ module.exports = nextConfig;
 
 @layer base {
   :root {
+    /* Premium Color System */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    --primary: 217.2 91.2% 59.8%; /* Vibrant Blue */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 24.6 95% 53.1%; /* Energetic Orange */
+    --secondary-foreground: 0 0% 100%;
+    
+    --success: 142.1 76.2% 36.3%; /* Fresh Green */
+    --success-foreground: 0 0% 100%;
+    
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
+    
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
+    
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+    
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --ring: 217.2 91.2% 59.8%;
+    --radius: 0.75rem; /* More modern radius */
+    
+    /* Custom shadows for depth */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
   }
 }
 
@@ -193,9 +278,82 @@ module.exports = nextConfig;
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Better focus states */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2;
+  }
+}
+
+@layer components {
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .gradient-secondary {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+  
+  .gradient-success {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+  
+  /* Smooth card hover */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+  
+  /* Mobile-first touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Premium button animations */
+  .btn-premium {
+    @apply relative overflow-hidden;
+    @apply before:absolute before:inset-0 before:bg-white before:opacity-0;
+    @apply before:transition-opacity hover:before:opacity-10;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 ```
 
@@ -455,26 +613,203 @@ export default function RootLayout({
 }
 ```
 
-#### **10. app/page.tsx** (Temporary homepage)
+#### **10. app/page.tsx** (Premium Homepage with Animations)
 ```typescript
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { ArrowRight, Search, Star, TrendingUp, Shield, Zap } from 'lucide-react';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 100,
+    },
+  },
+};
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8">
-      <h1 className="text-4xl font-bold mb-8">Marketplace Platform</h1>
-      <div className="flex gap-4">
-        <Link href="/login">
-          <Button>Login</Button>
-        </Link>
-        <Link href="/signup">
-          <Button variant="outline">Sign Up</Button>
-        </Link>
-        <Link href="/explore">
-          <Button variant="secondary">Explore Vendors</Button>
-        </Link>
-      </div>
+    <div className="min-h-screen">
+      {/* Hero Section - Mobile Optimized */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-purple-800 text-white">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        
+        <motion.div
+          className="container mx-auto px-4 sm:px-6 py-16 sm:py-24 lg:py-32 relative z-10"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.div variants={itemVariants} className="inline-block mb-4">
+              <span className="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
+                🎉 India's #1 Marketplace for Home Services
+              </span>
+            </motion.div>
+
+            <motion.h1
+              variants={itemVariants}
+              className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 leading-tight"
+            >
+              Find Verified Local
+              <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-orange-300">
+                Service Providers
+              </span>
+            </motion.h1>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-lg sm:text-xl text-blue-100 mb-8 max-w-2xl mx-auto"
+            >
+              Connect with trusted professionals for carpentry, painting, plumbing,
+              electrical work and more. Get quotes in 30 seconds.
+            </motion.p>
+
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            >
+              <Link href="/explore" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto text-lg px-8 py-6 bg-white text-blue-600 hover:bg-blue-50 shadow-xl hover:shadow-2xl transition-all">
+                  Browse Vendors
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/vendor/signup" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 py-6 border-white text-white hover:bg-white/10">
+                  I'm a Vendor
+                </Button>
+              </Link>
+            </motion.div>
+
+            {/* Trust Indicators */}
+            <motion.div
+              variants={itemVariants}
+              className="mt-12 grid grid-cols-3 gap-4 sm:gap-8 max-w-2xl mx-auto"
+            >
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold">500+</div>
+                <div className="text-sm sm:text-base text-blue-200">Verified Vendors</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold">10K+</div>
+                <div className="text-sm sm:text-base text-blue-200">Happy Customers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold">4.8★</div>
+                <div className="text-sm sm:text-base text-blue-200">Average Rating</div>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Decorative blobs */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-purple-500/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 sm:py-24 bg-gray-50">
+        <div className="container mx-auto px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12 sm:mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              Why Choose Us?
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              The smart way to find and hire service professionals
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                icon: Shield,
+                title: 'Verified Professionals',
+                description: 'All vendors are background checked and certified',
+                color: 'text-blue-600',
+              },
+              {
+                icon: Zap,
+                title: 'Instant Quotes',
+                description: 'Get responses from multiple vendors within hours',
+                color: 'text-orange-600',
+              },
+              {
+                icon: Star,
+                title: 'Trusted Reviews',
+                description: 'Read authentic reviews from real customers',
+                color: 'text-yellow-600',
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ y: -8, transition: { duration: 0.2 } }}
+                className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all"
+              >
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${
+                  index === 0 ? 'from-blue-100 to-blue-200' :
+                  index === 1 ? 'from-orange-100 to-orange-200' :
+                  'from-yellow-100 to-yellow-200'
+                } flex items-center justify-center mb-4`}>
+                  <feature.icon className={`w-7 h-7 ${feature.color}`} />
+                </div>
+                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-16 sm:py-24 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="container mx-auto px-4 sm:px-6 text-center"
+        >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+            Ready to Get Started?
+          </h2>
+          <p className="text-lg sm:text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Join thousands of satisfied customers finding the perfect service providers
+          </p>
+          <Link href="/explore">
+            <Button size="lg" className="text-lg px-8 py-6 bg-white text-blue-600 hover:bg-blue-50 shadow-xl">
+              Find a Vendor Now
+              <Search className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
+        </motion.div>
+      </section>
     </div>
   );
 }

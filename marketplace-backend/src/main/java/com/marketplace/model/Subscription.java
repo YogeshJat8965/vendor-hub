@@ -12,6 +12,7 @@ public class Subscription {
     private String id;
     
     private String vendorId;
+    private String vendorSlug;
     
     private String plan; // BASIC, PREMIUM
     
