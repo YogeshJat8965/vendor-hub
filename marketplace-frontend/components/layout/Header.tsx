@@ -31,30 +31,37 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md shadow-sm">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold gradient-text"
+              className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"
             >
               VendorHub
             </motion.div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center space-x-2">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-4 py-2 rounded-lg text-base font-semibold transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Desktop Actions */}
@@ -107,17 +114,24 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80">
-                <nav className="flex flex-col space-y-4 mt-8">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setIsOpen(false)}
-                      className="text-lg font-medium text-gray-700 hover:text-blue-600 transition-colors py-2 touch-target"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                <nav className="flex flex-col space-y-2 mt-8">
+                  {navLinks.map((link) => {
+                    const isActive = pathname === link.href;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setIsOpen(false)}
+                        className={`text-lg font-semibold transition-all py-3 px-4 rounded-lg touch-target ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
+                            : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    );
+                  })}
                   <div className="pt-4 border-t space-y-2">
                     {isAuthenticated ? (
                       <>
