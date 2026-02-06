@@ -1394,4 +1394,751 @@ marketplace-frontend/
 
 ---
 
+# 📡 PHASE 7: BACKEND API INTEGRATION
+**Duration:** 8-12 hours  
+**Goal:** Complete end-to-end integration with Spring Boot backend
+
+## 🔍 INTEGRATION SCOPE ANALYSIS
+
+**Total Integration Points Identified:** 37 TODO comments  
+**Backend API Endpoints Available:** 21+ REST endpoints  
+**File Upload Requirements:** 5 locations (profile photo, logo, banner, gallery)  
+**Authentication Dependencies:** All features require JWT implementation first
+
+---
+
+## 📋 PHASE 7 SUB-PHASES BREAKDOWN
+
+### **Sub-Phase 7.1: FOUNDATION - Authentication & Core Services** ⚙️
+**Duration:** 2-3 hours  
+**Priority:** CRITICAL - All other features depend on this  
+**Files Modified:** 8 files
+
+#### Integration Points:
+1. **Auth Context & JWT Management** (NEW SERVICE)
+   - Create `lib/auth-context.tsx` for global auth state
+   - Implement JWT token decode to extract user info
+   - Store user data (email, role, name) in context
+   - Auto-refresh on page load from localStorage
+   
+2. **API Client Enhancement** (MODIFY)
+   - File: `lib/api-client.ts`
+   - Add token refresh logic
+   - Improve error handling with toast notifications
+   - Add loading state management
+   
+3. **Protected Route Guards** (NEW COMPONENT)
+   - Create `components/auth/ProtectedRoute.tsx`
+   - Check authentication status
+   - Redirect to login if unauthenticated
+   - Verify role-based access (customer/vendor/admin)
+
+4. **Login Page Integration** (MODIFY)
+   - File: `app/login/page.tsx`
+   - Endpoint: `POST /api/auth/login`
+   - Store JWT token in localStorage
+   - Decode token to get user role
+   - Redirect based on role: customer → /dashboard/customer, vendor → /dashboard/vendor, admin → /dashboard/admin
+   - Display error messages from API
+   - **Lines 38, 44:** Replace TODO with API calls
+
+5. **Customer Signup Integration** (MODIFY)
+   - File: `app/signup/page.tsx`
+   - Endpoint: `POST /api/auth/signup`
+   - Same JWT handling as login
+   - Auto-login after successful signup
+   - **Lines 70, 76:** Replace TODO with API calls
+
+6. **Vendor Signup Integration** (MODIFY)
+   - File: `app/signup/page.tsx`
+   - Endpoint: `POST /api/auth/vendor/signup`
+   - Additional fields: business name, category, city
+   - Pending approval message
+   - **Lines 88, 94:** Replace TODO with API calls
+
+7. **Header Component Authentication** (MODIFY)
+   - File: `components/layout/Header.tsx`
+   - Use auth context to check login state
+   - Show user menu if logged in
+   - Display "Login/Signup" buttons if not logged in
+   - **Line 19:** Replace TODO with auth context
+
+8. **Logout Functionality** (MODIFY)
+   - Files: 
+     - `app/dashboard/customer/layout.tsx` (Line 57)
+     - `app/dashboard/vendor/layout.tsx` (Line 67)
+     - `app/dashboard/admin/layout.tsx` (Line 70)
+   - Clear localStorage token
+   - Clear auth context
+   - Redirect to login page
+
+#### Backend Endpoints:
+```
+POST /api/auth/login
+POST /api/auth/signup
+POST /api/auth/vendor/signup
+```
+
+#### Testing Checklist:
+- [ ] Login with customer credentials works
+- [ ] Login with vendor credentials works
+- [ ] Login with admin credentials works
+- [ ] Customer signup creates account and logs in
+- [ ] Vendor signup creates account (pending approval)
+- [ ] Invalid credentials show error message
+- [ ] Token persists after page refresh
+- [ ] Logout clears token and redirects
+- [ ] Protected routes redirect when not authenticated
+- [ ] Header shows correct state (logged in/out)
+
+---
+
+### **Sub-Phase 7.2: PUBLIC PAGES - Explore & Search** 🔍
+**Duration:** 1.5-2 hours  
+**Depends On:** 7.1 (for favorites/quote features)  
+**Files Modified:** 3 files
+
+#### Integration Points:
+
+1. **Homepage Vendor Showcase** (MODIFY)
+   - File: `app/page.tsx`
+   - Endpoint: `GET /api/explore` (get all vendors)
+   - Display top 6 premium/promoted vendors
+   - Remove mock data, use real vendors
+   - Link to explore page
+
+2. **Explore Page - Vendor Listing** (MODIFY)
+   - File: `app/explore/page.tsx`
+   - Endpoint: `GET /api/explore`
+   - Load all active vendors on mount
+   - Implement search: `GET /api/explore/search?city={city}`
+   - Implement filter by category: `GET /api/explore/search?vendorType={type}`
+   - Real-time search with debouncing (500ms)
+   - Loading skeleton while fetching
+   - Empty state if no vendors found
+
+3. **Vendor Profile Page** (MODIFY)
+   - File: `app/vendors/[slug]/page.tsx` (currently missing, needs creation)
+   - Endpoint: `GET /api/explore/{slug}/profile`
+   - Load vendor details by slug
+   - Endpoint: `GET /api/reviews/{slug}` (get vendor reviews)
+   - Display reviews with ratings
+   - Show quote request button (requires auth)
+   - Add to favorites button (requires auth)
+
+#### Backend Endpoints:
+```
+GET /api/explore
+GET /api/explore/{slug}/profile
+GET /api/explore/search?city={city}&vendorType={type}
+GET /api/reviews/{vendorSlug}
+```
+
+#### Testing Checklist:
+- [ ] Homepage displays real vendors
+- [ ] Explore page loads all vendors
+- [ ] Search by city filters correctly
+- [ ] Filter by category works
+- [ ] Vendor profile page loads data
+- [ ] Reviews display on vendor profile
+- [ ] Loading states show during API calls
+- [ ] Error handling for failed requests
+- [ ] Empty states display when no results
+
+---
+
+### **Sub-Phase 7.3: CUSTOMER DASHBOARD** 👤
+**Duration:** 2-3 hours  
+**Depends On:** 7.1, 7.2  
+**Files Modified:** 4 files
+
+#### Integration Points:
+
+1. **Customer Dashboard Overview** (MODIFY)
+   - File: `app/dashboard/customer/page.tsx`
+   - Endpoint: `GET /api/quotes/customer/{email}` (get customer's quotes)
+   - Calculate stats from real data (active quotes, total spent)
+   - Display recent quote activity
+   - Get email from auth context
+
+2. **Customer Quotes Page** (MODIFY)
+   - File: `app/dashboard/customer/quotes/page.tsx`
+   - Endpoint: `GET /api/quotes/customer/{email}`
+   - Display all customer quotes with status
+   - Filter by status (pending/accepted/declined)
+   - Implement quote details dialog
+   - **Line 105:** Replace TODO with dialog implementation
+
+3. **Customer Favorites Page** (MODIFY)
+   - File: `app/dashboard/customer/favorites/page.tsx`
+   - **NEW BACKEND NEEDED:** Favorites feature not in backend yet
+   - Option 1: Store favorites in localStorage (temporary)
+   - Option 2: Request backend to add favorites API
+   - Remove favorite functionality
+   - **Line 71:** Implement remove from favorites
+   - Request quote from favorite vendor
+   - **Line 77:** Open quote request modal
+
+4. **Customer Profile Settings** (MODIFY)
+   - File: `app/dashboard/customer/profile/page.tsx`
+   - Endpoint: `GET /api/customer/profile` (NEW - need backend)
+   - Endpoint: `PUT /api/customer/profile` (NEW - need backend)
+   - Load current profile data
+   - Update profile (name, email, phone, address)
+   - **Line 72:** Replace TODO with API call
+   - Change password functionality
+   - **Line 86:** Replace TODO with API call
+   - Profile photo upload
+   - **Line 99:** Implement photo upload (Sub-Phase 7.6)
+
+#### Backend Endpoints (Available):
+```
+GET /api/quotes/customer/{email}
+```
+
+#### Backend Endpoints (MISSING - Need to Add):
+```
+GET /api/customer/profile
+PUT /api/customer/profile
+POST /api/customer/change-password
+POST /api/customer/favorites/{vendorId}
+DELETE /api/customer/favorites/{vendorId}
+GET /api/customer/favorites
+```
+
+#### Testing Checklist:
+- [ ] Dashboard loads customer's real quote data
+- [ ] Stats calculated correctly from API data
+- [ ] Quotes page displays all customer quotes
+- [ ] Quote status filtering works
+- [ ] Quote details dialog shows full information
+- [ ] Favorites functionality works (even if localStorage)
+- [ ] Profile data loads correctly
+- [ ] Profile update saves successfully
+- [ ] Password change works with validation
+- [ ] Error messages display for failed operations
+
+---
+
+### **Sub-Phase 7.4: VENDOR DASHBOARD** 🏪
+**Duration:** 2-3 hours  
+**Depends On:** 7.1  
+**Files Modified:** 4 files
+
+#### Integration Points:
+
+1. **Vendor Dashboard Overview** (MODIFY)
+   - File: `app/dashboard/vendor/page.tsx`
+   - Endpoint: `GET /api/vendor/dashboard/overview?slug={slug}`
+   - Load real metrics: views, leads, revenue, rating
+   - Display conversion rate
+   - Show recent activity feed
+   - Get vendor slug from auth context
+
+2. **Vendor Quotes Management** (MODIFY)
+   - File: `app/dashboard/vendor/quotes/page.tsx`
+   - Endpoint: `GET /api/quotes/vendor/{vendorSlug}`
+   - Display incoming quote requests
+   - Filter by status (new/accepted/declined/completed)
+   - Quote response dialog with pricing
+   - Accept quote: `PUT /api/quotes/{quoteId}/status` (status: "accepted")
+   - Decline quote: `PUT /api/quotes/{quoteId}/status` (status: "declined")
+   - **Lines 103, 107, 112, 117:** Replace TODO with API calls
+
+3. **Vendor Storefront Editor** (MODIFY)
+   - File: `app/dashboard/vendor/storefront/page.tsx`
+   - Endpoint: `GET /api/vendor/profile?slug={slug}`
+   - Load current storefront data
+   - Endpoint: `PUT /api/vendor/profile?slug={slug}`
+   - Update business info (name, description, services, hours)
+   - **Line 65:** Replace TODO with API call
+   - Logo upload
+   - **Line 77:** Implement upload (Sub-Phase 7.6)
+   - Banner upload
+   - **Line 82:** Implement upload (Sub-Phase 7.6)
+   - Gallery upload
+   - **Line 87:** Implement upload (Sub-Phase 7.6)
+
+4. **Vendor Reviews Page** (MODIFY)
+   - File: `app/dashboard/vendor/reviews/page.tsx`
+   - Endpoint: `GET /api/reviews/{vendorSlug}`
+   - Display all reviews for vendor
+   - Show rating distribution
+   - Flag review: `PUT /api/reviews/{reviewId}/flag`
+   - Calculate average rating from reviews
+
+5. **Vendor Settings** (MODIFY)
+   - File: `app/dashboard/vendor/settings/page.tsx`
+   - Endpoint: `PUT /api/vendor/profile?slug={slug}`
+   - Update business settings
+   - **Line 69:** Replace TODO with API call
+   - Account deactivation
+   - **Line 87:** Implement deactivation (NEW backend endpoint)
+   - Account deletion
+   - **Line 92:** Implement deletion (NEW backend endpoint)
+
+#### Backend Endpoints (Available):
+```
+GET /api/vendor/dashboard/overview?slug={slug}
+GET /api/vendor/profile?slug={slug}
+PUT /api/vendor/profile?slug={slug}
+GET /api/quotes/vendor/{vendorSlug}
+PUT /api/quotes/{quoteId}/status
+GET /api/reviews/{vendorSlug}
+PUT /api/reviews/{reviewId}/flag
+```
+
+#### Backend Endpoints (MISSING):
+```
+PUT /api/vendor/deactivate
+DELETE /api/vendor/account
+```
+
+#### Testing Checklist:
+- [ ] Dashboard loads vendor's real metrics
+- [ ] Views, leads, revenue display correctly
+- [ ] Conversion rate calculates accurately
+- [ ] Quotes page shows incoming requests
+- [ ] Accept quote functionality works
+- [ ] Decline quote functionality works
+- [ ] Quote response saves with pricing
+- [ ] Storefront loads current vendor data
+- [ ] Storefront updates save successfully
+- [ ] Reviews page displays all reviews
+- [ ] Rating distribution shows correctly
+- [ ] Flag review functionality works
+- [ ] Settings update successfully
+- [ ] Account deactivation works
+
+---
+
+### **Sub-Phase 7.5: ADMIN PANEL** 👨‍💼
+**Duration:** 2-3 hours  
+**Depends On:** 7.1  
+**Files Modified:** 6 files
+
+#### Integration Points:
+
+1. **Admin Dashboard Overview** (MODIFY)
+   - File: `app/dashboard/admin/page.tsx`
+   - Endpoint: `GET /api/admin/dashboard`
+   - Load platform stats (users, vendors, revenue, rating)
+   - Display pending actions count
+   - Show recent activity feed
+
+2. **Admin Vendor Management** (MODIFY)
+   - File: `app/dashboard/admin/vendors/page.tsx`
+   - Endpoint: `GET /api/admin/vendors`
+   - Display all vendors with approval status
+   - Filter by status (pending/approved/rejected/suspended)
+   - Search vendors by name
+   - Approve vendor (NEW backend endpoint needed)
+   - **Line 141:** Implement approve vendor
+   - Reject vendor with reason (NEW)
+   - **Line 151:** Implement reject vendor
+   - Suspend vendor (NEW)
+   - **Line 162:** Implement suspend vendor
+
+3. **Admin User Management** (MODIFY)
+   - File: `app/dashboard/admin/users/page.tsx`
+   - Endpoint: `GET /api/admin/users` (NEW - need backend)
+   - Display all users (customers + vendors)
+   - Filter by role and status
+   - Ban user (NEW)
+   - **Line 97:** Implement ban user
+   - Unban user (NEW)
+   - **Line 107:** Implement unban user
+
+4. **Admin Category Management** (MODIFY)
+   - File: `app/dashboard/admin/categories/page.tsx`
+   - Endpoint: `GET /api/admin/categories` (NEW)
+   - Endpoint: `POST /api/admin/categories` (NEW)
+   - Endpoint: `PUT /api/admin/categories/{id}` (NEW)
+   - Endpoint: `DELETE /api/admin/categories/{id}` (NEW)
+   - Full CRUD for categories
+   - **Lines 71, 82, 91:** Replace TODO with API calls
+
+5. **Admin Review Moderation** (MODIFY)
+   - File: `app/dashboard/admin/reviews/page.tsx`
+   - Endpoint: `GET /api/admin/reviews/flagged`
+   - Display flagged reviews by severity
+   - Approve/unflag review (NEW)
+   - **Line 88:** Implement approve review
+   - Delete review: `DELETE /api/admin/reviews/{reviewId}`
+   - **Line 98:** Replace TODO with API call
+
+6. **Admin Platform Settings** (MODIFY)
+   - File: `app/dashboard/admin/settings/page.tsx`
+   - Endpoint: `GET /api/admin/settings` (NEW)
+   - Endpoint: `PUT /api/admin/settings` (NEW)
+   - Load platform configuration
+   - Update settings (commission, features, notifications)
+   - **Line 60:** Replace TODO with API call
+
+#### Backend Endpoints (Available):
+```
+GET /api/admin/dashboard
+GET /api/admin/vendors
+GET /api/admin/reviews/flagged
+DELETE /api/admin/reviews/{reviewId}
+```
+
+#### Backend Endpoints (MISSING):
+```
+PUT /api/admin/vendors/{id}/approve
+PUT /api/admin/vendors/{id}/reject
+PUT /api/admin/vendors/{id}/suspend
+GET /api/admin/users
+PUT /api/admin/users/{id}/ban
+PUT /api/admin/users/{id}/unban
+GET /api/admin/categories
+POST /api/admin/categories
+PUT /api/admin/categories/{id}
+DELETE /api/admin/categories/{id}
+PUT /api/admin/reviews/{id}/unflag
+GET /api/admin/settings
+PUT /api/admin/settings
+```
+
+#### Testing Checklist:
+- [ ] Dashboard loads platform statistics
+- [ ] Pending actions display correctly
+- [ ] Vendor management page loads all vendors
+- [ ] Vendor approval/rejection works
+- [ ] Vendor suspension works
+- [ ] User management displays all users
+- [ ] Ban/unban functionality works
+- [ ] Category CRUD operations work
+- [ ] Flagged reviews display correctly
+- [ ] Review approval/deletion works
+- [ ] Platform settings load correctly
+- [ ] Settings update saves successfully
+
+---
+
+### **Sub-Phase 7.6: FILE UPLOADS & MEDIA** 📸
+**Duration:** 1.5-2 hours  
+**Depends On:** 7.1, 7.3, 7.4  
+**Files Modified:** 3 files + New upload service
+
+#### Integration Points:
+
+1. **Upload Service** (NEW)
+   - Create `lib/upload-service.ts`
+   - Handle multipart/form-data requests
+   - Support image compression before upload
+   - Progress tracking for large files
+   - Error handling for file size/type restrictions
+
+2. **Customer Profile Photo Upload** (MODIFY)
+   - File: `app/dashboard/customer/profile/page.tsx`
+   - Endpoint: `POST /api/customer/upload/photo` (NEW backend)
+   - Image preview before upload
+   - Crop/resize functionality
+   - **Line 99:** Replace TODO with upload implementation
+
+3. **Vendor Logo Upload** (MODIFY)
+   - File: `app/dashboard/vendor/storefront/page.tsx`
+   - Endpoint: `POST /api/vendor/upload/logo` (NEW)
+   - Square aspect ratio enforcement
+   - Max 2MB size
+   - **Line 77:** Replace TODO with upload implementation
+
+4. **Vendor Banner Upload** (MODIFY)
+   - File: `app/dashboard/vendor/storefront/page.tsx`
+   - Endpoint: `POST /api/vendor/upload/banner` (NEW)
+   - 16:9 aspect ratio preferred
+   - Max 5MB size
+   - **Line 82:** Replace TODO with upload implementation
+
+5. **Vendor Gallery Upload** (MODIFY)
+   - File: `app/dashboard/vendor/storefront/page.tsx`
+   - Endpoint: `POST /api/vendor/upload/gallery` (NEW)
+   - Multiple file upload (max 10 images)
+   - Drag & drop support
+   - Reorder gallery images
+   - Delete gallery images
+   - **Line 87:** Replace TODO with upload implementation
+
+#### Backend Endpoints (MISSING - All Need to be Added):
+```
+POST /api/customer/upload/photo
+POST /api/vendor/upload/logo
+POST /api/vendor/upload/banner
+POST /api/vendor/upload/gallery
+DELETE /api/vendor/gallery/{imageId}
+```
+
+#### Implementation Notes:
+- Use `FormData` for file uploads
+- Consider using AWS S3 or local storage in backend
+- Return image URLs after successful upload
+- Implement file validation in frontend AND backend
+- Show upload progress with loading bar
+
+#### Testing Checklist:
+- [ ] Profile photo upload works
+- [ ] Image preview displays before upload
+- [ ] Logo upload saves correctly
+- [ ] Banner upload saves correctly
+- [ ] Gallery multiple upload works
+- [ ] Gallery drag & drop works
+- [ ] Gallery reorder functionality works
+- [ ] Gallery delete works
+- [ ] File size validation works
+- [ ] File type validation works
+- [ ] Upload progress displays
+- [ ] Error messages show for failed uploads
+
+---
+
+### **Sub-Phase 7.7: POLISH & OPTIMIZATION** ✨
+**Duration:** 1-2 hours  
+**Depends On:** 7.1-7.6  
+**Files Modified:** All pages + new services
+
+#### Integration Points:
+
+1. **Global Error Handling** (NEW)
+   - Create `lib/error-handler.ts`
+   - Centralized error message formatting
+   - Toast notifications for errors
+   - Log errors to console in dev mode
+   - User-friendly error messages
+
+2. **Loading States** (MODIFY ALL PAGES)
+   - Add loading skeletons to all data fetches
+   - Disable buttons during submission
+   - Show loading spinner for file uploads
+   - Implement optimistic UI updates where appropriate
+
+3. **React Query Integration** (ENHANCE)
+   - Wrap all API calls in React Query hooks
+   - Implement caching with 60s staleTime
+   - Add refetch on window focus
+   - Implement pagination for large lists
+   - Add infinite scroll for explore page
+
+4. **Form Validation Enhancement** (MODIFY)
+   - Client-side validation with Zod schemas
+   - Server-side error display
+   - Field-level error messages
+   - Disable submit during validation
+
+5. **Real-time Features** (OPTIONAL)
+   - WebSocket connection for notifications
+   - Real-time quote status updates
+   - Live vendor approval notifications
+   - Badge counters update automatically
+
+6. **Performance Optimization**
+   - Lazy load images with next/image
+   - Code splitting for dashboard routes
+   - Prefetch data on hover
+   - Memoize expensive computations
+
+7. **Accessibility & UX Polish**
+   - Add aria-labels to all interactive elements
+   - Keyboard navigation for all features
+   - Focus management in dialogs
+   - Success toast notifications
+   - Confirmation dialogs for destructive actions
+
+#### Testing Checklist:
+- [ ] All API errors display user-friendly messages
+- [ ] Loading states show during all operations
+- [ ] Forms validate before submission
+- [ ] Server errors display field-level messages
+- [ ] React Query caching works correctly
+- [ ] Refetch on window focus works
+- [ ] All images lazy load properly
+- [ ] No console errors in production
+- [ ] Accessibility score >90 in Lighthouse
+- [ ] All actions have success/error feedback
+
+---
+
+## 🔧 BACKEND ENHANCEMENTS NEEDED
+
+### Critical (Must Have):
+1. **Customer Profile API**
+   - `GET /api/customer/profile`
+   - `PUT /api/customer/profile`
+   - `POST /api/customer/change-password`
+
+2. **Favorites API**
+   - `POST /api/customer/favorites/{vendorId}`
+   - `DELETE /api/customer/favorites/{vendorId}`
+   - `GET /api/customer/favorites`
+
+3. **Vendor Approval Workflow**
+   - `PUT /api/admin/vendors/{id}/approve`
+   - `PUT /api/admin/vendors/{id}/reject`
+   - `PUT /api/admin/vendors/{id}/suspend`
+
+4. **User Management**
+   - `GET /api/admin/users`
+   - `PUT /api/admin/users/{id}/ban`
+   - `PUT /api/admin/users/{id}/unban`
+
+5. **Category Management**
+   - `GET /api/admin/categories`
+   - `POST /api/admin/categories`
+   - `PUT /api/admin/categories/{id}`
+   - `DELETE /api/admin/categories/{id}`
+
+6. **File Upload Endpoints**
+   - `POST /api/customer/upload/photo`
+   - `POST /api/vendor/upload/logo`
+   - `POST /api/vendor/upload/banner`
+   - `POST /api/vendor/upload/gallery`
+   - `DELETE /api/vendor/gallery/{imageId}`
+
+### Nice to Have:
+7. **Admin Settings**
+   - `GET /api/admin/settings`
+   - `PUT /api/admin/settings`
+
+8. **Review Unflagging**
+   - `PUT /api/admin/reviews/{id}/unflag`
+
+9. **Vendor Account Actions**
+   - `PUT /api/vendor/deactivate`
+   - `DELETE /api/vendor/account`
+
+---
+
+## 📊 INTEGRATION EXECUTION STRATEGY
+
+### Step-by-Step Approach:
+
+1. **Start with Sub-Phase 7.1 (Foundation)**
+   - This is the most critical phase
+   - All other features depend on authentication
+   - Test thoroughly before moving forward
+
+2. **Move to Sub-Phase 7.2 (Public Pages)**
+   - Low complexity, good for building confidence
+   - Tests the basic API integration pattern
+   - No auth required for most features
+
+3. **Tackle Sub-Phase 7.3 (Customer)**
+   - Medium complexity
+   - Good practice for form submissions
+   - Identify missing backend endpoints
+
+4. **Implement Sub-Phase 7.4 (Vendor)**
+   - Similar patterns to customer dashboard
+   - More complex business logic
+   - Quote management workflow
+
+5. **Complete Sub-Phase 7.5 (Admin)**
+   - Most complex CRUD operations
+   - Requires many new backend endpoints
+   - May need to add backend features first
+
+6. **Add Sub-Phase 7.6 (File Uploads)**
+   - Completely separate concern
+   - Can be done in parallel if needed
+   - Requires backend file handling setup
+
+7. **Finish with Sub-Phase 7.7 (Polish)**
+   - Apply learnings from all previous phases
+   - Consistent error handling everywhere
+   - Performance and UX improvements
+
+### Testing Between Sub-Phases:
+- ✅ Test each sub-phase immediately after completion
+- ✅ Don't move to next sub-phase if current one has blocking issues
+- ✅ Use manual testing + console logs to verify API calls
+- ✅ Check Network tab in DevTools for request/response
+- ✅ Verify data persistence in MongoDB
+
+---
+
+## 🎯 SUCCESS METRICS
+
+### Technical Goals:
+- ✅ All 37 TODO comments resolved
+- ✅ Zero hardcoded mock data
+- ✅ All forms submit to real APIs
+- ✅ Proper error handling on all requests
+- ✅ Loading states on all async operations
+- ✅ JWT authentication working end-to-end
+- ✅ Role-based access control implemented
+
+### User Experience Goals:
+- ✅ Smooth, no-jank animations during data loading
+- ✅ Instant feedback on all user actions
+- ✅ No broken links or 404 errors
+- ✅ Responsive on mobile devices
+- ✅ Fast page load times (<2s)
+
+### Business Goals:
+- ✅ Users can signup and login
+- ✅ Vendors can manage their storefront
+- ✅ Customers can request quotes
+- ✅ Admin can moderate platform
+- ✅ Reviews and ratings work correctly
+- ✅ All critical user flows functional
+
+---
+
+## 📝 IMPLEMENTATION NOTES
+
+### Conventions to Follow:
+1. **API Error Handling:**
+   ```typescript
+   try {
+     const response = await apiClient.post('/endpoint', data);
+     toast.success('Operation successful!');
+   } catch (error) {
+     const message = error.response?.data?.error || 'Something went wrong';
+     toast.error(message);
+   }
+   ```
+
+2. **Loading States:**
+   ```typescript
+   const [isLoading, setIsLoading] = useState(false);
+   
+   const handleSubmit = async () => {
+     setIsLoading(true);
+     try {
+       // API call
+     } finally {
+       setIsLoading(false);
+     }
+   };
+   ```
+
+3. **Auth Context Usage:**
+   ```typescript
+   const { user, isAuthenticated, logout } = useAuth();
+   ```
+
+4. **React Query Pattern:**
+   ```typescript
+   const { data, isLoading, error } = useQuery({
+     queryKey: ['vendors'],
+     queryFn: () => apiClient.get('/api/explore'),
+     staleTime: 60000,
+   });
+   ```
+
+### Common Pitfalls to Avoid:
+- ❌ Don't forget to handle loading states
+- ❌ Don't show raw error objects to users
+- ❌ Don't forget to clear forms after successful submission
+- ❌ Don't make API calls in render functions
+- ❌ Don't forget to validate data before sending to API
+- ❌ Don't hardcode URLs - use environment variables
+- ❌ Don't forget to handle token expiration
+
+---
+
+**🚀 PHASE 7 READY FOR EXECUTION!**
+
+---
+
 **🚀 READY TO START? Follow each phase sequentially for best results!**

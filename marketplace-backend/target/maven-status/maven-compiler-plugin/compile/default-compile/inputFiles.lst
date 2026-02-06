@@ -1,3 +1,5 @@
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/controller/CategoryController.java
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/config/DataSeeder.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/repository/UserRepository.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/controller/ExploreController.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/repository/CategoryRepository.java
@@ -14,9 +16,11 @@
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/model/PageView.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/service/VendorService.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/dto/auth/LoginDto.java
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/dto/VendorStats.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/service/AuthService.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/model/Notification.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/repository/VendorRepository.java
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/model/CustomerProfile.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/model/Review.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/repository/CollaborationRepository.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/dto/DashboardMetrics.java
@@ -32,8 +36,12 @@
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/repository/ReviewRepository.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/model/Collaboration.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/model/QuoteRequest.java
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/config/DataInitializer.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/model/Subscription.java
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/controller/customer/CustomerController.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/service/QuoteService.java
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/controller/UploadController.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/repository/QuoteRequestRepository.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/dto/auth/VendorRegistrationDto.java
+/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/repository/CustomerProfileRepository.java
 /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/main/java/com/marketplace/controller/ReviewController.java

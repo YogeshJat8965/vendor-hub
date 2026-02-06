@@ -1,0 +1,170 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m----------------< [0;36mcom.marketplace:marketplace-backend[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding marketplace-backend 1.0.0[m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m>>> [0;32mspring-boot-maven-plugin:3.2.5:run[m [1m(default-cli)[0;1m > [0;1mtest-compile[m @ [36mmarketplace-backend[0;1m >>>[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-resources-plugin:3.3.1:resources[m [1m(default-resources)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] Copying 1 resource from src/main/resources to target/classes
+[[1;34mINFO[m] Copying 0 resource from src/main/resources to target/classes
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-compiler-plugin:3.8.1:compile[m [1m(default-compile)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] Nothing to compile - all classes are up to date
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-resources-plugin:3.3.1:testResources[m [1m(default-testResources)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] skip non existing resourceDirectory /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/src/test/resources
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-compiler-plugin:3.8.1:testCompile[m [1m(default-testCompile)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] No sources to compile
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m<<< [0;32mspring-boot-maven-plugin:3.2.5:run[m [1m(default-cli)[0;1m < [0;1mtest-compile[m @ [36mmarketplace-backend[0;1m <<<[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mspring-boot-maven-plugin:3.2.5:run[m [1m(default-cli)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-02-06T14:36:17.127+05:30  INFO 38311 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : Starting MarketplaceApplication using Java 21.0.10 with PID 38311 (/home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend/target/classes started by yogesh in /home/yogesh/Desktop/freelance_Project/marketPlace/marketplace-backend)
+2026-02-06T14:36:17.128+05:30 DEBUG 38311 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-02-06T14:36:17.129+05:30  INFO 38311 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-02-06T14:36:17.524+05:30  INFO 38311 --- [marketplace-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-02-06T14:36:17.568+05:30  INFO 38311 --- [marketplace-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 40 ms. Found 9 MongoDB repository interfaces.
+2026-02-06T14:36:18.032+05:30  INFO 38311 --- [marketplace-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-02-06T14:36:18.044+05:30  INFO 38311 --- [marketplace-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-06T14:36:18.044+05:30  INFO 38311 --- [marketplace-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-02-06T14:36:18.079+05:30  INFO 38311 --- [marketplace-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-06T14:36:18.080+05:30  INFO 38311 --- [marketplace-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 917 ms
+2026-02-06T14:36:18.121+05:30 DEBUG 38311 --- [marketplace-backend] [           main] com.marketplace.config.JwtAuthFilter     : Filter 'jwtAuthFilter' configured for use
+2026-02-06T14:36:18.215+05:30  INFO 38311 --- [marketplace-backend] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "4.11.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "6.14.0-37-generic"}, "platform": "Java/Ubuntu/21.0.10+7-Ubuntu-124.04"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, streamFactoryFactory=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@75fd65c, com.mongodb.Jep395RecordCodecProvider@d499c13, com.mongodb.KotlinCodecProvider@2ceca2ef]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null}
+2026-02-06T14:36:18.224+05:30  INFO 38311 --- [marketplace-backend] [localhost:27017] org.mongodb.driver.cluster               : Exception in monitor thread while connecting to server localhost:27017
+
+com.mongodb.MongoSocketOpenException: Exception opening socket
+	at com.mongodb.internal.connection.SocketStream.lambda$open$0(SocketStream.java:84) ~[mongodb-driver-core-4.11.2.jar:na]
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403) ~[na:na]
+	at com.mongodb.internal.connection.SocketStream.open(SocketStream.java:84) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.open(InternalStreamConnection.java:211) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitorRunnable.lookupServerDescription(DefaultServerMonitor.java:193) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:153) ~[mongodb-driver-core-4.11.2.jar:na]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: java.net.ConnectException: Connection refused
+	at java.base/sun.nio.ch.Net.pollConnect(Native Method) ~[na:na]
+	at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:694) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.timedFinishConnect(NioSocketImpl.java:542) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:592) ~[na:na]
+	at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:327) ~[na:na]
+	at java.base/java.net.Socket.connect(Socket.java:751) ~[na:na]
+	at com.mongodb.internal.connection.SocketStreamHelper.initialize(SocketStreamHelper.java:76) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.connection.SocketStream.initializeSocket(SocketStream.java:104) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.connection.SocketStream.open(SocketStream.java:78) ~[mongodb-driver-core-4.11.2.jar:na]
+	... 4 common frames omitted
+
+2026-02-06T14:36:18.526+05:30  WARN 38311 --- [marketplace-backend] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 344ba669-8e29-4ea8-b1a5-d2d558ad5139
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-02-06T14:36:18.723+05:30  INFO 38311 --- [marketplace-backend] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@6d4a05f7, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@51d8f2f2, org.springframework.security.web.context.SecurityContextHolderFilter@615e83ac, org.springframework.security.web.header.HeaderWriterFilter@570b2057, org.springframework.web.filter.CorsFilter@4b476233, org.springframework.security.web.authentication.logout.LogoutFilter@4cb00fa5, com.marketplace.config.JwtAuthFilter@5922d3e9, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4e50ae56, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@1c68d0db, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@72fb989b, org.springframework.security.web.session.SessionManagementFilter@4ebd6fd6, org.springframework.security.web.access.ExceptionTranslationFilter@610fbe1c, org.springframework.security.web.access.intercept.AuthorizationFilter@748904e8]
+2026-02-06T14:36:18.854+05:30  INFO 38311 --- [marketplace-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-02-06T14:36:18.859+05:30  INFO 38311 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : Started MarketplaceApplication in 2.065 seconds (process running for 2.323)
+2026-02-06T14:36:18.897+05:30  INFO 38311 --- [marketplace-backend] [           main] org.mongodb.driver.cluster               : No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description ClusterDescription{type=UNKNOWN, connectionMode=SINGLE, serverDescriptions=[ServerDescription{address=localhost:27017, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused}}]}. Waiting for 30000 ms before timing out
+2026-02-06T14:36:48.901+05:30  INFO 38311 --- [marketplace-backend] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-02-06T14:36:48.917+05:30 ERROR 38311 --- [marketplace-backend] [           main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.dao.DataAccessResourceFailureException: Timed out after 30000 ms while waiting for a server that matches ReadPreferenceServerSelector{readPreference=primary}. Client view of cluster state is {type=UNKNOWN, servers=[{address=localhost:27017, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused}}]
+	at org.springframework.data.mongodb.core.MongoExceptionTranslator.translateExceptionIfPossible(MongoExceptionTranslator.java:88) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate.potentiallyConvertRuntimeException(MongoTemplate.java:3002) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:603) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate.doExactCount(MongoTemplate.java:1225) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate.doCount(MongoTemplate.java:1194) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate$ExistsCallback.doInCollection(MongoTemplate.java:3111) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate$ExistsCallback.doInCollection(MongoTemplate.java:3094) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:601) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate.exists(MongoTemplate.java:848) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.ExecutableFindOperationSupport$ExecutableFindSupport.exists(ExecutableFindOperationSupport.java:160) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.repository.query.AbstractMongoQuery.lambda$getExecution$6(AbstractMongoQuery.java:198) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.repository.query.AbstractMongoQuery.doExecute(AbstractMongoQuery.java:147) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.repository.query.AbstractMongoQuery.execute(AbstractMongoQuery.java:119) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170) ~[spring-data-commons-3.2.5.jar:3.2.5]
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158) ~[spring-data-commons-3.2.5.jar:3.2.5]
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164) ~[spring-data-commons-3.2.5.jar:3.2.5]
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143) ~[spring-data-commons-3.2.5.jar:3.2.5]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70) ~[spring-data-commons-3.2.5.jar:3.2.5]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.data.mongodb.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:129) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.6.jar:6.1.6]
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223) ~[spring-aop-6.1.6.jar:6.1.6]
+	at jdk.proxy2/jdk.proxy2.$Proxy76.existsByEmail(Unknown Source) ~[na:na]
+	at com.marketplace.config.DataInitializer.run(DataInitializer.java:24) ~[classes/:na]
+	at org.springframework.boot.SpringApplication.lambda$callRunner$5(SpringApplication.java:790) ~[spring-boot-3.2.5.jar:3.2.5]
+	at org.springframework.util.function.ThrowingConsumer$1.acceptWithException(ThrowingConsumer.java:83) ~[spring-core-6.1.6.jar:6.1.6]
+	at org.springframework.util.function.ThrowingConsumer.accept(ThrowingConsumer.java:60) ~[spring-core-6.1.6.jar:6.1.6]
+	at org.springframework.util.function.ThrowingConsumer$1.accept(ThrowingConsumer.java:88) ~[spring-core-6.1.6.jar:6.1.6]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:798) ~[spring-boot-3.2.5.jar:3.2.5]
+	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:789) ~[spring-boot-3.2.5.jar:3.2.5]
+	at org.springframework.boot.SpringApplication.lambda$callRunners$3(SpringApplication.java:774) ~[spring-boot-3.2.5.jar:3.2.5]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184) ~[na:na]
+	at java.base/java.util.stream.SortedOps$SizedRefSortingSink.end(SortedOps.java:357) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:510) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151) ~[na:na]
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174) ~[na:na]
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234) ~[na:na]
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596) ~[na:na]
+	at org.springframework.boot.SpringApplication.callRunners(SpringApplication.java:774) ~[spring-boot-3.2.5.jar:3.2.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:341) ~[spring-boot-3.2.5.jar:3.2.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354) ~[spring-boot-3.2.5.jar:3.2.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343) ~[spring-boot-3.2.5.jar:3.2.5]
+	at com.marketplace.MarketplaceApplication.main(MarketplaceApplication.java:11) ~[classes/:na]
+Caused by: com.mongodb.MongoTimeoutException: Timed out after 30000 ms while waiting for a server that matches ReadPreferenceServerSelector{readPreference=primary}. Client view of cluster state is {type=UNKNOWN, servers=[{address=localhost:27017, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketOpenException: Exception opening socket}, caused by {java.net.ConnectException: Connection refused}}]
+	at com.mongodb.internal.connection.BaseCluster.createTimeoutException(BaseCluster.java:380) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.connection.BaseCluster.selectServer(BaseCluster.java:125) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.connection.SingleServerCluster.selectServer(SingleServerCluster.java:46) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.binding.ClusterBinding.getReadConnectionSource(ClusterBinding.java:116) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.client.internal.ClientSessionBinding.getConnectionSource(ClientSessionBinding.java:128) ~[mongodb-driver-sync-4.11.2.jar:na]
+	at com.mongodb.client.internal.ClientSessionBinding.getReadConnectionSource(ClientSessionBinding.java:92) ~[mongodb-driver-sync-4.11.2.jar:na]
+	at com.mongodb.internal.operation.SyncOperationHelper.withSuppliedResource(SyncOperationHelper.java:144) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.SyncOperationHelper.withSourceAndConnection(SyncOperationHelper.java:125) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$executeRetryableRead$4(SyncOperationHelper.java:189) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.SyncOperationHelper.lambda$decorateReadWithRetries$12(SyncOperationHelper.java:292) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.async.function.RetryingSyncSupplier.get(RetryingSyncSupplier.java:67) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.SyncOperationHelper.executeRetryableRead(SyncOperationHelper.java:194) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.SyncOperationHelper.executeRetryableRead(SyncOperationHelper.java:176) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.AggregateOperationImpl.execute(AggregateOperationImpl.java:193) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.AggregateOperation.execute(AggregateOperation.java:153) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.CountDocumentsOperation.execute(CountDocumentsOperation.java:134) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.internal.operation.CountDocumentsOperation.execute(CountDocumentsOperation.java:41) ~[mongodb-driver-core-4.11.2.jar:na]
+	at com.mongodb.client.internal.MongoClientDelegate$DelegateOperationExecutor.execute(MongoClientDelegate.java:153) ~[mongodb-driver-sync-4.11.2.jar:na]
+	at com.mongodb.client.internal.MongoCollectionImpl.executeCount(MongoCollectionImpl.java:227) ~[mongodb-driver-sync-4.11.2.jar:na]
+	at com.mongodb.client.internal.MongoCollectionImpl.countDocuments(MongoCollectionImpl.java:197) ~[mongodb-driver-sync-4.11.2.jar:na]
+	at org.springframework.data.mongodb.core.MongoTemplate.lambda$doExactCount$15(MongoTemplate.java:1226) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	at org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:601) ~[spring-data-mongodb-4.2.5.jar:4.2.5]
+	... 44 common frames omitted
+
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1;31mBUILD FAILURE[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  33.647 s
+[[1;34mINFO[m] Finished at: 2026-02-06T14:36:48+05:30
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;31mERROR[m] Failed to execute goal [32morg.springframework.boot:spring-boot-maven-plugin:3.2.5:run[m [1m(default-cli)[m on project [36mmarketplace-backend[m: [1;31mProcess terminated with exit code: 1[m -> [1m[Help 1][m
+[[1;31mERROR[m] 
+[[1;31mERROR[m] To see the full stack trace of the errors, re-run Maven with the [1m-e[m switch.
+[[1;31mERROR[m] Re-run Maven using the [1m-X[m switch to enable full debug logging.
+[[1;31mERROR[m] 
+[[1;31mERROR[m] For more information about the errors and possible solutions, please read the following articles:
+[[1;31mERROR[m] [1m[Help 1][m http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

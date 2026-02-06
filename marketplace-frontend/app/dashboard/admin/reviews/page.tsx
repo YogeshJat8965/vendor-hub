@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { AlertTriangle, CheckCircle, Trash2, Eye, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AlertTriangle, CheckCircle, Trash2, Eye, Star, Loader2, Download } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/lib/auth-context';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 
 interface FlaggedReview {
   id: string;
@@ -16,99 +19,124 @@ interface FlaggedReview {
   vendorName: string;
   rating: number;
   comment: string;
-  date: string;
+  createdAt: string;
   flagReason: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH';
   reportedBy: string;
   reportedDate: string;
 }
 
-const mockFlaggedReviews: FlaggedReview[] = [
-  {
-    id: '1',
-    reviewId: 'REV-001',
-    customerName: 'Anonymous User',
-    vendorName: 'Johns Plumbing Services',
-    rating: 1,
-    comment: 'This is completely inappropriate content that violates community guidelines...',
-    date: '2024-02-03',
-    flagReason: 'Inappropriate language and threats',
-    severity: 'high',
-    reportedBy: 'Sarah Johnson',
-    reportedDate: '2024-02-03',
-  },
-  {
-    id: '2',
-    reviewId: 'REV-002',
-    customerName: 'Mike Williams',
-    vendorName: 'Elite Electrical',
-    rating: 1,
-    comment: 'Spam content with fake information about competitor...',
-    date: '2024-02-02',
-    flagReason: 'Spam/misleading information',
-    severity: 'medium',
-    reportedBy: 'Vendor Owner',
-    reportedDate: '2024-02-02',
-  },
-  {
-    id: '3',
-    reviewId: 'REV-003',
-    customerName: 'David Brown',
-    vendorName: 'Perfect Painting',
-    rating: 2,
-    comment: 'Contains personal information and contact details...',
-    date: '2024-02-01',
-    flagReason: 'Personal information disclosure',
-    severity: 'low',
-    reportedBy: 'System Auto-flag',
-    reportedDate: '2024-02-01',
-  },
-];
-
 export default function ModerateReviewsPage() {
-  const [flaggedReviews, setFlaggedReviews] = useState(mockFlaggedReviews);
+  const { user } = useAuth();
+  const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [severityFilter, setSeverityFilter] = useState('all');
   const [selectedReview, setSelectedReview] = useState<FlaggedReview | null>(null);
   const [actionDialog, setActionDialog] = useState<'approve' | 'delete' | 'view' | null>(null);
 
+  useEffect(() => {
+    if (user) {
+      fetchFlaggedReviews();
+    }
+  }, [user]);
+
+  const fetchFlaggedReviews = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get('/admin/reviews/flagged');
+      setFlaggedReviews(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch flagged reviews:', error);
+      toast.error('Failed to load flagged reviews');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const filteredReviews = flaggedReviews.filter((review) => {
-    return severityFilter === 'all' || review.severity === severityFilter;
+    return severityFilter === 'all' || review.severity.toLowerCase() === severityFilter.toLowerCase();
   });
 
   const severityCounts = {
     all: flaggedReviews.length,
-    high: flaggedReviews.filter((r) => r.severity === 'high').length,
-    medium: flaggedReviews.filter((r) => r.severity === 'medium').length,
-    low: flaggedReviews.filter((r) => r.severity === 'low').length,
+    high: flaggedReviews.filter((r) => r.severity === 'HIGH').length,
+    medium: flaggedReviews.filter((r) => r.severity === 'MEDIUM').length,
+    low: flaggedReviews.filter((r) => r.severity === 'LOW').length,
   };
 
-  const handleApprove = () => {
-    if (selectedReview) {
-      setFlaggedReviews(flaggedReviews.filter((r) => r.id !== selectedReview.id));
-      // TODO: Call API to approve/unflag review
-      console.log('Approve review:', selectedReview.id);
+  const handleApprove = async () => {
+    if (!selectedReview) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.put(`/admin/reviews/${selectedReview.id}/unflag`);
+      toast.success('Review approved and unflagged');
+      await fetchFlaggedReviews();
       setActionDialog(null);
       setSelectedReview(null);
+    } catch (error) {
+      console.error('Failed to approve review:', error);
+      toast.error('Failed to approve review');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDelete = () => {
-    if (selectedReview) {
-      setFlaggedReviews(flaggedReviews.filter((r) => r.id !== selectedReview.id));
-      // TODO: Call API to delete review
-      console.log('Delete review:', selectedReview.id);
+  const handleDelete = async () => {
+    if (!selectedReview) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.delete(`/admin/reviews/${selectedReview.id}`);
+      toast.success('Review deleted successfully');
+      await fetchFlaggedReviews();
       setActionDialog(null);
       setSelectedReview(null);
+    } catch (error) {
+      console.error('Failed to delete review:', error);
+      toast.error('Failed to delete review');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const exportToCSV = () => {
+    const csvData = filteredReviews.map((review) => ({
+      'Review ID': review.reviewId,
+      Customer: review.customerName,
+      Vendor: review.vendorName,
+      Rating: review.rating,
+      Comment: review.comment.replace(/"/g, '""'),
+      'Flag Reason': review.flagReason.replace(/"/g, '""'),
+      Severity: review.severity,
+      'Reported By': review.reportedBy,
+      'Reported Date': new Date(review.reportedDate).toLocaleDateString(),
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const csv = [
+      headers.join(','),
+      ...csvData.map((row) => headers.map((header) => `"${row[header as keyof typeof row]}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `flagged_reviews_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Reviews data exported successfully');
   };
 
   const getSeverityBadge = (severity: FlaggedReview['severity']) => {
     const styles = {
-      high: 'bg-red-100 text-red-700',
-      medium: 'bg-orange-100 text-orange-700',
-      low: 'bg-yellow-100 text-yellow-700',
+      HIGH: 'bg-red-100 text-red-700',
+      MEDIUM: 'bg-orange-100 text-orange-700',
+      LOW: 'bg-yellow-100 text-yellow-700',
     };
-    return <Badge className={styles[severity]}>{severity.toUpperCase()}</Badge>;
+    return <Badge className={styles[severity]}>{severity}</Badge>;
   };
 
   const renderStars = (rating: number) => {
@@ -135,9 +163,15 @@ export default function ModerateReviewsPage() {
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Moderate Flagged Reviews</h1>
-        <p className="text-gray-600">Review and moderate flagged content</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Moderate Flagged Reviews</h1>
+          <p className="text-gray-600">Review and moderate flagged content</p>
+        </div>
+        <Button onClick={exportToCSV} variant="outline">
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Stats */}
@@ -208,7 +242,7 @@ export default function ModerateReviewsPage() {
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           {renderStars(review.rating)}
-                          <span className="text-sm text-gray-500">{formatDate(review.date)}</span>
+                          <span className="text-sm text-gray-500">{formatDate(review.createdAt)}</span>
                         </div>
                       </div>
                     </div>
@@ -290,11 +324,18 @@ export default function ModerateReviewsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>
+            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
-              Approve
+            <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                'Approve'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -310,11 +351,18 @@ export default function ModerateReviewsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>
+            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Delete Permanently
+            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Permanently'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

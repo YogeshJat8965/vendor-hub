@@ -30,6 +30,12 @@ public class ReviewService {
         return reviewRepository.findByVendorSlug(vendorSlug);
     }
     
+    public List<Review> getVendorReviewsByEmail(String email) {
+        Vendor vendor = vendorRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Vendor not found"));
+        return reviewRepository.findByVendorSlug(vendor.getSlug());
+    }
+    
     public Review flagReview(String reviewId, String reason) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Review not found"));

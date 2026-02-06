@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Ban, Eye, Mail, Calendar, UserCheck, UserX } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Ban, Eye, Mail, Calendar, UserCheck, UserX, Loader2, Download } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,106 +9,123 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/lib/auth-context';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'customer' | 'vendor';
-  registeredDate: string;
-  status: 'active' | 'banned';
-  quotesCount: number;
-  location: string;
+  role: 'CUSTOMER' | 'VENDOR';
+  createdAt: string;
+  status: 'ACTIVE' | 'BANNED';
+  quotesCount?: number;
+  city?: string;
+  state?: string;
 }
 
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    email: 'sarah@example.com',
-    role: 'customer',
-    registeredDate: '2024-01-15',
-    status: 'active',
-    quotesCount: 12,
-    location: 'New York, NY',
-  },
-  {
-    id: '2',
-    name: 'Mike Williams',
-    email: 'mike@example.com',
-    role: 'customer',
-    registeredDate: '2024-01-20',
-    status: 'active',
-    quotesCount: 8,
-    location: 'Brooklyn, NY',
-  },
-  {
-    id: '3',
-    name: 'Emily Chen',
-    email: 'emily@example.com',
-    role: 'customer',
-    registeredDate: '2024-01-25',
-    status: 'active',
-    quotesCount: 5,
-    location: 'Manhattan, NY',
-  },
-  {
-    id: '4',
-    name: 'Robert Johnson',
-    email: 'robert@johnsplumbing.com',
-    role: 'vendor',
-    registeredDate: '2024-01-10',
-    status: 'active',
-    quotesCount: 45,
-    location: 'Queens, NY',
-  },
-  {
-    id: '5',
-    name: 'Spam User',
-    email: 'spam@example.com',
-    role: 'customer',
-    registeredDate: '2024-02-01',
-    status: 'banned',
-    quotesCount: 0,
-    location: 'Unknown',
-  },
-];
-
 export default function ManageUsersPage() {
-  const [users, setUsers] = useState(mockUsers);
+  const { user: currentUser } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [actionDialog, setActionDialog] = useState<'ban' | 'unban' | 'view' | null>(null);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  useEffect(() => {
+    if (currentUser) {
+      fetchUsers();
+    }
+  }, [currentUser]);
 
-  const handleBan = () => {
-    if (selectedUser) {
-      setUsers(users.map((u) => (u.id === selectedUser.id ? { ...u, status: 'banned' as const } : u)));
-      // TODO: Call API to ban user
-      console.log('Ban user:', selectedUser.id);
-      setActionDialog(null);
-      setSelectedUser(null);
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get('/admin/users');
+      setUsers(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      toast.error('Failed to load users');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleUnban = () => {
-    if (selectedUser) {
-      setUsers(users.map((u) => (u.id === selectedUser.id ? { ...u, status: 'active' as const } : u)));
-      // TODO: Call API to unban user
-      console.log('Unban user:', selectedUser.id);
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === 'all' || user.role.toLowerCase() === roleFilter.toLowerCase();
+    const matchesStatus = statusFilter === 'all' || user.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  const handleBan = async () => {
+    if (!selectedUser) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.put(`/admin/users/${selectedUser.id}/ban`);
+      toast.success(`${selectedUser.name || selectedUser.email} has been banned`);
+      await fetchUsers();
       setActionDialog(null);
       setSelectedUser(null);
+    } catch (error) {
+      console.error('Failed to ban user:', error);
+      toast.error('Failed to ban user');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const handleUnban = async () => {
+    if (!selectedUser) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.put(`/admin/users/${selectedUser.id}/unban`);
+      toast.success(`${selectedUser.name || selectedUser.email} has been unbanned`);
+      await fetchUsers();
+      setActionDialog(null);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Failed to unban user:', error);
+      toast.error('Failed to unban user');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const exportToCSV = () => {
+    const csvData = filteredUsers.map((user) => ({
+      Name: user.name || 'N/A',
+      Email: user.email,
+      Role: user.role,
+      Status: user.status,
+      'Registered': new Date(user.createdAt).toLocaleDateString(),
+      'Quotes': user.quotesCount || 0,
+      City: user.city || 'N/A',
+      State: user.state || 'N/A',
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const csv = [
+      headers.join(','),
+      ...csvData.map((row) => headers.map((header) => `"${row[header as keyof typeof row]}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Users data exported successfully');
   };
 
   const formatDate = (dateString: string) => {
@@ -119,12 +136,31 @@ export default function ManageUsersPage() {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+        <div className="max-w-7xl mx-auto py-8">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+      <div className="max-w-7xl mx-auto py-8 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Manage Users</h1>
-        <p className="text-gray-600">View and manage platform users</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Manage Users</h1>
+          <p className="text-gray-600">View and manage platform users</p>
+        </div>
+        <Button onClick={exportToCSV} variant="outline">
+          <Download className="w-4 h-4 mr-2" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Stats */}
@@ -137,19 +173,19 @@ export default function ManageUsersPage() {
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold">{users.filter((u) => u.role === 'customer').length}</p>
+            <p className="text-3xl font-bold">{users.filter((u) => u.role === 'CUSTOMER').length}</p>
             <p className="text-sm text-gray-600">Customers</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold">{users.filter((u) => u.role === 'vendor').length}</p>
+            <p className="text-3xl font-bold">{users.filter((u) => u.role === 'VENDOR').length}</p>
             <p className="text-sm text-gray-600">Vendors</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-red-600">{users.filter((u) => u.status === 'banned').length}</p>
+            <p className="text-3xl font-bold text-red-600">{users.filter((u) => u.status === 'BANNED').length}</p>
             <p className="text-sm text-gray-600">Banned</p>
           </CardContent>
         </Card>
@@ -216,11 +252,11 @@ export default function ManageUsersPage() {
                     <div>
                       <h3 className="text-lg font-semibold mb-1">{user.name}</h3>
                       <div className="flex items-center gap-2">
-                        <Badge variant={user.role === 'vendor' ? 'default' : 'secondary'}>
-                          {user.role === 'vendor' ? 'Vendor' : 'Customer'}
+                        <Badge variant={user.role === 'VENDOR' ? 'default' : 'secondary'}>
+                          {user.role === 'VENDOR' ? 'Vendor' : 'Customer'}
                         </Badge>
-                        <Badge className={user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
-                          {user.status === 'active' ? 'Active' : 'Banned'}
+                        <Badge className={user.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                          {user.status === 'ACTIVE' ? 'Active' : 'Banned'}
                         </Badge>
                       </div>
                     </div>
@@ -233,11 +269,11 @@ export default function ManageUsersPage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="w-4 h-4" />
-                      Joined {formatDate(user.registeredDate)}
+                      Joined {formatDate(user.createdAt)}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <UserCheck className="w-4 h-4" />
-                      {user.quotesCount} {user.role === 'vendor' ? 'quotes received' : 'quotes sent'}
+                      {user.quotesCount || 0} {user.role === 'VENDOR' ? 'quotes received' : 'quotes sent'}
                     </div>
                   </div>
                 </div>
@@ -254,7 +290,7 @@ export default function ManageUsersPage() {
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
-                  {user.status === 'active' ? (
+                  {user.status === 'ACTIVE' ? (
                     <Button
                       size="sm"
                       variant="ghost"
@@ -298,8 +334,17 @@ export default function ManageUsersPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>Cancel</Button>
-            <Button onClick={handleBan} className="bg-red-600 hover:bg-red-700">Ban User</Button>
+            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>Cancel</Button>
+            <Button onClick={handleBan} className="bg-red-600 hover:bg-red-700" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Banning...
+                </>
+              ) : (
+                'Ban User'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -314,11 +359,21 @@ export default function ManageUsersPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>Cancel</Button>
-            <Button onClick={handleUnban} className="bg-green-600 hover:bg-green-700">Unban User</Button>
+            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>Cancel</Button>
+            <Button onClick={handleUnban} className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Unbanning...
+                </>
+              ) : (
+                'Unban User'
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   );
 }

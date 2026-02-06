@@ -1,19 +1,22 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Edit, Trash2, Wrench, Paintbrush, Droplet, Zap, Home, Trees } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Wrench, Paintbrush, Droplet, Zap, Home, Trees, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/lib/auth-context';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 
 interface Category {
   id: string;
   name: string;
   icon: string;
-  vendorCount: number;
+  vendorCount?: number;
 }
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -25,23 +28,36 @@ const iconMap: { [key: string]: React.ElementType } = {
   Trees,
 };
 
-const mockCategories: Category[] = [
-  { id: '1', name: 'Plumbing', icon: 'Droplet', vendorCount: 45 },
-  { id: '2', name: 'Electrical', icon: 'Zap', vendorCount: 38 },
-  { id: '3', name: 'Painting', icon: 'Paintbrush', vendorCount: 52 },
-  { id: '4', name: 'Landscaping', icon: 'Trees', vendorCount: 31 },
-  { id: '5', name: 'Carpentry', icon: 'Wrench', vendorCount: 28 },
-  { id: '6', name: 'Renovation', icon: 'Home', vendorCount: 19 },
-];
-
 const availableIcons = ['Wrench', 'Paintbrush', 'Droplet', 'Zap', 'Home', 'Trees'];
 
 export default function ManageCategoriesPage() {
-  const [categories, setCategories] = useState(mockCategories);
+  const { user } = useAuth();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ name: '', icon: 'Wrench' });
+
+  useEffect(() => {
+    if (user) {
+      fetchCategories();
+    }
+  }, [user]);
+
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get('/admin/categories');
+      setCategories(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+      toast.error('Failed to load categories');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAdd = () => {
     setSelectedCategory(null);
@@ -60,40 +76,58 @@ export default function ManageCategoriesPage() {
     setDeleteDialog(true);
   };
 
-  const handleSave = () => {
-    if (selectedCategory) {
-      // Edit existing
-      setCategories(
-        categories.map((c) =>
-          c.id === selectedCategory.id ? { ...c, name: formData.name, icon: formData.icon } : c
-        )
-      );
-      // TODO: Call API to update category
-      console.log('Update category:', selectedCategory.id, formData);
-    } else {
-      // Add new
-      const newCategory: Category = {
-        id: String(categories.length + 1),
-        name: formData.name,
-        icon: formData.icon,
-        vendorCount: 0,
-      };
-      setCategories([...categories, newCategory]);
-      // TODO: Call API to create category
-      console.log('Create category:', formData);
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      toast.error('Category name is required');
+      return;
     }
-    setDialogOpen(false);
+
+    setIsSubmitting(true);
+    try {
+      if (selectedCategory) {
+        await apiClient.put(`/admin/categories/${selectedCategory.id}`, formData);
+        toast.success('Category updated successfully');
+      } else {
+        await apiClient.post('/admin/categories', formData);
+        toast.success('Category created successfully');
+      }
+      await fetchCategories();
+      setDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to save category:', error);
+      toast.error('Failed to save category');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const confirmDelete = () => {
-    if (selectedCategory) {
-      setCategories(categories.filter((c) => c.id !== selectedCategory.id));
-      // TODO: Call API to delete category
-      console.log('Delete category:', selectedCategory.id);
+  const confirmDelete = async () => {
+    if (!selectedCategory) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.delete(`/admin/categories/${selectedCategory.id}`);
+      toast.success('Category deleted successfully');
+      await fetchCategories();
       setDeleteDialog(false);
       setSelectedCategory(null);
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+      toast.error('Failed to delete category');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 max-w-6xl">
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -189,11 +223,18 @@ export default function ManageCategoriesPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.name.trim()}>
-              {selectedCategory ? 'Save Changes' : 'Add Category'}
+            <Button onClick={handleSave} disabled={!formData.name.trim() || isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                selectedCategory ? 'Save Changes' : 'Add Category'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -209,11 +250,18 @@ export default function ManageCategoriesPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialog(false)}>
+            <Button variant="outline" onClick={() => setDeleteDialog(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+            <Button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

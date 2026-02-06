@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -73,7 +74,7 @@ public class AuthService {
     
     public String login(LoginDto dto) {
         // Try user login
-        var user = userRepository.findByEmail(dto.getEmail());
+        Optional<User> user = userRepository.findByEmail(dto.getEmail());
         if (user.isPresent()) {
             if (passwordEncoder.matches(dto.getPassword(), user.get().getPassword())) {
                 return jwtService.generateToken(user.get().getId(), user.get().getEmail(), user.get().getRole());
@@ -81,7 +82,7 @@ public class AuthService {
         }
         
         // Try vendor login
-        var vendor = vendorRepository.findByEmail(dto.getEmail());
+        Optional<Vendor> vendor = vendorRepository.findByEmail(dto.getEmail());
         if (vendor.isPresent()) {
             if (passwordEncoder.matches(dto.getPassword(), vendor.get().getPasswordHash())) {
                 return jwtService.generateToken(vendor.get().getId(), vendor.get().getEmail(), vendor.get().getRole());
@@ -89,5 +90,33 @@ public class AuthService {
         }
         
         throw new RuntimeException("Invalid credentials");
+    }
+    
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        // Try user first
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            if (!passwordEncoder.matches(currentPassword, user.get().getPassword())) {
+                throw new RuntimeException("Current password is incorrect");
+            }
+            user.get().setPassword(passwordEncoder.encode(newPassword));
+            user.get().setUpdatedAt(Instant.now());
+            userRepository.save(user.get());
+            return;
+        }
+        
+        // Try vendor
+        Optional<Vendor> vendor = vendorRepository.findByEmail(email);
+        if (vendor.isPresent()) {
+            if (!passwordEncoder.matches(currentPassword, vendor.get().getPasswordHash())) {
+                throw new RuntimeException("Current password is incorrect");
+            }
+            vendor.get().setPasswordHash(passwordEncoder.encode(newPassword));
+            vendor.get().setUpdatedAt(Instant.now());
+            vendorRepository.save(vendor.get());
+            return;
+        }
+        
+        throw new RuntimeException("User not found");
     }
 }

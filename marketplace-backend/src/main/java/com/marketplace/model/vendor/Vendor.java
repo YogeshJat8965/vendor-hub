@@ -79,6 +79,27 @@ public class Vendor {
     
     private String role; // VENDOR
     
+    // Additional profile fields
+    private String description;
+    
+    private String longDescription;
+    
+    private String phone;
+    
+    private String website;
+    
+    private String address;
+    
+    private String state;
+    
+    private String zipCode;
+    
+    private Integer yearsInBusiness;
+    
+    private List<String> services;
+    
+    private List<String> gallery;
+    
     private Instant createdAt;
     
     private Instant updatedAt;

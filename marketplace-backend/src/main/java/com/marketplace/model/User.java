@@ -32,6 +32,8 @@ public class User {
     
     private boolean consentConfirmed;
     
+    private boolean banned;
+    
     private Instant createdAt;
     
     private Instant updatedAt;

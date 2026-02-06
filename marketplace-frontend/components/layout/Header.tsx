@@ -3,20 +3,25 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/lib/auth-context';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const isLoggedIn = false; // TODO: Get from auth context
+  const { isAuthenticated, user, logout } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const navLinks = [
     { label: 'Explore', href: '/explore' },
@@ -53,27 +58,34 @@ export function Header() {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <Avatar>
-                      <AvatarFallback>YJ</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
+          <div className="hidden md:flex items-center space-x-3">
+            {isAuthenticated ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  className="gap-2"
+                  asChild
+                >
+                  <Link href={
+                    user?.role?.toLowerCase() === 'customer' 
+                      ? '/dashboard/customer' 
+                      : user?.role?.toLowerCase() === 'vendor' 
+                      ? '/dashboard/vendor' 
+                      : '/dashboard/admin'
+                  }>
+                    <LayoutDashboard className="h-4 w-4" />
                     Dashboard
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </Link>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="gap-2"
+                  onClick={logout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="ghost" asChild>
@@ -107,12 +119,47 @@ export function Header() {
                     </Link>
                   ))}
                   <div className="pt-4 border-t space-y-2">
-                    <Button variant="outline" className="w-full touch-target" asChild>
-                      <Link href="/login">Login</Link>
-                    </Button>
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 touch-target" asChild>
-                      <Link href="/signup">Get Started</Link>
-                    </Button>
+                    {isAuthenticated ? (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          className="w-full touch-target gap-2" 
+                          asChild
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <Link href={
+                            user?.role?.toLowerCase() === 'customer' 
+                              ? '/dashboard/customer' 
+                              : user?.role?.toLowerCase() === 'vendor' 
+                              ? '/dashboard/vendor' 
+                              : '/dashboard/admin'
+                          }>
+                            <LayoutDashboard className="h-4 w-4" />
+                            Dashboard
+                          </Link>
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="w-full touch-target gap-2" 
+                          onClick={() => {
+                            logout();
+                            setIsOpen(false);
+                          }}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Logout
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button variant="outline" className="w-full touch-target" asChild>
+                          <Link href="/login">Login</Link>
+                        </Button>
+                        <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 touch-target" asChild>
+                          <Link href="/signup">Get Started</Link>
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </nav>
               </SheetContent>

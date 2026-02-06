@@ -29,6 +29,12 @@ public class QuoteRequest {
     
     private String status; // NEW, IN_PROGRESS, QUOTED, ACCEPTED, REJECTED, CLOSED
     
+    private String vendorResponse;
+    
+    private Double estimatedCost;
+    
+    private String estimatedTime;
+    
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;

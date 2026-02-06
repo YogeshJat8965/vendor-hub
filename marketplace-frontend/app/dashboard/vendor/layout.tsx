@@ -21,6 +21,8 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 const navItems = [
   {
@@ -45,6 +47,11 @@ const navItems = [
     icon: Store,
   },
   {
+    title: 'Analytics',
+    href: '/dashboard/vendor/analytics',
+    icon: TrendingUp,
+  },
+  {
     title: 'Settings',
     href: '/dashboard/vendor/settings',
     icon: Settings,
@@ -62,11 +69,12 @@ const vendor = {
 function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    // TODO: Implement logout logic
-    localStorage.removeItem('token');
-    router.push('/login');
+    if (confirm('Are you sure you want to logout?')) {
+      logout();
+    }
   };
 
   return (
@@ -271,7 +279,13 @@ export default function VendorDashboardLayout({
   const generateBreadcrumbs = () => {
     const paths = pathname.split('/').filter(Boolean);
     const breadcrumbs = paths.map((path, index) => {
-      const href = '/' + paths.slice(0, index + 1).join('/');
+      let href = '/' + paths.slice(0, index + 1).join('/');
+      
+      // Fix: if the breadcrumb is just /dashboard, redirect to full dashboard path
+      if (href === '/dashboard') {
+        href = '/dashboard/vendor';
+      }
+      
       const title = path.charAt(0).toUpperCase() + path.slice(1);
       return { href, title };
     });
@@ -281,22 +295,23 @@ export default function VendorDashboardLayout({
   const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-64 flex-shrink-0">
-        <Sidebar />
-      </aside>
+    <ProtectedRoute requiredRole="vendor">
+      <div className="flex h-screen bg-gray-50">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:block w-64 flex-shrink-0">
+          <Sidebar />
+        </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Top Bar */}
         <header className="bg-white border-b px-4 sm:px-6 py-4 flex items-center gap-4">
           <MobileSidebar />
           
           {/* Breadcrumbs */}
           <nav className="flex items-center gap-2 text-sm">
             {breadcrumbs.map((crumb, index) => (
-              <div key={crumb.href} className="flex items-center gap-2">
+              <div key={`breadcrumb-${index}`} className="flex items-center gap-2">
                 {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
                 <Link
                   href={crumb.href}
@@ -321,5 +336,6 @@ export default function VendorDashboardLayout({
         </main>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

@@ -46,4 +46,18 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+    
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> payload) {
+        try {
+            String email = payload.get("email");
+            String currentPassword = payload.get("currentPassword");
+            String newPassword = payload.get("newPassword");
+            
+            authService.changePassword(email, currentPassword, newPassword);
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, CheckCircle, XCircle, Eye, MoreVertical, Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { Search, Filter, CheckCircle, XCircle, Eye, MoreVertical, Mail, Phone, MapPin, Calendar, Loader2, Download } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,9 @@ import {
 } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/lib/auth-context';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 
 interface Vendor {
   id: string;
@@ -26,154 +29,167 @@ interface Vendor {
   ownerName: string;
   email: string;
   phone: string;
-  category: string;
-  location: string;
-  registeredDate: string;
-  status: 'pending' | 'approved' | 'rejected' | 'suspended';
+  vendorType: string;
+  city: string;
+  state: string;
+  createdAt: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
   isPremium: boolean;
-  rating: number;
-  reviewCount: number;
+  averageRating?: number;
+  totalReviews?: number;
 }
 
-const mockVendors: Vendor[] = [
-  {
-    id: '1',
-    businessName: 'Elite Electrical Services',
-    ownerName: 'John Smith',
-    email: 'john@eliteelectrical.com',
-    phone: '(555) 123-4567',
-    category: 'Electrical',
-    location: 'New York, NY',
-    registeredDate: '2024-02-03',
-    status: 'pending',
-    isPremium: false,
-    rating: 0,
-    reviewCount: 0,
-  },
-  {
-    id: '2',
-    businessName: 'Perfect Painting Co.',
-    ownerName: 'Mike Williams',
-    email: 'mike@perfectpainting.com',
-    phone: '(555) 234-5678',
-    category: 'Painting',
-    location: 'Brooklyn, NY',
-    registeredDate: '2024-02-02',
-    status: 'pending',
-    isPremium: true,
-    rating: 0,
-    reviewCount: 0,
-  },
-  {
-    id: '3',
-    businessName: 'Johns Plumbing Services',
-    ownerName: 'Robert Johnson',
-    email: 'contact@johnsplumbing.com',
-    phone: '(555) 345-6789',
-    category: 'Plumbing',
-    location: 'Manhattan, NY',
-    registeredDate: '2024-01-15',
-    status: 'approved',
-    isPremium: true,
-    rating: 4.8,
-    reviewCount: 127,
-  },
-  {
-    id: '4',
-    businessName: 'Green Landscaping',
-    ownerName: 'David Brown',
-    email: 'info@greenlandscaping.com',
-    phone: '(555) 456-7890',
-    category: 'Landscaping',
-    location: 'Queens, NY',
-    registeredDate: '2024-01-20',
-    status: 'approved',
-    isPremium: false,
-    rating: 4.6,
-    reviewCount: 89,
-  },
-  {
-    id: '5',
-    businessName: 'Budget Plumbing',
-    ownerName: 'Tom Wilson',
-    email: 'tom@budgetplumbing.com',
-    phone: '(555) 567-8901',
-    category: 'Plumbing',
-    location: 'Bronx, NY',
-    registeredDate: '2024-01-10',
-    status: 'suspended',
-    isPremium: false,
-    rating: 3.2,
-    reviewCount: 45,
-  },
-];
-
 export default function ManageVendorsPage() {
-  const [vendors, setVendors] = useState(mockVendors);
+  const { user } = useAuth();
+  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [actionDialog, setActionDialog] = useState<'approve' | 'reject' | 'suspend' | 'view' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchVendors();
+    }
+  }, [user]);
+
+  const fetchVendors = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get('/admin/vendors');
+      setVendors(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch vendors:', error);
+      toast.error('Failed to load vendors');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredVendors = vendors.filter((vendor) => {
     const matchesSearch =
       vendor.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vendor.ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vendor.ownerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       vendor.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || vendor.status === statusFilter;
-    const matchesCategory = categoryFilter === 'all' || vendor.category === categoryFilter;
+    const matchesStatus = statusFilter === 'all' || vendor.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesCategory = categoryFilter === 'all' || vendor.vendorType === categoryFilter;
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
   const statusCounts = {
     all: vendors.length,
-    pending: vendors.filter((v) => v.status === 'pending').length,
-    approved: vendors.filter((v) => v.status === 'approved').length,
-    rejected: vendors.filter((v) => v.status === 'rejected').length,
-    suspended: vendors.filter((v) => v.status === 'suspended').length,
+    pending: vendors.filter((v) => v.status === 'PENDING').length,
+    approved: vendors.filter((v) => v.status === 'APPROVED').length,
+    rejected: vendors.filter((v) => v.status === 'REJECTED').length,
+    suspended: vendors.filter((v) => v.status === 'SUSPENDED').length,
   };
 
-  const handleApprove = () => {
-    if (selectedVendor) {
-      setVendors(vendors.map((v) => (v.id === selectedVendor.id ? { ...v, status: 'approved' as const } : v)));
-      // TODO: Call API to approve vendor
-      console.log('Approve vendor:', selectedVendor.id);
+  const handleApprove = async () => {
+    if (!selectedVendor) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.put(`/admin/vendors/${selectedVendor.id}/approve`);
+      toast.success(`${selectedVendor.businessName} approved successfully`);
+      await fetchVendors();
       setActionDialog(null);
       setSelectedVendor(null);
+    } catch (error) {
+      console.error('Failed to approve vendor:', error);
+      toast.error('Failed to approve vendor');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleReject = () => {
-    if (selectedVendor) {
-      setVendors(vendors.map((v) => (v.id === selectedVendor.id ? { ...v, status: 'rejected' as const } : v)));
-      // TODO: Call API to reject vendor with reason
-      console.log('Reject vendor:', selectedVendor.id, 'Reason:', rejectionReason);
+  const handleReject = async () => {
+    if (!selectedVendor) return;
+    
+    if (!rejectionReason.trim()) {
+      toast.error('Please provide a rejection reason');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await apiClient.put(`/admin/vendors/${selectedVendor.id}/reject`, {
+        reason: rejectionReason,
+      });
+      toast.success(`${selectedVendor.businessName} rejected`);
+      await fetchVendors();
       setActionDialog(null);
       setSelectedVendor(null);
       setRejectionReason('');
+    } catch (error) {
+      console.error('Failed to reject vendor:', error);
+      toast.error('Failed to reject vendor');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleSuspend = () => {
-    if (selectedVendor) {
-      setVendors(vendors.map((v) => (v.id === selectedVendor.id ? { ...v, status: 'suspended' as const } : v)));
-      // TODO: Call API to suspend vendor
-      console.log('Suspend vendor:', selectedVendor.id);
+  const handleSuspend = async () => {
+    if (!selectedVendor) return;
+    
+    setIsSubmitting(true);
+    try {
+      await apiClient.put(`/admin/vendors/${selectedVendor.id}/suspend`);
+      toast.success(`${selectedVendor.businessName} suspended`);
+      await fetchVendors();
       setActionDialog(null);
       setSelectedVendor(null);
+    } catch (error) {
+      console.error('Failed to suspend vendor:', error);
+      toast.error('Failed to suspend vendor');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const exportToCSV = () => {
+    const csvData = filteredVendors.map((vendor) => ({
+      'Business Name': vendor.businessName,
+      'Owner Name': vendor.ownerName,
+      Email: vendor.email,
+      Phone: vendor.phone,
+      Type: vendor.vendorType,
+      City: vendor.city,
+      State: vendor.state,
+      Status: vendor.status,
+      'Premium': vendor.isPremium ? 'Yes' : 'No',
+      'Average Rating': vendor.averageRating || 'N/A',
+      'Total Reviews': vendor.totalReviews || 0,
+      'Registered': new Date(vendor.createdAt).toLocaleDateString(),
+    }));
+
+    const headers = Object.keys(csvData[0]);
+    const csv = [
+      headers.join(','),
+      ...csvData.map((row) => headers.map((header) => `"${row[header as keyof typeof row]}"`).join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `vendors_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    toast.success('Vendors data exported successfully');
   };
 
   const getStatusBadge = (status: Vendor['status']) => {
     const styles = {
-      pending: 'bg-orange-100 text-orange-700',
-      approved: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-700',
-      suspended: 'bg-gray-100 text-gray-700',
+      PENDING: 'bg-orange-100 text-orange-700',
+      APPROVED: 'bg-green-100 text-green-700',
+      REJECTED: 'bg-red-100 text-red-700',
+      SUSPENDED: 'bg-gray-100 text-gray-700',
     };
-    return <Badge className={styles[status]}>{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
+    return <Badge className={styles[status]}>{status.charAt(0) + status.slice(1).toLowerCase()}</Badge>;
   };
 
   const formatDate = (dateString: string) => {
@@ -184,13 +200,21 @@ export default function ManageVendorsPage() {
     });
   };
 
-  return (
-    <div className="space-y-6 max-w-7xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Manage Vendors</h1>
-        <p className="text-gray-600">Review and manage vendor registrations</p>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+        <div className="max-w-7xl mx-auto py-8">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+      <div className="max-w-7xl mx-auto py-8 space-y-6">\n      {/* Header */}\n      <div className="flex items-center justify-between">\n        <div>\n          <h1 className="text-3xl font-bold mb-2">Manage Vendors</h1>\n          <p className="text-gray-600">Review and manage vendor registrations</p>\n        </div>\n        <Button onClick={exportToCSV} variant="outline">\n          <Download className="w-4 h-4 mr-2" />\n          Export CSV\n        </Button>\n      </div>
 
       {/* Filters */}
       <Card>
@@ -283,19 +307,19 @@ export default function ManageVendorsPage() {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <MapPin className="w-4 h-4" />
-                        {vendor.location}
+                        {vendor.city}, {vendor.state}
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar className="w-4 h-4" />
-                        Registered {formatDate(vendor.registeredDate)}
+                        Registered {formatDate(vendor.createdAt)}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <Badge variant="outline">{vendor.category}</Badge>
-                      {vendor.rating > 0 && (
+                      <Badge variant="outline">{vendor.vendorType}</Badge>
+                      {vendor.averageRating && vendor.averageRating > 0 && (
                         <span className="text-sm text-gray-600">
-                          ⭐ {vendor.rating} ({vendor.reviewCount} reviews)
+                          ⭐ {vendor.averageRating.toFixed(1)} ({vendor.totalReviews || 0} reviews)
                         </span>
                       )}
                     </div>
@@ -313,7 +337,7 @@ export default function ManageVendorsPage() {
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
-                    {vendor.status === 'pending' && (
+                    {vendor.status === 'PENDING' && (
                       <>
                         <Button
                           size="sm"
@@ -339,7 +363,7 @@ export default function ManageVendorsPage() {
                         </Button>
                       </>
                     )}
-                    {vendor.status === 'approved' && (
+                    {vendor.status === 'APPROVED' && (
                       <Button
                         size="sm"
                         variant="ghost"
@@ -370,8 +394,16 @@ export default function ManageVendorsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>Cancel</Button>
-            <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">Approve</Button>
+            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleApprove} 
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Approving...' : 'Approve'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -391,11 +423,20 @@ export default function ManageVendorsPage() {
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               className="min-h-32"
+              disabled={isSubmitting}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>Cancel</Button>
-            <Button onClick={handleReject} className="bg-red-600 hover:bg-red-700">Reject</Button>
+            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleReject} 
+              className="bg-red-600 hover:bg-red-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Rejecting...' : 'Reject'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -410,11 +451,20 @@ export default function ManageVendorsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>Cancel</Button>
-            <Button onClick={handleSuspend} className="bg-orange-600 hover:bg-orange-700">Suspend</Button>
+            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSuspend} 
+              className="bg-orange-600 hover:bg-orange-700"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Suspending...' : 'Suspend'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

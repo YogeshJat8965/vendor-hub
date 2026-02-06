@@ -20,6 +20,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/lib/auth-context';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
 const navItems = [
   {
@@ -65,12 +67,12 @@ const adminData = {
 
 function Sidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    // TODO: Call logout API
-    console.log('Logout');
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+    if (confirm('Are you sure you want to logout?')) {
+      logout();
+    }
   };
 
   return (
@@ -269,7 +271,13 @@ export default function AdminLayout({
   const generateBreadcrumbs = () => {
     const paths = pathname.split('/').filter(Boolean);
     const breadcrumbs = paths.map((path, index) => {
-      const href = '/' + paths.slice(0, index + 1).join('/');
+      let href = '/' + paths.slice(0, index + 1).join('/');
+      
+      // Fix: if the breadcrumb is just /dashboard, redirect to full dashboard path
+      if (href === '/dashboard') {
+        href = '/dashboard/admin';
+      }
+      
       const label = path.charAt(0).toUpperCase() + path.slice(1);
       return { href, label };
     });
@@ -279,8 +287,9 @@ export default function AdminLayout({
   const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex h-screen overflow-hidden">
+    <ProtectedRoute requiredRole="admin">
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex h-screen overflow-hidden">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex lg:flex-col lg:w-72 bg-white border-r border-gray-200">
           <Sidebar />
@@ -296,7 +305,7 @@ export default function AdminLayout({
               {/* Breadcrumbs */}
               <nav className="flex items-center gap-2 text-sm">
                 {breadcrumbs.map((crumb, index) => (
-                  <div key={crumb.href} className="flex items-center gap-2">
+                  <div key={`breadcrumb-${index}`} className="flex items-center gap-2">
                     {index > 0 && <span className="text-gray-400">/</span>}
                     <Link
                       href={crumb.href}
@@ -321,5 +330,6 @@ export default function AdminLayout({
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

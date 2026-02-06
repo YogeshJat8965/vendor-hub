@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { jwtDecode } from 'jwt-decode';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,6 +27,9 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const roleParam = searchParams.get('role');
+  const { login, isAuthenticated, user } = useAuth();
 
   const {
     register,
@@ -32,22 +39,46 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const role = user.role?.toLowerCase();
+      if (role === 'customer') router.push('/dashboard/customer');
+      else if (role === 'vendor') router.push('/dashboard/vendor');
+      else if (role === 'admin') router.push('/dashboard/admin');
+    }
+  }, [isAuthenticated, user, router]);
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Integrate with backend API
-      console.log('Login data:', data);
+      const response = await apiClient.post('/auth/login', {
+        email: data.email,
+        password: data.password,
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const token = response.data.token;
+      login(token);
       
-      // TODO: Store JWT token in localStorage
-      // localStorage.setItem('token', response.token);
+      toast.success('Login successful!');
       
-      // Redirect to dashboard or home
-      router.push('/');
-    } catch (error) {
-      console.error('Login error:', error);
+      // Decode token to get user role for redirect
+      const decoded = jwtDecode<any>(token);
+      const userRole = decoded.role?.toLowerCase();
+      
+      // Redirect based on role
+      if (userRole === 'customer') {
+        router.push('/dashboard/customer');
+      } else if (userRole === 'vendor') {
+        router.push('/dashboard/vendor');
+      } else if (userRole === 'admin') {
+        router.push('/dashboard/admin');
+      } else {
+        router.push('/');
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Login failed';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +102,13 @@ export default function LoginPage() {
           {/* Title */}
           <div className="mb-8">
             <h2 className="text-3xl sm:text-4xl font-bold mb-2">Welcome Back</h2>
-            <p className="text-gray-600">Sign in to your account to continue</p>
+            <p className="text-gray-600">
+              {roleParam === 'vendor' 
+                ? 'Sign in to your vendor account'
+                : roleParam === 'customer'
+                ? 'Sign in to find trusted service providers'
+                : 'Sign in to your account to continue'}
+            </p>
           </div>
 
           {/* Form */}

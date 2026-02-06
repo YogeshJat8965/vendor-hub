@@ -29,6 +29,11 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getVendorReviews(vendorSlug));
     }
     
+    @GetMapping("/vendor")
+    public ResponseEntity<?> getVendorReviewsByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(reviewService.getVendorReviewsByEmail(email));
+    }
+    
     @PutMapping("/{reviewId}/flag")
     public ResponseEntity<?> flagReview(
             @PathVariable String reviewId,

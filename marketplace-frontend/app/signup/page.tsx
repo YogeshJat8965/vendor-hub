@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, User, Building2, Phone, MapPin, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { apiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 
 const customerSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -41,13 +44,14 @@ const vendorSchema = z.object({
 type CustomerFormData = z.infer<typeof customerSchema>;
 type VendorFormData = z.infer<typeof vendorSchema>;
 
-export default function SignupPage() {
+function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'customer' | 'vendor'>('customer');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { login, isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const type = searchParams.get('type');
@@ -55,6 +59,16 @@ export default function SignupPage() {
       setActiveTab('vendor');
     }
   }, [searchParams]);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const role = user.role?.toLowerCase();
+      if (role === 'customer') router.push('/dashboard/customer');
+      else if (role === 'vendor') router.push('/dashboard/vendor');
+      else if (role === 'admin') router.push('/dashboard/admin');
+    }
+  }, [isAuthenticated, user, router]);
 
   const customerForm = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
@@ -67,16 +81,21 @@ export default function SignupPage() {
   const onCustomerSubmit = async (data: CustomerFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Integrate with backend API
-      console.log('Customer signup data:', data);
+      const response = await apiClient.post('/auth/signup', {
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        phone: data.phone || '',
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const token = response.data.token;
+      login(token);
       
-      // TODO: Store JWT token and redirect
-      router.push('/login');
-    } catch (error) {
-      console.error('Signup error:', error);
+      toast.success('Account created successfully! Welcome!');
+      router.push('/dashboard/customer');
+    } catch (error: any) {
+      const message = error.response?.data?.error || 'Signup failed';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -85,16 +104,31 @@ export default function SignupPage() {
   const onVendorSubmit = async (data: VendorFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Integrate with backend API
-      console.log('Vendor signup data:', data);
+      const response = await apiClient.post('/auth/vendor/signup', {
+        storeName: data.businessName,
+        businessName: data.businessName,
+        email: data.email,
+        password: data.password,
+        mobile: data.phone || '',
+        vendorType: 'SERVICE_PROVIDER', // Default type
+        city: data.city,
+        pincode: '', // We don't collect pincode in form, can be added later
+        consentConfirmed: true,
+      });
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const token = response.data.token;
+      login(token);
       
-      // TODO: Store JWT token and redirect
-      router.push('/login');
-    } catch (error) {
-      console.error('Signup error:', error);
+      toast.success('Vendor registration successful!', {
+        description: 'Your account is pending approval. You will be notified once approved.',
+        duration: 5000,
+      });
+      
+      router.push('/dashboard/vendor');
+    } catch (error: any) {
+      console.error('Vendor signup error:', error.response?.data || error);
+      const message = error.response?.data?.error || error.response?.data?.message || 'Vendor signup failed';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -112,20 +146,32 @@ export default function SignupPage() {
         >
           {/* Logo */}
           <Link href="/" className="inline-block mb-8">
-            <h1 className="text-3xl font-bold gradient-text">VendorHub</h1>
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">VendorHub</h1>
           </Link>
 
           {/* Title */}
           <div className="mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-2">Create Account</h2>
-            <p className="text-gray-600">Join our community today</p>
+            <h2 className="text-3xl sm:text-4xl font-bold mb-3">
+              Create Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">Account</span>
+            </h2>
+            <p className="text-gray-600 text-lg">Join our community and get started today</p>
           </div>
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'customer' | 'vendor')} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 touch-target">
-              <TabsTrigger value="customer" className="touch-target">Customer</TabsTrigger>
-              <TabsTrigger value="vendor" className="touch-target">Vendor</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 gap-4 mb-8 bg-transparent p-0">
+              <TabsTrigger 
+                value="customer" 
+                className="h-12 px-6 font-bold text-base flex items-center justify-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:border-2 data-[state=inactive]:border-gray-300 data-[state=inactive]:hover:border-blue-400 transition-all duration-200 rounded-xl"
+              >
+                Customer
+              </TabsTrigger>
+              <TabsTrigger 
+                value="vendor" 
+                className="h-12 px-6 font-bold text-base flex items-center justify-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:border-2 data-[state=inactive]:border-gray-300 data-[state=inactive]:hover:border-purple-400 transition-all duration-200 rounded-xl"
+              >
+                Vendor
+              </TabsTrigger>
             </TabsList>
 
             {/* Customer Form */}
@@ -462,21 +508,29 @@ export default function SignupPage() {
           className="relative z-10 text-white text-center max-w-md"
         >
           <h2 className="text-4xl font-bold mb-6">Join VendorHub Today</h2>
-          <p className="text-lg text-blue-100 mb-8">
-            Whether you're looking for services or offering them, VendorHub connects you with the right people.
+          <p className="text-lg text-blue-100 mb-8 leading-relaxed">
+            Connect with verified professionals or grow your business with thousands of potential customers.
           </p>
           <div className="space-y-4 text-left">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <h3 className="font-semibold mb-1">For Customers</h3>
-              <p className="text-sm text-blue-100">Find verified professionals, get quotes, and hire with confidence</p>
+            <div className="bg-white/20 backdrop-blur-md rounded-xl p-5 border border-white/20 shadow-lg">
+              <h3 className="font-bold mb-2 text-lg">For Customers</h3>
+              <p className="text-sm text-blue-50 leading-relaxed">Find verified professionals, compare quotes, and hire with complete confidence</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <h3 className="font-semibold mb-1">For Vendors</h3>
-              <p className="text-sm text-blue-100">Grow your business, connect with customers, and build your reputation</p>
+            <div className="bg-white/20 backdrop-blur-md rounded-xl p-5 border border-white/20 shadow-lg">
+              <h3 className="font-bold mb-2 text-lg">For Vendors</h3>
+              <p className="text-sm text-blue-50 leading-relaxed">Expand your reach, connect with customers, and build a strong reputation</p>
             </div>
           </div>
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }
