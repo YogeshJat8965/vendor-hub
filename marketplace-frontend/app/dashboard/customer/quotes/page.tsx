@@ -25,6 +25,8 @@ interface Quote {
   status: string;
   budget?: number;
   preferredDate?: string;
+  timeline?: string;
+  location?: string;
   vendorResponse?: string;
   estimatedCost?: number;
   estimatedTime?: string;

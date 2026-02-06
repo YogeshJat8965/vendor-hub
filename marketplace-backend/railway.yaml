@@ -1,0 +1,12 @@
+# Railway configuration for Spring Boot
+nixpacks:
+  phases:
+    setup:
+      nixPkgs:
+        - maven
+        - jdk17
+    build:
+      cmds:
+        - mvn clean package -DskipTests
+    start:
+      cmd: java -Dserver.port=$PORT -jar target/*.jar

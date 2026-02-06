@@ -12,13 +12,19 @@ interface QuoteDetailDialogProps {
   quote: {
     id: string;
     vendorSlug: string;
-    serviceType: string;
-    description: string;
+    customerName?: string;
+    customerEmail: string;
+    customerMobile?: string;
+    serviceRequested: string;
+    projectDescription: string;
     status: string;
-    budget?: string;
+    budget?: number;
+    preferredDate?: string;
     timeline?: string;
     location?: string;
-    contactPhone?: string;
+    vendorResponse?: string;
+    estimatedCost?: number;
+    estimatedTime?: string;
     createdAt: string;
     updatedAt?: string;
   } | null;
@@ -45,7 +51,7 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
         <DialogHeader>
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <DialogTitle className="text-2xl mb-2">{quote.serviceType}</DialogTitle>
+              <DialogTitle className="text-2xl mb-2">{quote.serviceRequested}</DialogTitle>
               <Badge className={getStatusColor(quote.status)}>
                 {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
               </Badge>
@@ -61,7 +67,7 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
               Description
             </h3>
             <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              {quote.description}
+              {quote.projectDescription}
             </p>
           </div>
 
@@ -117,10 +123,10 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
             )}
 
             {/* Contact Phone */}
-            {quote.contactPhone && (
+            {quote.customerMobile && (
               <div>
                 <h3 className="font-semibold mb-2">Contact Phone</h3>
-                <p className="text-gray-700 dark:text-gray-300">{quote.contactPhone}</p>
+                <p className="text-gray-700 dark:text-gray-300">{quote.customerMobile}</p>
               </div>
             )}
 
