@@ -1,6 +1,7 @@
 package com.marketplace.config;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -68,11 +70,12 @@ public class SecurityConfig {
             }
         }
         
-        // DEBUG: Log what origins we're using
-        System.out.println("=== CORS Configuration ===");
-        System.out.println("Raw ALLOWED_ORIGINS: [" + allowedOrigins + "]");
-        System.out.println("Trimmed origins: " + origins);
-        System.out.println("========================");
+        // Use logger instead of System.out
+        log.warn("=".repeat(50));
+        log.warn("CORS CONFIGURATION");
+        log.warn("Raw ALLOWED_ORIGINS: [{}]", allowedOrigins);
+        log.warn("Trimmed origins: {}", origins);
+        log.warn("=".repeat(50));
         
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
