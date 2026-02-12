@@ -60,8 +60,14 @@ public class SecurityConfig {
         
         // Read allowed origins from environment variable
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
-        configuration.setAllowedOrigins(origins);
         
+        // DEBUG: Log what origins we're using
+        System.out.println("=== CORS Configuration ===");
+        System.out.println("Raw ALLOWED_ORIGINS: [" + allowedOrigins + "]");
+        System.out.println("Parsed origins: " + origins);
+        System.out.println("========================");
+        
+        configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
