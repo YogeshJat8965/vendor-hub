@@ -13,7 +13,7 @@ spring:
       max-request-size: 10MB
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 jwt:
   secret: ${JWT_SECRET:ThisIsAVeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast256BitsLong12345678}
