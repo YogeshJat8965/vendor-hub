@@ -58,13 +58,20 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Read allowed origins from environment variable
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        // Read allowed origins from environment variable and trim whitespace
+        String[] originArray = allowedOrigins.split(",");
+        List<String> origins = new java.util.ArrayList<>();
+        for (String origin : originArray) {
+            String trimmed = origin.trim();
+            if (!trimmed.isEmpty()) {
+                origins.add(trimmed);
+            }
+        }
         
         // DEBUG: Log what origins we're using
         System.out.println("=== CORS Configuration ===");
         System.out.println("Raw ALLOWED_ORIGINS: [" + allowedOrigins + "]");
-        System.out.println("Parsed origins: " + origins);
+        System.out.println("Trimmed origins: " + origins);
         System.out.println("========================");
         
         configuration.setAllowedOrigins(origins);
