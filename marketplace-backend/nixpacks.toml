@@ -5,4 +5,4 @@ nixPkgs = ["jdk17", "maven"]
 cmds = ["mvn clean package -DskipTests"]
 
 [start]
-cmd = "java -Dserver.port=$PORT -jar target/marketplace-backend.jar"
+cmd = "java -jar target/marketplace-backend.jar"
