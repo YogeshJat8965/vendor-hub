@@ -17,6 +17,7 @@ public class VendorRegistrationDto {
     private String email;
     
     @NotBlank
+    @jakarta.validation.constraints.Size(min = 8)
     private String password;
     
     @NotBlank
