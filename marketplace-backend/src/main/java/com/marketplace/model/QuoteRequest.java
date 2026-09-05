@@ -21,6 +21,10 @@ public class QuoteRequest {
     
     private String serviceRequested;
     
+    private String catalogueId; // Optional: Link to a specific catalogue
+    
+    private String catalogueItemId; // Optional: Link to a specific item inside the catalogue
+    
     private String projectDescription;
     
     private Double budget;

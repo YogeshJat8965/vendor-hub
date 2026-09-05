@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Loader2 } from 'lucide-react';
 import {
@@ -24,6 +24,10 @@ interface QuoteRequestDialogProps {
   onOpenChange: (open: boolean) => void;
   vendorSlug: string;
   vendorName: string;
+  catalogueId?: string;
+  catalogueItemId?: string;
+  initialServiceType?: string;
+  initialDescription?: string;
 }
 
 export function QuoteRequestDialog({
@@ -31,18 +35,32 @@ export function QuoteRequestDialog({
   onOpenChange,
   vendorSlug,
   vendorName,
+  catalogueId,
+  catalogueItemId,
+  initialServiceType,
+  initialDescription,
 }: QuoteRequestDialogProps) {
   const { user } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    serviceType: '',
-    description: '',
+    serviceType: initialServiceType || '',
+    description: initialDescription || '',
     budget: '',
     timeline: '',
     contactPhone: '',
     location: '',
   });
+
+  useEffect(() => {
+    if (open) {
+      setFormData(prev => ({
+        ...prev,
+        serviceType: initialServiceType || prev.serviceType,
+        description: initialDescription || prev.description,
+      }));
+    }
+  }, [open, initialServiceType, initialDescription]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +91,8 @@ export function QuoteRequestDialog({
         contactPhone: formData.contactPhone || user.email,
         location: formData.location,
         status: 'PENDING',
+        catalogueId: catalogueId,
+        catalogueItemId: catalogueItemId,
       };
 
       await apiClient.post('/quotes/request', quoteData);

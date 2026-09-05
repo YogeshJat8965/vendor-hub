@@ -13,6 +13,8 @@ import {
   LogOut,
   ChevronRight,
   TrendingUp,
+  Layers,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -40,6 +42,16 @@ const navItems = [
     title: 'Reviews',
     href: '/dashboard/vendor/reviews',
     icon: Star,
+  },
+  {
+    title: 'Inbox',
+    href: '/dashboard/vendor/inbox',
+    icon: MessageSquare,
+  },
+  {
+    title: 'Catalogues',
+    href: '/dashboard/vendor/catalogues',
+    icon: Layers,
   },
   {
     title: 'Storefront',

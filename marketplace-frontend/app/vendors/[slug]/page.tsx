@@ -15,6 +15,10 @@ import {
   Heart,
   MessageSquare,
   Loader2,
+  Layers,
+  Image as ImageIcon,
+  IndianRupee,
+  ChevronRight
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -65,8 +69,15 @@ export default function VendorProfilePage() {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [catalogues, setCatalogues] = useState<any[]>([]);
   const [isLiked, setIsLiked] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
+  
+  // Catalogue Quote Context
+  const [selectedCatalogueId, setSelectedCatalogueId] = useState<string>();
+  const [selectedCatalogueItemId, setSelectedCatalogueItemId] = useState<string>();
+  const [quoteServiceType, setQuoteServiceType] = useState<string>();
+  const [quoteDescription, setQuoteDescription] = useState<string>();
 
   useEffect(() => {
     if (slug) {
@@ -80,6 +91,15 @@ export default function VendorProfilePage() {
       // Fetch vendor profile
       const vendorResponse = await apiClient.get(`/explore/${slug}/profile`);
       setVendor(vendorResponse.data);
+      const vendorId = vendorResponse.data.id;
+      
+      // Fetch catalogues
+      try {
+        const catRes = await apiClient.get(`/catalogues/vendor/${vendorId}`);
+        setCatalogues(catRes.data || []);
+      } catch(e) {
+        console.log('No catalogues found');
+      }
       
       // Fetch vendor reviews
       try {
@@ -212,7 +232,13 @@ export default function VendorProfilePage() {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       size="lg"
-                      onClick={() => setShowQuoteDialog(true)}
+                      onClick={() => {
+                        setSelectedCatalogueId(undefined);
+                        setSelectedCatalogueItemId(undefined);
+                        setQuoteServiceType(undefined);
+                        setQuoteDescription(undefined);
+                        setShowQuoteDialog(true);
+                      }}
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 touch-target"
                     >
                       <MessageSquare className="w-5 h-5 mr-2" />
@@ -238,11 +264,83 @@ export default function VendorProfilePage() {
             <div className="lg:col-span-2 space-y-8">
               {/* Tabs */}
               <Tabs defaultValue="about" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 touch-target">
+                <TabsList className="grid w-full grid-cols-4 touch-target">
                   <TabsTrigger value="about" className="touch-target">About</TabsTrigger>
+                  <TabsTrigger value="catalogues" className="touch-target">Catalogues</TabsTrigger>
                   <TabsTrigger value="gallery" className="touch-target">Gallery</TabsTrigger>
                   <TabsTrigger value="reviews" className="touch-target">Reviews</TabsTrigger>
                 </TabsList>
+
+                {/* Catalogues Tab */}
+                <TabsContent value="catalogues" className="mt-6">
+                  <Card>
+                    <CardContent className="p-6">
+                      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <Layers className="w-6 h-6 text-blue-600" /> Catalogues & Services
+                      </h2>
+                      {catalogues.length === 0 ? (
+                        <div className="text-center py-12">
+                          <p className="text-gray-500">No catalogues available yet.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-12">
+                          {catalogues.map(catalogue => (
+                            <div key={catalogue.id} className="space-y-6">
+                              <div>
+                                <h3 className="text-xl font-bold text-gray-900">{catalogue.name}</h3>
+                                {catalogue.description && <p className="text-gray-600 mt-1">{catalogue.description}</p>}
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {catalogue.items?.map((item: any) => (
+                                  <div key={item.id} className="group rounded-xl border bg-white overflow-hidden hover:shadow-lg transition-all duration-300">
+                                    <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+                                      {item.images && item.images.length > 0 ? (
+                                        <img 
+                                          src={item.images[0].startsWith('http') ? item.images[0] : `${process.env.NEXT_PUBLIC_API_URL}${item.images[0]}`} 
+                                          alt={item.title} 
+                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                        />
+                                      ) : (
+                                        <div className="flex items-center justify-center h-full text-gray-400">
+                                          <ImageIcon className="w-12 h-12 opacity-50" />
+                                        </div>
+                                      )}
+                                      {item.startingPrice > 0 && (
+                                        <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1 shadow-sm">
+                                          Starting at ₹{item.startingPrice.toLocaleString('en-IN')}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="p-5 space-y-4">
+                                      <div>
+                                        <h4 className="font-bold text-lg leading-tight mb-1">{item.title}</h4>
+                                        <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>
+                                      </div>
+                                      <Button 
+                                        className="w-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors"
+                                        onClick={() => {
+                                          setSelectedCatalogueId(catalogue.id);
+                                          setSelectedCatalogueItemId(item.id);
+                                          setQuoteServiceType(`Quote for: ${item.title} (${catalogue.name})`);
+                                          setQuoteDescription(`I'm interested in the "${item.title}" design from your "${catalogue.name}" catalogue. Please provide more details and a quote.`);
+                                          setShowQuoteDialog(true);
+                                        }}
+                                      >
+                                        <MessageSquare className="w-4 h-4 mr-2" />
+                                        Get Quote for this Design
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
                 {/* About Tab */}
                 <TabsContent value="about" className="mt-6">
@@ -422,6 +520,10 @@ export default function VendorProfilePage() {
         onOpenChange={setShowQuoteDialog}
         vendorSlug={vendor.slug}
         vendorName={displayName}
+        catalogueId={selectedCatalogueId}
+        catalogueItemId={selectedCatalogueItemId}
+        initialServiceType={quoteServiceType}
+        initialDescription={quoteDescription}
       />
 
       <Footer />

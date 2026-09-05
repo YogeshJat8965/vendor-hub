@@ -11,6 +11,7 @@ import {
   X,
   LogOut,
   ChevronRight,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -36,6 +37,11 @@ const navItems = [
     title: 'Favorites',
     href: '/dashboard/customer/favorites',
     icon: Heart,
+  },
+  {
+    title: 'Inbox',
+    href: '/dashboard/customer/inbox',
+    icon: MessageSquare,
   },
   {
     title: 'Profile',

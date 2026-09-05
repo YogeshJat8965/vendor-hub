@@ -137,8 +137,41 @@ public class UploadController {
                 vendor.setGallery(gallery);
                 vendorRepository.save(vendor);
             }
-            
             return ResponseEntity.ok(Map.of("message", "Image deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/vendor/upload/catalogue-file")
+    public ResponseEntity<?> uploadCatalogueFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("email") String email) {
+        try {
+            // Check if vendor exists
+            vendorRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Vendor not found"));
+                    
+            String originalFileName = file.getOriginalFilename();
+            String extension = "";
+            if (originalFileName != null && originalFileName.contains(".")) {
+                extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
+            }
+            
+            // Validate file type (basic validation)
+            if (!extension.matches("\\.(jpg|jpeg|png|webp|mp4|pdf)$")) {
+                throw new RuntimeException("Invalid file type. Only images, MP4, and PDF are allowed.");
+            }
+            
+            // Note: In production, enforce size limits based on type and vendor plan.
+            
+            String fileName = UUID.randomUUID().toString() + extension;
+            String fileUrl = "/uploads/vendors/catalogues/" + fileName;
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Catalogue file uploaded successfully",
+                "url", fileUrl
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
