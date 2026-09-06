@@ -40,20 +40,20 @@ export function FavoriteVendorCard({
       transition={{ delay: index * 0.05 }}
       whileHover={{ y: -6 }}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-all group">
+      <Card className="overflow-hidden bg-white border border-[#CDC0B0] shadow-warm-sm hover:shadow-warm-md transition-all group rounded-3xl">
         <CardContent className="p-6">
           {/* Header */}
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-5">
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+              <h3 className="font-heading font-bold text-[#2C2621] text-lg mb-2 line-clamp-1 group-hover:text-[#C4975A] transition-colors">
                 {vendor.businessName}
               </h3>
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs font-body font-medium text-[#6B5E54] border-[#CDC0B0]/50">
                   {vendor.category}
                 </Badge>
                 {vendor.isCertified && (
-                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">
+                  <Badge variant="outline" className="text-xs font-body font-medium bg-[#F4F6F0] text-[#8A9A5B] border-0">
                     Verified
                   </Badge>
                 )}
@@ -61,7 +61,7 @@ export function FavoriteVendorCard({
             </div>
             <button
               onClick={() => onRemove(vendor.id)}
-              className="text-gray-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50 touch-target"
+              className="text-[#9C8E82] hover:text-[#B85C5C] transition-colors p-2.5 rounded-full hover:bg-[#FDF2F2] touch-target -mr-2 -mt-2"
               title="Remove from favorites"
             >
               <Heart className="w-5 h-5 fill-current" />
@@ -69,43 +69,43 @@ export function FavoriteVendorCard({
           </div>
 
           {/* Location & Rating */}
-          <div className="flex items-center justify-between mb-4 text-sm">
-            <div className="flex items-center gap-1 text-gray-600">
-              <MapPin className="w-4 h-4" />
+          <div className="flex items-center justify-between mb-5 text-sm font-body">
+            <div className="flex items-center gap-1.5 text-[#6B5E54]">
+              <MapPin className="w-4 h-4 text-[#9C8E82]" />
               <span className="line-clamp-1">
                 {vendor.city}, {vendor.state}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-semibold">{vendor.rating}</span>
-              <span className="text-gray-500">({vendor.reviewCount})</span>
+            <div className="flex items-center gap-1.5">
+              <Star className="w-4 h-4 fill-[#C4975A] text-[#C4975A]" />
+              <span className="font-semibold text-[#2C2621]">{vendor.rating}</span>
+              <span className="text-[#9C8E82]">({vendor.reviewCount})</span>
             </div>
           </div>
 
           {/* Last Contacted */}
           {vendor.lastContacted && (
-            <div className="mb-4 text-xs text-gray-500">
+            <div className="mb-5 text-xs font-body text-[#9C8E82] bg-[#FDFBF7] p-2 rounded-lg border border-[#CDC0B0]/30 inline-block">
               Last contacted {vendor.lastContacted}
             </div>
           )}
 
           {/* Actions */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3 mt-auto">
             <Button
               variant="outline"
               size="sm"
-              className="touch-target"
+              className="touch-target rounded-xl border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] font-body"
               asChild
             >
               <Link href={`/vendors/${vendor.slug}`}>
-                <ExternalLink className="w-4 h-4 mr-2" />
+                <ExternalLink className="w-4 h-4 mr-2 text-[#9C8E82]" />
                 View Profile
               </Link>
             </Button>
             <Button
               size="sm"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 touch-target"
+              className="bg-[#C4975A] hover:bg-[#B38549] text-white rounded-xl touch-target font-body shadow-warm-sm"
               onClick={() => onRequestQuote(vendor.id)}
             >
               <MessageSquare className="w-4 h-4 mr-2" />

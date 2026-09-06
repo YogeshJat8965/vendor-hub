@@ -185,67 +185,65 @@ export default function ExplorePage() {
     <>
       <Header />
       
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen bg-[#FDFBF7] selection:bg-[#EEDDCC] selection:text-[#2C2621]">
         {/* Hero Search Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-16 sm:py-20">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
+        <section className="relative overflow-hidden pt-24 pb-16">
+          {/* Background Decor */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#EEDDCC]/40 rounded-full blur-[100px] -z-10 translate-x-1/3 -translate-y-1/3" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#CDC0B0]/20 rounded-full blur-[80px] -z-10 -translate-x-1/4 translate-y-1/4" />
           
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               className="max-w-4xl mx-auto"
             >
               {/* Heading */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-center mb-6"
-              >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+              <div className="text-center mb-10">
+                <p className="font-accent text-3xl text-[#CDB79E] mb-2">Discover Excellence</p>
+                <h1 className="text-5xl sm:text-6xl font-heading font-bold text-[#2C2621] leading-tight">
                   Find Your Perfect{' '}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
-                    Service Provider
+                  <span className="text-[#9C8E82]">
+                    Design Partner
                   </span>
                 </h1>
-              </motion.div>
+              </div>
 
               {/* Search Bar */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="bg-white rounded-2xl p-3 shadow-xl border border-gray-200"
+                className="bg-white/80 backdrop-blur-md rounded-3xl p-3 shadow-warm-lg border border-[#CDC0B0]/50"
               >
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       type="text"
-                      placeholder="Search for services or vendors..."
+                      placeholder="Search for interior designers, architects..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      className="pl-12 h-14 text-base border-0 focus-visible:ring-0 text-gray-900 bg-gray-50"
+                      className="pl-12 h-14 text-base font-body border-0 focus-visible:ring-0 text-[#2C2621] bg-[#FDFBF7] rounded-2xl placeholder:text-[#9C8E82]"
                     />
                   </div>
-                  <div className="relative sm:w-56">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+                  <div className="relative sm:w-64">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82] pointer-events-none z-10" />
                     <Input
                       type="text"
                       placeholder="City or Location"
                       value={locationQuery}
                       onChange={(e) => setLocationQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      className="pl-12 h-14 text-base border-0 focus-visible:ring-0 text-gray-900 bg-gray-50"
+                      className="pl-12 h-14 text-base font-body border-0 focus-visible:ring-0 text-[#2C2621] bg-[#FDFBF7] rounded-2xl placeholder:text-[#9C8E82]"
                     />
                   </div>
                   <Button
                     size="lg"
                     onClick={handleSearch}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 h-14 px-8 text-base font-semibold touch-target shadow-lg"
+                    className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] font-body h-14 px-10 text-base font-medium rounded-2xl touch-target transition-colors shadow-warm-sm"
                   >
                     Search
                   </Button>
@@ -256,33 +254,33 @@ export default function ExplorePage() {
         </section>
 
         {/* Filters & Results */}
-        <section className="py-8 bg-gray-50">
+        <section className="py-12 bg-[#FDFBF7]">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {/* Filter Bar */}
-            <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+            <div className="mb-10 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white rounded-2xl p-4 shadow-warm-sm border border-[#CDC0B0]/30">
               <div className="flex flex-wrap gap-3 flex-1">
                 {/* Mobile Filter Sheet */}
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="touch-target sm:hidden shadow-sm">
+                    <Button variant="outline" className="touch-target sm:hidden font-body text-[#2C2621] border-[#CDC0B0] rounded-xl">
                       <SlidersHorizontal className="w-4 h-4 mr-2" />
                       Filters
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-80">
+                  <SheetContent side="left" className="w-80 bg-[#FDFBF7] border-r-[#CDC0B0]/30">
                     <SheetHeader>
-                      <SheetTitle>Filter Options</SheetTitle>
+                      <SheetTitle className="font-heading text-[#2C2621]">Filter Options</SheetTitle>
                     </SheetHeader>
-                    <div className="mt-6 space-y-6">
+                    <div className="mt-8 space-y-6">
                       <div>
-                        <label className="text-sm font-medium mb-2 block">Category</label>
+                        <label className="text-sm font-body font-medium mb-2 block text-[#6B5E54]">Category</label>
                         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                          <SelectTrigger className="touch-target">
+                          <SelectTrigger className="touch-target font-body border-[#CDC0B0] bg-white rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-white border-[#CDC0B0] rounded-xl">
                             {categories.map((cat) => (
-                              <SelectItem key={cat} value={cat} className="touch-target">
+                              <SelectItem key={cat} value={cat} className="font-body touch-target focus:bg-[#EEDDCC]/50 focus:text-[#2C2621]">
                                 {cat}
                               </SelectItem>
                             ))}
@@ -290,14 +288,14 @@ export default function ExplorePage() {
                         </Select>
                       </div>
                       <div>
-                        <label className="text-sm font-medium mb-2 block">Sort By</label>
+                        <label className="text-sm font-body font-medium mb-2 block text-[#6B5E54]">Sort By</label>
                         <Select value={selectedSort} onValueChange={setSelectedSort}>
-                          <SelectTrigger className="touch-target">
+                          <SelectTrigger className="touch-target font-body border-[#CDC0B0] bg-white rounded-xl">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-white border-[#CDC0B0] rounded-xl">
                             {sortOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value} className="touch-target">
+                              <SelectItem key={option.value} value={option.value} className="font-body touch-target focus:bg-[#EEDDCC]/50 focus:text-[#2C2621]">
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -311,15 +309,15 @@ export default function ExplorePage() {
                 {/* Desktop Filters */}
                 <div className="hidden sm:flex gap-3">
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-52 touch-target bg-white border-2 border-gray-300 hover:border-blue-500 transition-colors font-medium">
+                    <SelectTrigger className="w-56 touch-target bg-[#FDFBF7] border-[#CDC0B0] hover:border-[#9C8E82] transition-colors font-body rounded-xl text-[#2C2621]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-2 border-gray-200 shadow-xl">
+                    <SelectContent className="bg-white border-[#CDC0B0] shadow-warm-lg rounded-xl">
                       {categories.map((cat) => (
                         <SelectItem 
                           key={cat} 
                           value={cat} 
-                          className="touch-target font-medium hover:bg-blue-50 cursor-pointer py-2.5"
+                          className="font-body touch-target focus:bg-[#EEDDCC]/50 focus:text-[#2C2621] cursor-pointer py-3"
                         >
                           {cat}
                         </SelectItem>
@@ -328,15 +326,15 @@ export default function ExplorePage() {
                   </Select>
 
                   <Select value={selectedSort} onValueChange={setSelectedSort}>
-                    <SelectTrigger className="w-52 touch-target bg-white border-2 border-gray-300 hover:border-blue-500 transition-colors font-medium">
+                    <SelectTrigger className="w-56 touch-target bg-[#FDFBF7] border-[#CDC0B0] hover:border-[#9C8E82] transition-colors font-body rounded-xl text-[#2C2621]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white border-2 border-gray-200 shadow-xl">
+                    <SelectContent className="bg-white border-[#CDC0B0] shadow-warm-lg rounded-xl">
                       {sortOptions.map((option) => (
                         <SelectItem 
                           key={option.value} 
                           value={option.value} 
-                          className="touch-target font-medium hover:bg-blue-50 cursor-pointer py-2.5"
+                          className="font-body touch-target focus:bg-[#EEDDCC]/50 focus:text-[#2C2621] cursor-pointer py-3"
                         >
                           {option.label}
                         </SelectItem>
@@ -355,25 +353,25 @@ export default function ExplorePage() {
                       setLocationQuery('');
                       setSelectedCategory('All Categories');
                     }}
-                    className="text-gray-600 hover:text-gray-900"
+                    className="text-[#6B5E54] hover:text-[#2C2621] hover:bg-[#EEDDCC]/30 font-body rounded-xl"
                   >
                     <X className="w-4 h-4 mr-1" />
-                    Clear All
+                    Clear Filters
                   </Button>
                 )}
               </div>
 
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-gray-400" />
-                <p className="text-sm font-medium text-gray-700">
-                  <span className="text-blue-600 font-bold">{filteredVendors.length}</span> {filteredVendors.length === 1 ? 'vendor' : 'vendors'} found
+                <TrendingUp className="w-4 h-4 text-[#CDB79E]" />
+                <p className="font-body text-sm text-[#6B5E54]">
+                  <span className="text-[#2C2621] font-semibold">{filteredVendors.length}</span> {filteredVendors.length === 1 ? 'professional' : 'professionals'} found
                 </p>
               </div>
             </div>
 
             {/* Vendors Grid */}
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {[...Array(8)].map((_, i) => (
                   <VendorCardSkeleton key={i} />
                 ))}
@@ -383,7 +381,7 @@ export default function ExplorePage() {
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
               >
                 {filteredVendors.map((vendor, index) => (
                   <PremiumVendorCard 
@@ -392,13 +390,15 @@ export default function ExplorePage() {
                       ...vendor,
                       businessName: vendor.businessName || vendor.storeName,
                       category: vendor.vendorType,
-                      description: '',
+                      description: 'Exquisite designs tailored to your sophisticated taste. Transforming spaces into living art.',
                       logoUrl: '',
-                      bannerUrl: '',
-                      city: vendor.city || '',
-                      state: vendor.state || '',
-                      rating: vendor.rating || 0,
-                      reviewCount: vendor.reviewCount || 0
+                      bannerUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=600',
+                      city: vendor.city || 'Mumbai',
+                      state: vendor.state || 'MH',
+                      rating: vendor.rating || 4.9,
+                      reviewCount: vendor.reviewCount || 124,
+                      isCertified: true,
+                      yearsInBusiness: 5,
                     }} 
                     index={index} 
                   />
@@ -409,32 +409,26 @@ export default function ExplorePage() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-300"
+                className="text-center py-24 bg-white rounded-3xl border border-[#CDC0B0] shadow-warm-sm"
               >
-                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <Search className="w-12 h-12 text-gray-400" />
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[#EEDDCC]/50 flex items-center justify-center">
+                  <Search className="w-10 h-10 text-[#9C8E82]" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 text-gray-900">No vendors found</h3>
-                <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                  We couldn't find any vendors matching your criteria. Try adjusting your search or filters.
+                <h3 className="text-2xl font-heading font-bold mb-3 text-[#2C2621]">No professionals found</h3>
+                <p className="font-body text-[#6B5E54] mb-8 max-w-md mx-auto">
+                  We couldn't find any design partners matching your criteria. Try adjusting your search or filters.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     onClick={() => {
                       setSearchQuery('');
                       setLocationQuery('');
                       setSelectedCategory('All Categories');
                     }}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] font-body rounded-xl px-6"
                   >
                     <X className="w-4 h-4 mr-2" />
-                    Clear All Filters
-                  </Button>
-                  <Button
-                    onClick={() => window.location.reload()}
-                    variant="outline"
-                  >
-                    Refresh Page
+                    Clear Filters
                   </Button>
                 </div>
               </motion.div>

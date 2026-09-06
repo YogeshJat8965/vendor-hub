@@ -5,19 +5,22 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  "inline-flex items-center justify-center rounded-full border border-transparent px-2.5 py-0.5 text-xs font-body font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1.5 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-all duration-300 overflow-hidden",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
+        default: "bg-[#EEDDCC] text-[#2C2621] border-[#CDC0B0] [a&]:hover:bg-[#E7DBCD]",
         secondary:
-          "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "bg-[#E7DBCD] text-[#6B5E54] [a&]:hover:bg-[#CDC0B0]",
         destructive:
-          "bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-[#B85C5C] text-white [a&]:hover:bg-[#B85C5C]/90 focus-visible:ring-[#B85C5C]/20",
         outline:
-          "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 [a&]:hover:underline",
+          "border-[#CDC0B0] text-[#2C2621] [a&]:hover:bg-[#E7DBCD] [a&]:hover:text-[#2C2621]",
+        ghost: "[a&]:hover:bg-[#E7DBCD] [a&]:hover:text-[#2C2621]",
+        link: "text-[#2C2621] underline-offset-4 [a&]:hover:underline",
+        premium: "bg-[#2C2621] text-[#EEDDCC] shadow-warm-sm",
+        success: "bg-[#5B8C5A]/10 text-[#5B8C5A]",
+        warning: "bg-[#C4975A]/10 text-[#C4975A]",
       },
     },
     defaultVariants: {

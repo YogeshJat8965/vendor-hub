@@ -37,53 +37,53 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-      accepted: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-      completed: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-      rejected: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+      pending: 'bg-[#FEF3C7] text-[#D97706]',
+      accepted: 'bg-[#F4F6F0] text-[#8A9A5B]',
+      completed: 'bg-[#FDFBF7] border-[#C4975A] text-[#C4975A]',
+      rejected: 'bg-[#FDF2F2] text-[#B85C5C]',
     };
-    return colors[status.toLowerCase()] || 'bg-gray-100 text-gray-800';
+    return colors[status.toLowerCase()] || 'bg-[#EEDDCC]/50 text-[#6B5E54]';
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#FDFBF7] border-[#CDC0B0] sm:rounded-3xl shadow-warm-xl p-0">
+        <DialogHeader className="p-6 border-b border-[#CDC0B0]/50 sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-sm z-10">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <DialogTitle className="text-2xl mb-2">{quote.serviceRequested}</DialogTitle>
-              <Badge className={getStatusColor(quote.status)}>
+              <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621] mb-3">{quote.serviceRequested}</DialogTitle>
+              <Badge className={`${getStatusColor(quote.status)} border-0 font-body font-medium px-3 py-1`}>
                 {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
               </Badge>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
+        <div className="p-6 space-y-8">
           {/* Quote Description */}
           <div>
-            <h3 className="font-semibold mb-2 flex items-center">
-              <FileText className="w-4 h-4 mr-2" />
+            <h3 className="font-heading font-bold text-[#2C2621] mb-3 flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-[#C4975A]" />
               Description
             </h3>
-            <p className="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+            <p className="font-body text-[#6B5E54] bg-white border border-[#CDC0B0]/30 p-5 rounded-2xl leading-relaxed">
               {quote.projectDescription}
             </p>
           </div>
 
-          <Separator />
+          <div className="h-px w-full bg-[#CDC0B0]/50" />
 
           {/* Quote Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-6">
             {/* Vendor */}
             <div>
-              <h3 className="font-semibold mb-2 flex items-center">
+              <h3 className="font-heading font-bold text-[#9C8E82] text-sm uppercase tracking-wider mb-2 flex items-center">
                 <User className="w-4 h-4 mr-2" />
                 Vendor
               </h3>
               <Link 
                 href={`/vendors/${quote.vendorSlug}`}
-                className="text-blue-600 hover:underline"
+                className="font-heading font-medium text-[#C4975A] hover:text-[#B38549] text-lg transition-colors"
               >
                 {quote.vendorSlug}
               </Link>
@@ -92,51 +92,51 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
             {/* Budget */}
             {quote.budget && (
               <div>
-                <h3 className="font-semibold mb-2 flex items-center">
+                <h3 className="font-heading font-bold text-[#9C8E82] text-sm uppercase tracking-wider mb-2 flex items-center">
                   <DollarSign className="w-4 h-4 mr-2" />
                   Budget
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300">{quote.budget}</p>
+                <p className="font-heading font-medium text-[#2C2621] text-lg">${quote.budget.toLocaleString()}</p>
               </div>
             )}
 
             {/* Timeline */}
             {quote.timeline && (
               <div>
-                <h3 className="font-semibold mb-2 flex items-center">
+                <h3 className="font-heading font-bold text-[#9C8E82] text-sm uppercase tracking-wider mb-2 flex items-center">
                   <Clock className="w-4 h-4 mr-2" />
                   Timeline
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300">{quote.timeline}</p>
+                <p className="font-heading font-medium text-[#2C2621] text-lg">{quote.timeline}</p>
               </div>
             )}
 
             {/* Location */}
             {quote.location && (
               <div>
-                <h3 className="font-semibold mb-2 flex items-center">
+                <h3 className="font-heading font-bold text-[#9C8E82] text-sm uppercase tracking-wider mb-2 flex items-center">
                   <MapPin className="w-4 h-4 mr-2" />
                   Location
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300">{quote.location}</p>
+                <p className="font-heading font-medium text-[#2C2621] text-lg">{quote.location}</p>
               </div>
             )}
 
             {/* Contact Phone */}
             {quote.customerMobile && (
               <div>
-                <h3 className="font-semibold mb-2">Contact Phone</h3>
-                <p className="text-gray-700 dark:text-gray-300">{quote.customerMobile}</p>
+                <h3 className="font-heading font-bold text-[#9C8E82] text-sm uppercase tracking-wider mb-2">Contact Phone</h3>
+                <p className="font-heading font-medium text-[#2C2621] text-lg">{quote.customerMobile}</p>
               </div>
             )}
 
             {/* Created Date */}
             <div>
-              <h3 className="font-semibold mb-2 flex items-center">
+              <h3 className="font-heading font-bold text-[#9C8E82] text-sm uppercase tracking-wider mb-2 flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />
                 Submitted
               </h3>
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="font-heading font-medium text-[#2C2621] text-lg">
                 {new Date(quote.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
@@ -148,8 +148,8 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
             {/* Updated Date */}
             {quote.updatedAt && (
               <div>
-                <h3 className="font-semibold mb-2">Last Updated</h3>
-                <p className="text-gray-700 dark:text-gray-300">
+                <h3 className="font-heading font-bold text-[#9C8E82] text-sm uppercase tracking-wider mb-2">Last Updated</h3>
+                <p className="font-heading font-medium text-[#2C2621] text-lg">
                   {new Date(quote.updatedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -160,13 +160,13 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
             )}
           </div>
 
-          <Separator />
+          <div className="h-px w-full bg-[#CDC0B0]/50" />
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 bg-white border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] font-body rounded-xl h-12"
               asChild
             >
               <Link href={`/vendors/${quote.vendorSlug}`}>
@@ -175,7 +175,8 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
             </Button>
             {quote.status.toLowerCase() === 'pending' && (
               <Button
-                variant="destructive"
+                variant="outline"
+                className="flex-1 bg-white border-[#B85C5C] text-[#B85C5C] hover:bg-[#FDF2F2] hover:text-[#B85C5C] font-body rounded-xl h-12"
                 onClick={() => {
                   // TODO: Implement cancel quote
                   console.log('Cancel quote:', quote.id);

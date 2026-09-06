@@ -20,81 +20,6 @@ import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 
-// Mock data - will be replaced with API
-const stats = [
-  {
-    title: 'Active Quotes',
-    value: '3',
-    change: '+2 this week',
-    icon: FileText,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-  },
-  {
-    title: 'Favorite Vendors',
-    value: '12',
-    change: '+3 this month',
-    icon: Heart,
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-100',
-  },
-  {
-    title: 'Total Spent',
-    value: '$2,450',
-    change: 'This year',
-    icon: DollarSign,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-  },
-  {
-    title: 'Reviews Given',
-    value: '8',
-    change: '4.9 avg rating',
-    icon: Star,
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100',
-  },
-];
-
-const recentActivity = [
-  {
-    id: '1',
-    type: 'quote',
-    title: 'New quote received',
-    description: 'Johns Plumbing Services responded to your quote request',
-    time: '2 hours ago',
-    icon: CheckCircle,
-    iconColor: 'text-green-600',
-  },
-  {
-    id: '2',
-    type: 'quote',
-    title: 'Quote pending',
-    description: 'Waiting for Elite Electrical Solutions to respond',
-    time: '1 day ago',
-    icon: Clock,
-    iconColor: 'text-orange-600',
-  },
-  {
-    id: '3',
-    type: 'favorite',
-    title: 'Added to favorites',
-    description: 'You added Perfect Painting Co to your favorites',
-    time: '3 days ago',
-    icon: Heart,
-    iconColor: 'text-pink-600',
-  },
-  {
-    id: '4',
-    type: 'review',
-    title: 'Review submitted',
-    description: 'You reviewed Green Thumb Landscaping',
-    time: '1 week ago',
-    icon: Star,
-    iconColor: 'text-yellow-600',
-  },
-];
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -180,15 +105,15 @@ export default function CustomerDashboardPage() {
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
       case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-[#EEDDCC] text-[#2C2621]';
       case 'ACCEPTED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-[#5B8C5A]/20 text-[#5B8C5A]';
       case 'REJECTED':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[#B85C5C]/20 text-[#B85C5C]';
       case 'COMPLETED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#CDB79E] text-[#2C2621]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[#CDC0B0] text-[#2C2621]';
     }
   };
 
@@ -198,55 +123,56 @@ export default function CustomerDashboardPage() {
       value: stats.activeQuotes.toString(),
       change: `${stats.pendingQuotes} pending`,
       icon: FileText,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-[#2C2621]',
+      bgColor: 'bg-[#EEDDCC]',
     },
     {
       title: 'Completed',
       value: stats.completedQuotes.toString(),
-      change: 'This year',
+      change: 'All time',
       icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-[#5B8C5A]',
+      bgColor: 'bg-[#5B8C5A]/10',
     },
     {
       title: 'Total Quotes',
       value: stats.totalQuotes.toString(),
-      change: 'All time',
+      change: 'Lifetime requests',
       icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
+      color: 'text-[#C4975A]',
+      bgColor: 'bg-[#C4975A]/10',
     },
     {
       title: 'Favorites',
       value: localStorage.getItem('favorites')?.split(',').filter(Boolean).length.toString() || '0',
-      change: 'Saved vendors',
+      change: 'Saved professionals',
       icon: Heart,
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-100',
+      color: 'text-[#2C2621]',
+      bgColor: 'bg-[#EEDDCC]',
     },
   ];
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-[#FDFBF7] p-4 sm:p-8 rounded-3xl min-h-[calc(100vh-6rem)]">
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          Welcome back, {user?.name || 'there'}! 👋
+        <p className="font-accent text-2xl text-[#CDB79E] mb-1">Welcome back</p>
+        <h1 className="text-3xl sm:text-4xl font-heading font-bold text-[#2C2621] mb-2">
+          {user?.name || 'there'}!
         </h1>
-        <p className="text-gray-600">Here's what's happening with your quotes and favorites</p>
+        <p className="text-[#6B5E54] font-body">Here's what's happening with your quotes and favorites</p>
       </motion.div>
 
       {/* Stats Grid */}
@@ -260,17 +186,16 @@ export default function CustomerDashboardPage() {
           const Icon = stat.icon;
           return (
             <motion.div key={stat.title} variants={itemVariants}>
-              <Card className="hover:shadow-lg transition-shadow">
+              <Card className="hover:shadow-warm-lg transition-shadow border-[#CDC0B0] bg-white rounded-3xl">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`${stat.bgColor} ${stat.color} w-12 h-12 rounded-xl flex items-center justify-center`}>
+                    <div className={`${stat.bgColor} ${stat.color} w-12 h-12 rounded-2xl flex items-center justify-center shadow-warm-sm`}>
                       <Icon className="w-6 h-6" />
                     </div>
-                    <TrendingUp className="w-4 h-4 text-green-600" />
                   </div>
-                  <h3 className="text-gray-600 text-sm font-medium mb-1">{stat.title}</h3>
-                  <p className="text-3xl font-bold mb-1">{stat.value}</p>
-                  <p className="text-xs text-gray-500">{stat.change}</p>
+                  <h3 className="text-[#9C8E82] text-sm font-body font-medium mb-1">{stat.title}</h3>
+                  <p className="text-3xl font-heading font-bold text-[#2C2621] mb-1">{stat.value}</p>
+                  <p className="text-xs text-[#6B5E54] font-body">{stat.change}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -284,46 +209,46 @@ export default function CustomerDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card>
+        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle className="font-heading text-xl text-[#2C2621]">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Button
                 variant="outline"
                 size="lg"
-                className="h-auto py-6 flex flex-col items-center gap-2 touch-target"
+                className="h-auto py-8 flex flex-col items-center gap-3 touch-target border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] rounded-2xl"
                 asChild
               >
                 <Link href="/explore">
-                  <FileText className="w-8 h-8 text-blue-600" />
-                  <span className="font-semibold">Request Quote</span>
-                  <span className="text-xs text-gray-500">Find vendors</span>
+                  <FileText className="w-8 h-8 text-[#C4975A]" />
+                  <span className="font-heading font-bold text-[#2C2621]">Request Quote</span>
+                  <span className="text-xs font-body text-[#9C8E82]">Find professionals</span>
                 </Link>
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="h-auto py-6 flex flex-col items-center gap-2 touch-target"
+                className="h-auto py-8 flex flex-col items-center gap-3 touch-target border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] rounded-2xl"
                 asChild
               >
                 <Link href="/dashboard/customer/quotes">
-                  <Clock className="w-8 h-8 text-orange-600" />
-                  <span className="font-semibold">View Quotes</span>
-                  <span className="text-xs text-gray-500">3 pending</span>
+                  <Clock className="w-8 h-8 text-[#9C8E82]" />
+                  <span className="font-heading font-bold text-[#2C2621]">View Quotes</span>
+                  <span className="text-xs font-body text-[#9C8E82]">{stats.pendingQuotes} pending</span>
                 </Link>
               </Button>
               <Button
                 variant="outline"
                 size="lg"
-                className="h-auto py-6 flex flex-col items-center gap-2 touch-target"
+                className="h-auto py-8 flex flex-col items-center gap-3 touch-target border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] rounded-2xl"
                 asChild
               >
                 <Link href="/dashboard/customer/favorites">
-                  <Heart className="w-8 h-8 text-pink-600" />
-                  <span className="font-semibold">My Favorites</span>
-                  <span className="text-xs text-gray-500">12 vendors</span>
+                  <Heart className="w-8 h-8 text-[#CDB79E]" />
+                  <span className="font-heading font-bold text-[#2C2621]">My Favorites</span>
+                  <span className="text-xs font-body text-[#9C8E82]">Saved professionals</span>
                 </Link>
               </Button>
             </div>
@@ -337,41 +262,44 @@ export default function CustomerDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Quotes</CardTitle>
-            <Button variant="ghost" size="sm" asChild>
+        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-[#CDC0B0]/30 bg-[#FDFBF7]/50">
+            <CardTitle className="font-heading text-xl text-[#2C2621]">Recent Quotes</CardTitle>
+            <Button variant="ghost" size="sm" className="font-body text-[#6B5E54] hover:text-[#2C2621]" asChild>
               <Link href="/dashboard/customer/quotes">View All</Link>
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {getRecentQuotes().length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500 mb-4">No quotes yet</p>
-                <Button asChild>
-                  <Link href="/explore">Browse Vendors</Link>
+              <div className="text-center py-16">
+                <FileText className="w-16 h-16 mx-auto mb-4 text-[#CDC0B0]" />
+                <p className="text-[#9C8E82] font-body mb-6">No quotes requested yet</p>
+                <Button className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] rounded-xl font-body" asChild>
+                  <Link href="/explore">Discover Design Partners</Link>
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4">
-                {getRecentQuotes().map((quote, index) => (
-                  <div key={quote.id}>
-                    {index > 0 && <div className="border-t my-4" />}
+              <div className="divide-y divide-[#CDC0B0]/30">
+                {getRecentQuotes().map((quote) => (
+                  <div key={quote.id} className="p-6 hover:bg-[#FDFBF7] transition-colors">
                     <div className="flex gap-4 items-start">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-5 h-5 text-blue-600" />
+                      <div className="w-12 h-12 rounded-2xl bg-[#EEDDCC]/50 flex items-center justify-center flex-shrink-0 border border-[#CDC0B0]/50">
+                        <FileText className="w-6 h-6 text-[#2C2621]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <h4 className="font-semibold text-sm">{quote.serviceRequested}</h4>
-                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(quote.status)}`}>
+                          <h4 className="font-heading font-bold text-[#2C2621] text-base truncate">{quote.serviceRequested}</h4>
+                          <span className={`text-xs font-body font-medium px-3 py-1 rounded-full whitespace-nowrap ${getStatusColor(quote.status)}`}>
                             {quote.status}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 mb-1">Vendor: {quote.vendorSlug}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(quote.createdAt).toLocaleDateString()}
+                        <p className="text-sm text-[#6B5E54] font-body mb-1">Professional: <span className="font-medium text-[#2C2621]">{quote.vendorSlug}</span></p>
+                        <p className="text-xs text-[#9C8E82] font-body">
+                          {new Date(quote.createdAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
                         </p>
                       </div>
                     </div>

@@ -1,24 +1,36 @@
 import type { Metadata } from "next";
-import { Manrope, Inter } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const playfair = Playfair_Display({
+  variable: "--font-heading",
   subsets: ["latin"],
   display: 'swap',
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-body",
+  subsets: ["latin"],
+  display: 'swap',
+});
+
+const greatVibes = Great_Vibes({
+  weight: '400',
+  variable: "--font-accent",
   subsets: ["latin"],
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "VendorHub - Find & Hire Local Service Providers",
-  description: "Connect with verified vendors for home services, repairs, and more across India",
-  keywords: "vendors, services, home repair, electrician, plumber, carpenter",
+  title: "VendorHub - Premium Interior Design & Home Services Marketplace",
+  description: "Connect with India's finest interior designers, architects, and home service professionals. From concept to creation.",
+  keywords: "interior design, architects, premium home services, home renovation, luxury interiors, vendorhub",
+  openGraph: {
+    title: "VendorHub - Premium Interior Design Marketplace",
+    description: "Transform your space with expert designers and trusted professionals.",
+    type: "website",
+  }
 };
 
 export default function RootLayout({
@@ -27,8 +39,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${inter.variable}`}>
-      <body className="font-sans antialiased">
+    <html lang="en" className={`${playfair.variable} ${jakarta.variable} ${greatVibes.variable}`}>
+      <body className="font-body antialiased text-[#2C2621] bg-white">
         <Providers>
           {children}
         </Providers>

@@ -104,42 +104,43 @@ export default function CustomerQuotesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
-        <div className="max-w-7xl mx-auto py-8">
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+      <div className="min-h-screen bg-[#FDFBF7] pt-20 px-4 rounded-3xl flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#CDC0B0]/30 border-t-[#C4975A] rounded-full animate-spin" />
+          <p className="font-heading font-medium text-[#9C8E82] tracking-widest uppercase text-sm animate-pulse">
+            Loading Quotes
+          </p>
         </div>
       </div>
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+    <div className="min-h-screen bg-[#FDFBF7] pt-20 px-4 rounded-3xl">
       <div className="max-w-7xl mx-auto py-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">My Quotes</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage and track all your quote requests</p>
+          <h1 className="text-3xl font-heading font-bold text-[#2C2621] mb-2">My Quotes</h1>
+          <p className="text-[#6B5E54] font-body">Manage and track all your quote requests</p>
         </div>
 
         {/* Search & Filter Bar */}
-        <Card>
+        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Search */}
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                 <Input
                   type="text"
                   placeholder="Search quotes or vendors..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12"
+                  className="pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#6B5E54]"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -148,12 +149,12 @@ export default function CustomerQuotesPage() {
 
               {/* Sort */}
               <Select value={selectedSort} onValueChange={setSelectedSort}>
-                <SelectTrigger className="w-full sm:w-48 h-12">
+                <SelectTrigger className="w-full sm:w-48 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-[#CDC0B0] bg-white font-body text-[#2C2621]">
                   {sortOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                    <SelectItem key={option.value} value={option.value} className="focus:bg-[#EEDDCC] focus:text-[#2C2621]">
                       {option.label}
                     </SelectItem>
                   ))}
@@ -162,7 +163,7 @@ export default function CustomerQuotesPage() {
             </div>
 
             {/* Results Count */}
-            <div className="mt-4 text-sm text-gray-600">
+            <div className="mt-4 text-sm font-body text-[#6B5E54]">
               Showing {sortedQuotes.length} of {quotes.length} quotes
             </div>
           </CardContent>
@@ -170,22 +171,16 @@ export default function CustomerQuotesPage() {
 
         {/* Status Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="all">
-              All ({getStatusCount('all')})
-            </TabsTrigger>
-            <TabsTrigger value="pending">
-              Pending ({getStatusCount('pending')})
-            </TabsTrigger>
-            <TabsTrigger value="accepted">
-              Accepted ({getStatusCount('accepted')})
-            </TabsTrigger>
-            <TabsTrigger value="completed">
-              Completed ({getStatusCount('completed')})
-            </TabsTrigger>
-            <TabsTrigger value="rejected">
-              Rejected ({getStatusCount('rejected')})
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 bg-[#EEDDCC] rounded-2xl p-1 h-auto">
+            {['all', 'pending', 'accepted', 'completed', 'rejected'].map(tab => (
+              <TabsTrigger 
+                key={tab} 
+                value={tab} 
+                className="rounded-xl font-body py-2.5 data-[state=active]:bg-[#2C2621] data-[state=active]:text-[#EEDDCC] text-[#6B5E54] hover:text-[#2C2621]"
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)} ({getStatusCount(tab)})
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           <div className="mt-6">
@@ -199,72 +194,73 @@ export default function CustomerQuotesPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="space-y-4">
+                    <Card className="hover:shadow-warm-lg transition-shadow border-[#CDC0B0] bg-white rounded-3xl h-full flex flex-col">
+                      <CardContent className="p-6 flex-1 flex flex-col">
+                        <div className="space-y-4 flex-1">
                           {/* Quote Header */}
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start gap-4">
                             <div className="flex-1">
-                              <h3 className="font-semibold text-lg">{quote.serviceRequested}</h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Vendor: {quote.vendorSlug}
+                              <h3 className="font-heading font-bold text-lg text-[#2C2621] line-clamp-1">{quote.serviceRequested}</h3>
+                              <p className="text-sm font-body text-[#6B5E54]">
+                                Professional: <span className="font-medium text-[#2C2621]">{quote.vendorSlug}</span>
                               </p>
                             </div>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(quote.status)}`}>
+                            <span className={`px-3 py-1 rounded-full text-xs font-body font-medium whitespace-nowrap ${getStatusColor(quote.status)}`}>
                               {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
                             </span>
                           </div>
 
                           {/* Quote Description */}
-                          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+                          <p className="text-sm font-body text-[#6B5E54] line-clamp-2">
                             {quote.projectDescription}
                           </p>
 
                           {/* Quote Details */}
-                          <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="grid grid-cols-2 gap-4 text-sm font-body">
                             {quote.budget && (
                               <div>
-                                <span className="text-gray-600 dark:text-gray-400">Budget:</span>
-                                <p className="font-medium">{quote.budget}</p>
+                                <span className="text-[#9C8E82]">Budget:</span>
+                                <p className="font-medium text-[#2C2621]">${quote.budget}</p>
                               </div>
                             )}
                             {quote.timeline && (
                               <div>
-                                <span className="text-gray-600 dark:text-gray-400">Timeline:</span>
-                                <p className="font-medium">{quote.timeline}</p>
+                                <span className="text-[#9C8E82]">Timeline:</span>
+                                <p className="font-medium text-[#2C2621]">{quote.timeline}</p>
                               </div>
                             )}
                             {quote.location && (
                               <div>
-                                <span className="text-gray-600 dark:text-gray-400">Location:</span>
-                                <p className="font-medium">{quote.location}</p>
+                                <span className="text-[#9C8E82]">Location:</span>
+                                <p className="font-medium text-[#2C2621] line-clamp-1">{quote.location}</p>
                               </div>
                             )}
                             <div>
-                              <span className="text-gray-600 dark:text-gray-400">Submitted:</span>
-                              <p className="font-medium">{new Date(quote.createdAt).toLocaleDateString()}</p>
+                              <span className="text-[#9C8E82]">Submitted:</span>
+                              <p className="font-medium text-[#2C2621]">{new Date(quote.createdAt).toLocaleDateString()}</p>
                             </div>
                           </div>
+                        </div>
 
-                          {/* Actions */}
-                          <div className="flex gap-2 pt-2">
-                            <Button 
-                              variant="outline" 
-                              className="flex-1"
-                              onClick={() => setSelectedQuote(quote)}
-                            >
-                              <FileText className="w-4 h-4 mr-2" />
-                              View Details
-                            </Button>
-                            <Button 
-                              variant="outline"
-                              asChild
-                            >
-                              <Link href={`/vendors/${quote.vendorSlug}`}>
-                                View Vendor
-                              </Link>
-                            </Button>
-                          </div>
+                        {/* Actions */}
+                        <div className="flex gap-2 pt-6 mt-auto">
+                          <Button 
+                            variant="outline" 
+                            className="flex-1 border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
+                            onClick={() => setSelectedQuote(quote)}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            View Details
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            className="border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
+                            asChild
+                          >
+                            <Link href={`/vendors/${quote.vendorSlug}`}>
+                              View Profile
+                            </Link>
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -273,27 +269,27 @@ export default function CustomerQuotesPage() {
               </div>
             ) : (
               /* Empty State */
-              <Card>
+              <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
                 <CardContent className="p-12 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                    <FileText className="w-10 h-10 text-gray-400" />
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[#EEDDCC]/50 border border-[#CDC0B0]/50 flex items-center justify-center">
+                    <FileText className="w-10 h-10 text-[#2C2621]" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">No quotes found</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                  <h3 className="text-xl font-heading font-bold text-[#2C2621] mb-2">No quotes found</h3>
+                  <p className="font-body text-[#6B5E54] mb-8 max-w-md mx-auto">
                     {searchQuery
-                      ? "Try adjusting your search terms"
+                      ? "Try adjusting your search terms to find what you're looking for."
                       : activeTab === 'all'
-                      ? "You haven't requested any quotes yet"
-                      : `You have no ${activeTab} quotes`}
+                      ? "You haven't requested any quotes yet. Start exploring professionals to begin your project."
+                      : `You have no ${activeTab} quotes at the moment.`}
                   </p>
                   {!searchQuery && activeTab === 'all' && (
                     <Button
                       size="lg"
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] rounded-xl font-body px-8"
                       asChild
                     >
                       <Link href="/explore">
-                        Explore Vendors
+                        Explore Professionals
                       </Link>
                     </Button>
                   )}
@@ -316,10 +312,10 @@ export default function CustomerQuotesPage() {
 
 function getStatusColor(status: string) {
   const colors: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-    accepted: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    completed: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
+    pending: 'bg-[#EEDDCC] text-[#2C2621]',
+    accepted: 'bg-[#5B8C5A]/20 text-[#5B8C5A]',
+    completed: 'bg-[#CDB79E] text-[#2C2621]',
+    rejected: 'bg-[#B85C5C]/20 text-[#B85C5C]',
   };
-  return colors[status.toLowerCase()] || 'bg-gray-100 text-gray-800';
+  return colors[status.toLowerCase()] || 'bg-[#CDC0B0] text-[#2C2621]';
 }

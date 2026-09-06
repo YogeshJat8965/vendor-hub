@@ -34,37 +34,37 @@ const statusConfig = {
   pending: {
     label: 'Pending',
     icon: Clock,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100',
-    borderColor: 'border-orange-200',
+    color: 'text-[#D97706]',
+    bgColor: 'bg-[#FEF3C7]',
+    borderColor: 'border-l-[#F59E0B]',
   },
   accepted: {
     label: 'Accepted',
     icon: CheckCircle,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    borderColor: 'border-green-200',
+    color: 'text-[#8A9A5B]',
+    bgColor: 'bg-[#F4F6F0]',
+    borderColor: 'border-l-[#8A9A5B]',
   },
   rejected: {
     label: 'Rejected',
     icon: XCircle,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
-    borderColor: 'border-red-200',
+    color: 'text-[#B85C5C]',
+    bgColor: 'bg-[#FDF2F2]',
+    borderColor: 'border-l-[#B85C5C]',
   },
   completed: {
     label: 'Completed',
     icon: CheckCircle,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    borderColor: 'border-blue-200',
+    color: 'text-[#C4975A]',
+    bgColor: 'bg-[#FDFBF7]',
+    borderColor: 'border-l-[#C4975A]',
   },
   expired: {
     label: 'Expired',
     icon: XCircle,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
-    borderColor: 'border-gray-200',
+    color: 'text-[#9C8E82]',
+    bgColor: 'bg-[#EEDDCC]/50',
+    borderColor: 'border-l-[#CDC0B0]',
   },
 };
 
@@ -88,30 +88,30 @@ export function QuoteCard({ quote, onViewDetails, index = 0 }: QuoteCardProps) {
       transition={{ delay: index * 0.1 }}
       whileHover={{ y: -4 }}
     >
-      <Card className={`overflow-hidden border-l-4 ${config.borderColor} hover:shadow-lg transition-all`}>
+      <Card className={`overflow-hidden border border-[#CDC0B0]/50 border-l-4 ${config.borderColor} hover:shadow-warm-md transition-all bg-white rounded-3xl`}>
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="font-bold text-lg line-clamp-1">{quote.service}</h3>
-                <Badge variant="outline" className={`${config.bgColor} ${config.color} border-0`}>
+                <h3 className="font-heading font-bold text-lg text-[#2C2621] line-clamp-1">{quote.service}</h3>
+                <Badge variant="outline" className={`${config.bgColor} ${config.color} border-0 font-body font-medium`}>
                   <Icon className="w-3 h-3 mr-1" />
                   {config.label}
                 </Badge>
               </div>
-              <p className="text-sm text-gray-600 line-clamp-2 mb-3">{quote.description}</p>
+              <p className="text-sm font-body text-[#6B5E54] line-clamp-2 mb-3 leading-relaxed">{quote.description}</p>
             </div>
           </div>
 
           {/* Vendor Info */}
-          <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+          <div className="flex items-center gap-4 mb-5 p-4 bg-[#FDFBF7] rounded-2xl border border-[#CDC0B0]/30">
+            <div className="w-12 h-12 rounded-xl bg-[#EEDDCC] flex items-center justify-center text-[#2C2621] font-heading font-bold text-lg flex-shrink-0">
               {quote.vendor.name.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-sm truncate">{quote.vendor.name}</h4>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+              <h4 className="font-heading font-bold text-[#2C2621] truncate">{quote.vendor.name}</h4>
+              <div className="flex items-center gap-1 text-xs font-body text-[#9C8E82] mt-0.5">
                 <MapPin className="w-3 h-3" />
                 <span className="truncate">{quote.vendor.city}, {quote.vendor.state}</span>
               </div>
@@ -119,21 +119,21 @@ export function QuoteCard({ quote, onViewDetails, index = 0 }: QuoteCardProps) {
           </div>
 
           {/* Quote Details */}
-          <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+          <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
             <div>
-              <div className="flex items-center gap-1 text-gray-500 mb-1">
+              <div className="flex items-center gap-1.5 text-[#9C8E82] font-body mb-1">
                 <Calendar className="w-4 h-4" />
-                <span className="text-xs">Requested</span>
+                <span className="text-xs uppercase tracking-wider font-medium">Requested</span>
               </div>
-              <p className="font-medium">{formatDate(quote.createdAt)}</p>
+              <p className="font-heading font-medium text-[#2C2621]">{formatDate(quote.createdAt)}</p>
             </div>
             {quote.amount && (
               <div>
-                <div className="flex items-center gap-1 text-gray-500 mb-1">
+                <div className="flex items-center gap-1.5 text-[#9C8E82] font-body mb-1">
                   <DollarSign className="w-4 h-4" />
-                  <span className="text-xs">Quote Amount</span>
+                  <span className="text-xs uppercase tracking-wider font-medium">Quote Amount</span>
                 </div>
-                <p className="font-bold text-lg text-green-600">${quote.amount.toLocaleString()}</p>
+                <p className="font-heading font-bold text-lg text-[#8A9A5B]">${quote.amount.toLocaleString()}</p>
               </div>
             )}
           </div>
@@ -142,7 +142,7 @@ export function QuoteCard({ quote, onViewDetails, index = 0 }: QuoteCardProps) {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 touch-target"
+              className="flex-1 touch-target rounded-xl border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] font-body shadow-sm"
               onClick={() => onViewDetails(quote.id)}
             >
               View Details
@@ -150,7 +150,7 @@ export function QuoteCard({ quote, onViewDetails, index = 0 }: QuoteCardProps) {
             </Button>
             {quote.status === 'accepted' && (
               <Button
-                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 touch-target"
+                className="flex-1 bg-[#C4975A] hover:bg-[#B38549] text-white rounded-xl touch-target font-body shadow-warm-sm"
               >
                 Contact Vendor
               </Button>

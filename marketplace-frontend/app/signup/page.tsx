@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 const customerSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -135,26 +136,31 @@ function SignupForm() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-[#FDFBF7]">
       {/* Left Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 relative">
+        {/* Decorative subtle background blobs */}
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#EEDDCC]/50 rounded-full blur-[80px] -z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-[#CDC0B0]/30 rounded-full blur-[60px] -z-10 pointer-events-none" />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-md bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-warm-lg border border-[#CDC0B0]/40"
         >
           {/* Logo */}
-          <Link href="/" className="inline-block mb-8">
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">VendorHub</h1>
+          <Link href="/" className="inline-block mb-10">
+            <h1 className="text-3xl font-heading font-bold text-[#2C2621]">VendorHub.</h1>
           </Link>
 
           {/* Title */}
-          <div className="mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3">
-              Create Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">Account</span>
+          <div className="mb-10">
+            <p className="font-accent text-2xl text-[#CDB79E] mb-1">Join the community</p>
+            <h2 className="text-3xl font-heading font-bold text-[#2C2621]">
+              Create Your Account
             </h2>
-            <p className="text-gray-600 text-lg">Join our community and get started today</p>
+            <p className="text-[#6B5E54] font-body mt-2">Sign up to get started today</p>
           </div>
 
           {/* Tabs */}
@@ -162,15 +168,15 @@ function SignupForm() {
             <TabsList className="grid w-full grid-cols-2 gap-4 mb-8 bg-transparent p-0">
               <TabsTrigger 
                 value="customer" 
-                className="h-12 px-6 font-bold text-base flex items-center justify-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:border-2 data-[state=inactive]:border-gray-300 data-[state=inactive]:hover:border-blue-400 transition-all duration-200 rounded-xl"
+                className="h-12 px-6 font-body font-medium text-base flex items-center justify-center data-[state=active]:bg-[#2C2621] data-[state=active]:text-[#EEDDCC] data-[state=active]:shadow-warm-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-[#9C8E82] data-[state=inactive]:border data-[state=inactive]:border-[#CDC0B0] data-[state=inactive]:hover:border-[#9C8E82] transition-all duration-200 rounded-xl"
               >
                 Customer
               </TabsTrigger>
               <TabsTrigger 
                 value="vendor" 
-                className="h-12 px-6 font-bold text-base flex items-center justify-center data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=inactive]:border-2 data-[state=inactive]:border-gray-300 data-[state=inactive]:hover:border-purple-400 transition-all duration-200 rounded-xl"
+                className="h-12 px-6 font-body font-medium text-base flex items-center justify-center data-[state=active]:bg-[#2C2621] data-[state=active]:text-[#EEDDCC] data-[state=active]:shadow-warm-sm data-[state=inactive]:bg-transparent data-[state=inactive]:text-[#9C8E82] data-[state=inactive]:border data-[state=inactive]:border-[#CDC0B0] data-[state=inactive]:hover:border-[#9C8E82] transition-all duration-200 rounded-xl"
               >
-                Vendor
+                Professional
               </TabsTrigger>
             </TabsList>
 
@@ -179,104 +185,104 @@ function SignupForm() {
               <form onSubmit={customerForm.handleSubmit(onCustomerSubmit)} className="space-y-5">
                 {/* Full Name */}
                 <div>
-                  <Label htmlFor="customer-name" className="mb-2">Full Name</Label>
+                  <Label htmlFor="customer-name" className="mb-2 font-body text-[#2C2621]">Full Name</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="customer-name"
                       placeholder="John Doe"
-                      className={`pl-10 h-12 touch-target ${customerForm.formState.errors.fullName ? 'border-red-500' : ''}`}
+                      className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${customerForm.formState.errors.fullName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...customerForm.register('fullName')}
                     />
                   </div>
                   {customerForm.formState.errors.fullName && (
-                    <p className="text-sm text-red-500 mt-1">{customerForm.formState.errors.fullName.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{customerForm.formState.errors.fullName.message}</p>
                   )}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <Label htmlFor="customer-email" className="mb-2">Email Address</Label>
+                  <Label htmlFor="customer-email" className="mb-2 font-body text-[#2C2621]">Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="customer-email"
                       type="email"
                       placeholder="john@example.com"
-                      className={`pl-10 h-12 touch-target ${customerForm.formState.errors.email ? 'border-red-500' : ''}`}
+                      className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${customerForm.formState.errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...customerForm.register('email')}
                     />
                   </div>
                   {customerForm.formState.errors.email && (
-                    <p className="text-sm text-red-500 mt-1">{customerForm.formState.errors.email.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{customerForm.formState.errors.email.message}</p>
                   )}
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <Label htmlFor="customer-phone" className="mb-2">Phone Number</Label>
+                  <Label htmlFor="customer-phone" className="mb-2 font-body text-[#2C2621]">Phone Number</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="customer-phone"
                       type="tel"
                       placeholder="(555) 123-4567"
-                      className={`pl-10 h-12 touch-target ${customerForm.formState.errors.phone ? 'border-red-500' : ''}`}
+                      className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${customerForm.formState.errors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...customerForm.register('phone')}
                     />
                   </div>
                   {customerForm.formState.errors.phone && (
-                    <p className="text-sm text-red-500 mt-1">{customerForm.formState.errors.phone.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{customerForm.formState.errors.phone.message}</p>
                   )}
                 </div>
 
                 {/* Password */}
                 <div>
-                  <Label htmlFor="customer-password" className="mb-2">Password</Label>
+                  <Label htmlFor="customer-password" className="mb-2 font-body text-[#2C2621]">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="customer-password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className={`pl-10 pr-10 h-12 touch-target ${customerForm.formState.errors.password ? 'border-red-500' : ''}`}
+                      className={`pl-12 pr-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${customerForm.formState.errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...customerForm.register('password')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#2C2621] transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {customerForm.formState.errors.password && (
-                    <p className="text-sm text-red-500 mt-1">{customerForm.formState.errors.password.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{customerForm.formState.errors.password.message}</p>
                   )}
                 </div>
 
                 {/* Confirm Password */}
                 <div>
-                  <Label htmlFor="customer-confirm-password" className="mb-2">Confirm Password</Label>
+                  <Label htmlFor="customer-confirm-password" className="mb-2 font-body text-[#2C2621]">Confirm Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="customer-confirm-password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className={`pl-10 pr-10 h-12 touch-target ${customerForm.formState.errors.confirmPassword ? 'border-red-500' : ''}`}
+                      className={`pl-12 pr-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${customerForm.formState.errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...customerForm.register('confirmPassword')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#2C2621] transition-colors"
                     >
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {customerForm.formState.errors.confirmPassword && (
-                    <p className="text-sm text-red-500 mt-1">{customerForm.formState.errors.confirmPassword.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{customerForm.formState.errors.confirmPassword.message}</p>
                   )}
                 </div>
 
@@ -284,18 +290,18 @@ function SignupForm() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 h-12 text-lg touch-target mt-6"
+                  className="w-full bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] h-14 rounded-2xl font-body text-lg touch-target shadow-warm-md transition-all group mt-8"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-[#EEDDCC]/30 border-t-[#EEDDCC] rounded-full animate-spin" />
                       Creating account...
                     </div>
                   ) : (
                     <>
                       Sign Up as Customer
-                      <ArrowRight className="ml-2 w-5 h-5" />
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
                 </Button>
@@ -307,152 +313,152 @@ function SignupForm() {
               <form onSubmit={vendorForm.handleSubmit(onVendorSubmit)} className="space-y-5">
                 {/* Business Name */}
                 <div>
-                  <Label htmlFor="vendor-business" className="mb-2">Business Name</Label>
+                  <Label htmlFor="vendor-business" className="mb-2 font-body text-[#2C2621]">Business Name</Label>
                   <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="vendor-business"
                       placeholder="Your Business Name"
-                      className={`pl-10 h-12 touch-target ${vendorForm.formState.errors.businessName ? 'border-red-500' : ''}`}
+                      className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.businessName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...vendorForm.register('businessName')}
                     />
                   </div>
                   {vendorForm.formState.errors.businessName && (
-                    <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.businessName.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.businessName.message}</p>
                   )}
                 </div>
 
                 {/* Owner Name */}
                 <div>
-                  <Label htmlFor="vendor-owner" className="mb-2">Owner Name</Label>
+                  <Label htmlFor="vendor-owner" className="mb-2 font-body text-[#2C2621]">Owner Name</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="vendor-owner"
                       placeholder="John Doe"
-                      className={`pl-10 h-12 touch-target ${vendorForm.formState.errors.ownerName ? 'border-red-500' : ''}`}
+                      className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.ownerName ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...vendorForm.register('ownerName')}
                     />
                   </div>
                   {vendorForm.formState.errors.ownerName && (
-                    <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.ownerName.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.ownerName.message}</p>
                   )}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <Label htmlFor="vendor-email" className="mb-2">Email Address</Label>
+                  <Label htmlFor="vendor-email" className="mb-2 font-body text-[#2C2621]">Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="vendor-email"
                       type="email"
                       placeholder="business@example.com"
-                      className={`pl-10 h-12 touch-target ${vendorForm.formState.errors.email ? 'border-red-500' : ''}`}
+                      className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...vendorForm.register('email')}
                     />
                   </div>
                   {vendorForm.formState.errors.email && (
-                    <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.email.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.email.message}</p>
                   )}
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <Label htmlFor="vendor-phone" className="mb-2">Phone Number</Label>
+                  <Label htmlFor="vendor-phone" className="mb-2 font-body text-[#2C2621]">Phone Number</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="vendor-phone"
                       type="tel"
                       placeholder="(555) 123-4567"
-                      className={`pl-10 h-12 touch-target ${vendorForm.formState.errors.phone ? 'border-red-500' : ''}`}
+                      className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...vendorForm.register('phone')}
                     />
                   </div>
                   {vendorForm.formState.errors.phone && (
-                    <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.phone.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.phone.message}</p>
                   )}
                 </div>
 
                 {/* City & State */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="vendor-city" className="mb-2">City</Label>
+                    <Label htmlFor="vendor-city" className="mb-2 font-body text-[#2C2621]">City</Label>
                     <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                       <Input
                         id="vendor-city"
                         placeholder="New York"
-                        className={`pl-10 h-12 touch-target ${vendorForm.formState.errors.city ? 'border-red-500' : ''}`}
+                        className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.city ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                         {...vendorForm.register('city')}
                       />
                     </div>
                     {vendorForm.formState.errors.city && (
-                      <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.city.message}</p>
+                      <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.city.message}</p>
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="vendor-state" className="mb-2">State</Label>
+                    <Label htmlFor="vendor-state" className="mb-2 font-body text-[#2C2621]">State</Label>
                     <Input
                       id="vendor-state"
                       placeholder="NY"
-                      className={`h-12 touch-target ${vendorForm.formState.errors.state ? 'border-red-500' : ''}`}
+                      className={`h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.state ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...vendorForm.register('state')}
                     />
                     {vendorForm.formState.errors.state && (
-                      <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.state.message}</p>
+                      <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.state.message}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <Label htmlFor="vendor-password" className="mb-2">Password</Label>
+                  <Label htmlFor="vendor-password" className="mb-2 font-body text-[#2C2621]">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="vendor-password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className={`pl-10 pr-10 h-12 touch-target ${vendorForm.formState.errors.password ? 'border-red-500' : ''}`}
+                      className={`pl-12 pr-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...vendorForm.register('password')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#2C2621] transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {vendorForm.formState.errors.password && (
-                    <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.password.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.password.message}</p>
                   )}
                 </div>
 
                 {/* Confirm Password */}
                 <div>
-                  <Label htmlFor="vendor-confirm-password" className="mb-2">Confirm Password</Label>
+                  <Label htmlFor="vendor-confirm-password" className="mb-2 font-body text-[#2C2621]">Confirm Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="vendor-confirm-password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      className={`pl-10 pr-10 h-12 touch-target ${vendorForm.formState.errors.confirmPassword ? 'border-red-500' : ''}`}
+                      className={`pl-12 pr-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${vendorForm.formState.errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       {...vendorForm.register('confirmPassword')}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#2C2621] transition-colors"
                     >
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {vendorForm.formState.errors.confirmPassword && (
-                    <p className="text-sm text-red-500 mt-1">{vendorForm.formState.errors.confirmPassword.message}</p>
+                    <p className="text-sm text-red-500 mt-2 font-body">{vendorForm.formState.errors.confirmPassword.message}</p>
                   )}
                 </div>
 
@@ -460,18 +466,18 @@ function SignupForm() {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 h-12 text-lg touch-target mt-6"
+                  className="w-full bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] h-14 rounded-2xl font-body text-lg touch-target shadow-warm-md transition-all group mt-8"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-[#EEDDCC]/30 border-t-[#EEDDCC] rounded-full animate-spin" />
                       Creating account...
                     </div>
                   ) : (
                     <>
-                      Sign Up as Vendor
-                      <ArrowRight className="ml-2 w-5 h-5" />
+                      Sign Up as Professional
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
                 </Button>
@@ -482,46 +488,45 @@ function SignupForm() {
           {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-[#CDC0B0]" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Already have an account?</span>
+            <div className="relative flex justify-center text-sm font-body">
+              <span className="px-4 bg-white text-[#9C8E82]">Already have an account?</span>
             </div>
           </div>
 
           {/* Sign In Link */}
-          <Button variant="outline" size="lg" className="w-full h-12 touch-target" asChild>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="w-full h-14 touch-target border-[#CDC0B0] text-[#2C2621] font-body rounded-2xl hover:bg-[#FDFBF7] hover:border-[#9C8E82]" 
+            asChild
+          >
             <Link href="/login">Sign In</Link>
           </Button>
         </motion.div>
       </div>
 
-      {/* Right Side - Decorative */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* Right Side - Image */}
+      <div className="hidden lg:block lg:w-1/2 relative bg-[#2C2621]">
+        <Image 
+          src="https://images.unsplash.com/photo-1593696140826-c38b12252276?auto=format&fit=crop&q=80&w=1200"
+          alt="Elegant architecture design"
+          fill
+          className="object-cover opacity-80"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#2C2621] via-transparent to-transparent" />
         
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-white text-center max-w-md"
-        >
-          <h2 className="text-4xl font-bold mb-6">Join VendorHub Today</h2>
-          <p className="text-lg text-blue-100 mb-8 leading-relaxed">
-            Connect with verified professionals or grow your business with thousands of potential customers.
+        <div className="absolute bottom-16 left-12 right-12 text-[#FDFBF7]">
+          <h3 className="font-heading text-4xl font-bold mb-4">
+            Showcase your craft.<br />
+            Connect with clients.
+          </h3>
+          <p className="font-body text-[#EEDDCC] text-lg max-w-md leading-relaxed">
+            Join the most exclusive network of interior designers and architects.
           </p>
-          <div className="space-y-4 text-left">
-            <div className="bg-white/20 backdrop-blur-md rounded-xl p-5 border border-white/20 shadow-lg">
-              <h3 className="font-bold mb-2 text-lg">For Customers</h3>
-              <p className="text-sm text-blue-50 leading-relaxed">Find verified professionals, compare quotes, and hire with complete confidence</p>
-            </div>
-            <div className="bg-white/20 backdrop-blur-md rounded-xl p-5 border border-white/20 shadow-lg">
-              <h3 className="font-bold mb-2 text-lg">For Vendors</h3>
-              <p className="text-sm text-blue-50 leading-relaxed">Expand your reach, connect with customers, and build a strong reputation</p>
-            </div>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
@@ -529,7 +534,11 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">
+        <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin" />
+      </div>
+    }>
       <SignupForm />
     </Suspense>
   );

@@ -146,21 +146,21 @@ ${formData.timeline ? `\nTimeline: ${formData.timeline}` : ''}`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-[#FDFBF7] border-[#CDC0B0] sm:rounded-3xl shadow-warm-xl p-0">
+        <DialogHeader className="p-6 pb-4 border-b border-[#CDC0B0]/50 sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-sm z-10">
+          <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621]">
             Request a Quote
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="font-body text-[#6B5E54] mt-1">
             Get a personalized quote from {vendorName}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6">
           {/* Service Type */}
           <div className="space-y-2">
-            <Label htmlFor="serviceType" className="text-sm font-medium">
-              Service Type <span className="text-red-500">*</span>
+            <Label htmlFor="serviceType" className="text-sm font-heading font-bold text-[#2C2621]">
+              Service Type <span className="text-[#B85C5C]">*</span>
             </Label>
             <Input
               id="serviceType"
@@ -170,14 +170,14 @@ ${formData.timeline ? `\nTimeline: ${formData.timeline}` : ''}`;
               onChange={handleChange}
               required
               disabled={isSubmitting}
-              className="touch-target"
+              className="touch-target border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body bg-white rounded-xl h-12"
             />
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium">
-              Project Description <span className="text-red-500">*</span>
+            <Label htmlFor="description" className="text-sm font-heading font-bold text-[#2C2621]">
+              Project Description <span className="text-[#B85C5C]">*</span>
             </Label>
             <Textarea
               id="description"
@@ -188,93 +188,97 @@ ${formData.timeline ? `\nTimeline: ${formData.timeline}` : ''}`;
               required
               disabled={isSubmitting}
               rows={4}
-              className="resize-none"
+              className="resize-none border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body bg-white rounded-xl p-4"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs font-body text-[#9C8E82]">
               Be as specific as possible to get an accurate quote
             </p>
           </div>
 
-          {/* Budget */}
-          <div className="space-y-2">
-            <Label htmlFor="budget" className="text-sm font-medium">
-              Estimated Budget (Optional)
-            </Label>
-            <Input
-              id="budget"
-              name="budget"
-              placeholder="e.g., $500-$1000"
-              value={formData.budget}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className="touch-target"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Budget */}
+            <div className="space-y-2">
+              <Label htmlFor="budget" className="text-sm font-heading font-bold text-[#2C2621]">
+                Estimated Budget <span className="text-[#9C8E82] font-normal text-xs">(Optional)</span>
+              </Label>
+              <Input
+                id="budget"
+                name="budget"
+                placeholder="e.g., $500-$1000"
+                value={formData.budget}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="touch-target border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body bg-white rounded-xl h-12"
+              />
+            </div>
+
+            {/* Timeline */}
+            <div className="space-y-2">
+              <Label htmlFor="timeline" className="text-sm font-heading font-bold text-[#2C2621]">
+                Preferred Timeline <span className="text-[#9C8E82] font-normal text-xs">(Optional)</span>
+              </Label>
+              <Input
+                id="timeline"
+                name="timeline"
+                placeholder="e.g., Within 2 weeks"
+                value={formData.timeline}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="touch-target border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body bg-white rounded-xl h-12"
+              />
+            </div>
+
+            {/* Contact Phone */}
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone" className="text-sm font-heading font-bold text-[#2C2621]">
+                Contact Phone <span className="text-[#9C8E82] font-normal text-xs">(Optional)</span>
+              </Label>
+              <Input
+                id="contactPhone"
+                name="contactPhone"
+                type="tel"
+                placeholder="e.g., (555) 123-4567"
+                value={formData.contactPhone}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="touch-target border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body bg-white rounded-xl h-12"
+              />
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location" className="text-sm font-heading font-bold text-[#2C2621]">
+                Service Location <span className="text-[#9C8E82] font-normal text-xs">(Optional)</span>
+              </Label>
+              <Input
+                id="location"
+                name="location"
+                placeholder="e.g., 123 Main St, New York"
+                value={formData.location}
+                onChange={handleChange}
+                disabled={isSubmitting}
+                className="touch-target border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body bg-white rounded-xl h-12"
+              />
+            </div>
           </div>
 
-          {/* Timeline */}
-          <div className="space-y-2">
-            <Label htmlFor="timeline" className="text-sm font-medium">
-              Preferred Timeline (Optional)
-            </Label>
-            <Input
-              id="timeline"
-              name="timeline"
-              placeholder="e.g., Within 2 weeks, ASAP"
-              value={formData.timeline}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className="touch-target"
-            />
-          </div>
-
-          {/* Contact Phone */}
-          <div className="space-y-2">
-            <Label htmlFor="contactPhone" className="text-sm font-medium">
-              Contact Phone (Optional)
-            </Label>
-            <Input
-              id="contactPhone"
-              name="contactPhone"
-              type="tel"
-              placeholder="e.g., (555) 123-4567"
-              value={formData.contactPhone}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className="touch-target"
-            />
-          </div>
-
-          {/* Location */}
-          <div className="space-y-2">
-            <Label htmlFor="location" className="text-sm font-medium">
-              Service Location (Optional)
-            </Label>
-            <Input
-              id="location"
-              name="location"
-              placeholder="e.g., 123 Main St, New York, NY"
-              value={formData.location}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className="touch-target"
-            />
-          </div>
+          <div className="h-px w-full bg-[#CDC0B0]/50 my-2" />
 
           {/* Submit Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
-              className="flex-1 touch-target"
+              className="flex-1 touch-target bg-white border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] font-body rounded-xl h-12"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 touch-target"
+              className="flex-1 bg-[#C4975A] hover:bg-[#B38549] text-white rounded-xl touch-target font-body h-12 shadow-warm-sm"
             >
               {isSubmitting ? (
                 <>

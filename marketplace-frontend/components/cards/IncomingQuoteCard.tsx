@@ -34,27 +34,27 @@ interface IncomingQuoteCardProps {
 const statusConfig = {
   pending: {
     label: 'Awaiting Response',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100',
-    borderColor: 'border-orange-200',
+    color: 'text-[#D97706]',
+    bgColor: 'bg-[#FEF3C7]',
+    borderColor: 'border-l-[#F59E0B]',
   },
   responded: {
     label: 'Quote Sent',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    borderColor: 'border-blue-200',
+    color: 'text-[#C4975A]',
+    bgColor: 'bg-[#FDFBF7]',
+    borderColor: 'border-l-[#C4975A]',
   },
   accepted: {
     label: 'Accepted',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    borderColor: 'border-green-200',
+    color: 'text-[#8A9A5B]',
+    bgColor: 'bg-[#F4F6F0]',
+    borderColor: 'border-l-[#8A9A5B]',
   },
   declined: {
     label: 'Declined',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
-    borderColor: 'border-gray-200',
+    color: 'text-[#B85C5C]',
+    bgColor: 'bg-[#FDF2F2]',
+    borderColor: 'border-l-[#B85C5C]',
   },
 };
 
@@ -85,19 +85,19 @@ export function IncomingQuoteCard({
       transition={{ delay: index * 0.1 }}
       whileHover={{ y: -4 }}
     >
-      <Card className={`overflow-hidden border-l-4 ${config.borderColor} hover:shadow-lg transition-all`}>
+      <Card className={`overflow-hidden border border-[#CDC0B0]/50 border-l-4 ${config.borderColor} hover:shadow-warm-md transition-all bg-white rounded-3xl`}>
         <CardContent className="p-6">
           {/* Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3 flex-1">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+          <div className="flex items-start justify-between mb-5">
+            <div className="flex items-center gap-4 flex-1">
+              <Avatar className="w-12 h-12 border border-[#CDC0B0]">
+                <AvatarFallback className="bg-[#EEDDCC] text-[#2C2621] font-heading font-bold text-lg">
                   {quote.customer.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg mb-1">{quote.customer.name}</h3>
-                <Badge variant="outline" className={`${config.bgColor} ${config.color} border-0`}>
+                <h3 className="font-heading font-bold text-[#2C2621] text-lg mb-1">{quote.customer.name}</h3>
+                <Badge variant="outline" className={`${config.bgColor} ${config.color} border-0 font-body font-medium`}>
                   {config.label}
                 </Badge>
               </div>
@@ -105,51 +105,51 @@ export function IncomingQuoteCard({
           </div>
 
           {/* Service Request */}
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-semibold text-sm mb-2">Service Requested</h4>
-            <p className="text-lg font-medium text-blue-600 mb-2">{quote.service}</p>
-            <p className="text-sm text-gray-700">{quote.description}</p>
+          <div className="mb-5 p-5 bg-[#FDFBF7] border border-[#CDC0B0]/30 rounded-2xl">
+            <h4 className="font-heading font-bold text-sm text-[#9C8E82] uppercase tracking-wider mb-2">Service Requested</h4>
+            <p className="text-xl font-heading font-bold text-[#C4975A] mb-2">{quote.service}</p>
+            <p className="text-sm font-body text-[#6B5E54] leading-relaxed">{quote.description}</p>
           </div>
 
           {/* Customer Contact Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Mail className="w-4 h-4" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5 text-sm font-body">
+            <div className="flex items-center gap-2.5 text-[#6B5E54]">
+              <Mail className="w-4 h-4 text-[#9C8E82]" />
               <span className="truncate">{quote.customer.email}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Phone className="w-4 h-4" />
+            <div className="flex items-center gap-2.5 text-[#6B5E54]">
+              <Phone className="w-4 h-4 text-[#9C8E82]" />
               <span>{quote.customer.phone}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <MapPin className="w-4 h-4" />
+            <div className="flex items-center gap-2.5 text-[#6B5E54]">
+              <MapPin className="w-4 h-4 text-[#9C8E82]" />
               <span className="truncate">{quote.customer.location}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Clock className="w-4 h-4" />
+            <div className="flex items-center gap-2.5 text-[#6B5E54]">
+              <Clock className="w-4 h-4 text-[#9C8E82]" />
               <span>{formatDate(quote.createdAt)}</span>
             </div>
           </div>
 
           {/* Additional Details */}
           {(quote.preferredDate || quote.budget) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 p-4 bg-[#EEDDCC]/30 rounded-2xl text-sm border border-[#CDC0B0]/30">
               {quote.preferredDate && (
                 <div>
-                  <div className="flex items-center gap-1 text-gray-600 mb-1">
+                  <div className="flex items-center gap-1.5 text-[#9C8E82] font-body mb-1">
                     <Calendar className="w-4 h-4" />
-                    <span className="text-xs font-medium">Preferred Date</span>
+                    <span className="text-xs uppercase tracking-wider font-medium">Preferred Date</span>
                   </div>
-                  <p className="font-medium">{quote.preferredDate}</p>
+                  <p className="font-heading font-medium text-[#2C2621]">{quote.preferredDate}</p>
                 </div>
               )}
               {quote.budget && (
                 <div>
-                  <div className="flex items-center gap-1 text-gray-600 mb-1">
+                  <div className="flex items-center gap-1.5 text-[#9C8E82] font-body mb-1">
                     <DollarSign className="w-4 h-4" />
-                    <span className="text-xs font-medium">Budget Range</span>
+                    <span className="text-xs uppercase tracking-wider font-medium">Budget Range</span>
                   </div>
-                  <p className="font-medium text-green-600">${quote.budget.toLocaleString()}</p>
+                  <p className="font-heading font-bold text-lg text-[#8A9A5B]">${quote.budget.toLocaleString()}</p>
                 </div>
               )}
             </div>
@@ -160,7 +160,7 @@ export function IncomingQuoteCard({
             {quote.status === 'pending' && (
               <>
                 <Button
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 touch-target"
+                  className="flex-1 bg-[#C4975A] hover:bg-[#B38549] text-white rounded-xl touch-target font-body shadow-warm-sm"
                   onClick={() => onRespond(quote.id)}
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
@@ -168,7 +168,7 @@ export function IncomingQuoteCard({
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 text-red-600 hover:bg-red-50 touch-target"
+                  className="flex-1 border-[#CDC0B0] text-[#B85C5C] hover:bg-[#FDF2F2] hover:text-[#B85C5C] hover:border-[#B85C5C]/50 rounded-xl touch-target font-body"
                   onClick={() => onDecline(quote.id)}
                 >
                   <XCircle className="w-4 h-4 mr-2" />
@@ -179,7 +179,7 @@ export function IncomingQuoteCard({
             {quote.status === 'responded' && (
               <Button
                 variant="outline"
-                className="flex-1 touch-target"
+                className="flex-1 touch-target rounded-xl border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] font-body"
                 onClick={() => onRespond(quote.id)}
               >
                 View Sent Quote
@@ -188,7 +188,7 @@ export function IncomingQuoteCard({
             {quote.status === 'accepted' && (
               <Button
                 variant="outline"
-                className="flex-1 text-green-600 border-green-200 bg-green-50 touch-target"
+                className="flex-1 text-[#8A9A5B] border-[#8A9A5B]/30 bg-[#F4F6F0] rounded-xl touch-target font-body opacity-80"
                 disabled
               >
                 <CheckCircle className="w-4 h-4 mr-2" />

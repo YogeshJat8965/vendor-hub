@@ -15,6 +15,7 @@ import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { jwtDecode } from 'jwt-decode';
+import Image from 'next/image';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -85,29 +86,36 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-[#FDFBF7]">
       {/* Left Side - Form */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 relative">
+        {/* Decorative subtle background blobs */}
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#EEDDCC]/50 rounded-full blur-[80px] -z-10 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-[#CDC0B0]/30 rounded-full blur-[60px] -z-10 pointer-events-none" />
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-md bg-white/80 backdrop-blur-xl p-8 rounded-3xl shadow-warm-lg border border-[#CDC0B0]/40"
         >
           {/* Logo */}
-          <Link href="/" className="inline-block mb-8">
-            <h1 className="text-3xl font-bold gradient-text">VendorHub</h1>
+          <Link href="/" className="inline-block mb-10">
+            <h1 className="text-3xl font-heading font-bold text-[#2C2621]">VendorHub.</h1>
           </Link>
 
           {/* Title */}
-          <div className="mb-8">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-2">Welcome Back</h2>
-            <p className="text-gray-600">
+          <div className="mb-10">
+            <p className="font-accent text-2xl text-[#CDB79E] mb-1">Welcome Back</p>
+            <h2 className="text-3xl font-heading font-bold text-[#2C2621]">
+              Sign in to your account
+            </h2>
+            <p className="text-[#6B5E54] font-body mt-2">
               {roleParam === 'vendor' 
-                ? 'Sign in to your vendor account'
+                ? 'Manage your professional design portfolio'
                 : roleParam === 'customer'
-                ? 'Sign in to find trusted service providers'
-                : 'Sign in to your account to continue'}
+                ? 'Find your perfect design partner'
+                : 'Continue your journey with us'}
             </p>
           </div>
 
@@ -115,48 +123,48 @@ function LoginForm() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Email */}
             <div>
-              <Label htmlFor="email" className="mb-2">
+              <Label htmlFor="email" className="mb-2 font-body text-[#2C2621]">
                 Email Address
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="john@example.com"
-                  className={`pl-10 h-12 touch-target ${errors.email ? 'border-red-500' : ''}`}
+                  className={`pl-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   {...register('email')}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+                <p className="text-sm text-red-500 mt-2 font-body">{errors.email.message}</p>
               )}
             </div>
 
             {/* Password */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="font-body text-[#2C2621]">Password</Label>
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-sm text-[#CDB79E] hover:text-[#2C2621] font-body transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className={`pl-10 pr-10 h-12 touch-target ${errors.password ? 'border-red-500' : ''}`}
+                  className={`pl-12 pr-12 h-14 touch-target bg-[#FDFBF7] border-[#CDC0B0] text-[#2C2621] rounded-2xl focus:border-[#C4975A] focus:ring-1 focus:ring-[#C4975A] ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                   {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#2C2621] transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -166,7 +174,7 @@ function LoginForm() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+                <p className="text-sm text-red-500 mt-2 font-body">{errors.password.message}</p>
               )}
             </div>
 
@@ -174,18 +182,18 @@ function LoginForm() {
             <Button
               type="submit"
               size="lg"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 h-12 text-lg touch-target"
+              className="w-full bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] h-14 rounded-2xl font-body text-lg touch-target shadow-warm-md transition-all group"
               disabled={isLoading}
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#EEDDCC]/30 border-t-[#EEDDCC] rounded-full animate-spin" />
                   Signing in...
                 </div>
               ) : (
                 <>
                   Sign In
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </Button>
@@ -194,10 +202,10 @@ function LoginForm() {
           {/* Divider */}
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-[#CDC0B0]" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Don't have an account?</span>
+            <div className="relative flex justify-center text-sm font-body">
+              <span className="px-4 bg-white text-[#9C8E82]">New to VendorHub?</span>
             </div>
           </div>
 
@@ -205,7 +213,7 @@ function LoginForm() {
           <Button
             variant="outline"
             size="lg"
-            className="w-full h-12 touch-target"
+            className="w-full h-14 touch-target border-[#CDC0B0] text-[#2C2621] font-body rounded-2xl hover:bg-[#FDFBF7] hover:border-[#9C8E82]"
             asChild
           >
             <Link href="/signup">Create an Account</Link>
@@ -213,52 +221,26 @@ function LoginForm() {
         </motion.div>
       </div>
 
-      {/* Right Side - Decorative */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 items-center justify-center p-12 relative overflow-hidden">
-        {/* Decorative Blobs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* Right Side - Image */}
+      <div className="hidden lg:block lg:w-1/2 relative bg-[#2C2621]">
+        <Image 
+          src="https://images.unsplash.com/photo-1616487625407-7ce1b2dc8978?auto=format&fit=crop&q=80&w=1200"
+          alt="Japandi Interior Design"
+          fill
+          className="object-cover opacity-80"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#2C2621] via-transparent to-transparent" />
         
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-10 text-white text-center max-w-md"
-        >
-          <h2 className="text-4xl font-bold mb-6">Find Trusted Service Providers</h2>
-          <p className="text-lg text-blue-100 mb-8">
-            Connect with verified professionals for all your needs. Get quotes, read reviews, and hire with confidence.
+        <div className="absolute bottom-16 left-12 right-12 text-[#FDFBF7]">
+          <h3 className="font-heading text-4xl font-bold mb-4">
+            Curated spaces.<br />
+            Elevated living.
+          </h3>
+          <p className="font-body text-[#EEDDCC] text-lg max-w-md leading-relaxed">
+            Join thousands of homeowners and professionals shaping the future of interior design.
           </p>
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-2xl">✓</span>
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold">Verified Vendors</h3>
-                <p className="text-sm text-blue-100">All professionals are thoroughly vetted</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-2xl">⚡</span>
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold">Quick Quotes</h3>
-                <p className="text-sm text-blue-100">Get responses within hours</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-4">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="text-2xl">⭐</span>
-              </div>
-              <div className="text-left">
-                <h3 className="font-semibold">Trusted Reviews</h3>
-                <p className="text-sm text-blue-100">Real feedback from real customers</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
@@ -266,7 +248,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#FDFBF7]">
+        <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin" />
+      </div>
+    }>
       <LoginForm />
     </Suspense>
   );

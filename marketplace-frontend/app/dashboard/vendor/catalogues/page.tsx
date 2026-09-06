@@ -49,14 +49,14 @@ export default function CataloguesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 min-h-screen bg-[#FDFBF7] p-4 sm:p-8 rounded-3xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Catalogues</h1>
-          <p className="text-slate-500 mt-2">Manage and showcase your services and designs.</p>
+          <h1 className="text-3xl font-heading font-bold text-[#2C2621]">My Catalogues</h1>
+          <p className="text-[#6B5E54] font-body mt-2">Manage and showcase your services and designs.</p>
         </div>
         <Link href="/dashboard/vendor/catalogues/new">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/25 transition-all">
+          <Button className="bg-[#C4975A] hover:bg-[#B38549] text-white shadow-warm-md hover:shadow-warm-lg transition-all rounded-xl font-body px-6">
             <Plus className="mr-2 h-4 w-4" /> Create Catalogue
           </Button>
         </Link>
@@ -64,22 +64,24 @@ export default function CataloguesPage() {
 
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin"></div>
         </div>
       ) : error ? (
-        <div className="bg-red-50 text-red-500 p-4 rounded-lg">{error}</div>
+        <div className="bg-[#B85C5C]/10 text-[#B85C5C] p-4 rounded-xl font-body border border-[#B85C5C]/20">{error}</div>
       ) : catalogues.length === 0 ? (
-        <Card className="border-dashed border-2 bg-slate-50">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="bg-blue-100 p-3 rounded-full mb-4">
-              <Folder className="h-8 w-8 text-blue-600" />
+        <Card className="border-dashed border-2 border-[#CDC0B0] bg-white rounded-3xl">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="bg-[#EEDDCC]/50 p-4 rounded-2xl mb-6 border border-[#CDC0B0]/50">
+              <Folder className="h-10 w-10 text-[#2C2621]" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No Catalogues Yet</h3>
-            <p className="text-slate-500 mb-6 max-w-sm text-center">
+            <h3 className="text-xl font-heading font-bold text-[#2C2621] mb-3">No Catalogues Yet</h3>
+            <p className="text-[#6B5E54] font-body mb-8 max-w-sm text-center">
               Create your first catalogue to showcase your designs and services to potential customers.
             </p>
             <Link href="/dashboard/vendor/catalogues/new">
-              <Button variant="outline">Get Started</Button>
+              <Button variant="outline" className="border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] rounded-xl font-body">
+                Get Started
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -92,8 +94,8 @@ export default function CataloguesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                <div className="h-48 bg-slate-200 relative">
+              <Card className="overflow-hidden hover:shadow-warm-lg transition-shadow duration-300 border-[#CDC0B0] bg-white rounded-3xl h-full flex flex-col">
+                <div className="h-56 bg-[#FDFBF7] relative border-b border-[#CDC0B0]">
                   {catalogue.coverImage ? (
                     <img 
                       src={catalogue.coverImage.startsWith('http') ? catalogue.coverImage : `${process.env.NEXT_PUBLIC_API_URL}${catalogue.coverImage}`} 
@@ -101,31 +103,31 @@ export default function CataloguesPage() {
                       className="w-full h-full object-cover" 
                     />
                   ) : (
-                    <div className="flex items-center justify-center h-full text-slate-400">
+                    <div className="flex items-center justify-center h-full text-[#CDB79E]">
                       <ImageIcon className="h-12 w-12 opacity-50" />
                     </div>
                   )}
-                  <Badge className="absolute top-4 right-4 bg-white/90 text-slate-900 border-none shadow-sm backdrop-blur-sm">
+                  <Badge className="absolute top-4 right-4 bg-white/90 text-[#2C2621] border border-[#CDC0B0]/50 shadow-warm-sm backdrop-blur-sm font-body px-3 py-1 rounded-full">
                     {catalogue.type === 'PREMIUM' ? '✨ Premium' : 'Basic'}
                   </Badge>
                 </div>
-                <CardHeader>
-                  <CardTitle className="line-clamp-1">{catalogue.name}</CardTitle>
-                  <CardDescription className="line-clamp-2">{catalogue.description}</CardDescription>
+                <CardHeader className="flex-1">
+                  <CardTitle className="line-clamp-1 font-heading text-xl text-[#2C2621]">{catalogue.name}</CardTitle>
+                  <CardDescription className="line-clamp-2 font-body text-[#6B5E54] leading-relaxed mt-2">{catalogue.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-between items-center text-sm text-slate-500">
-                    <span>{catalogue.items?.length || 0} Items</span>
-                    <span>Last updated: {new Date(catalogue.updatedAt).toLocaleDateString()}</span>
+                  <div className="flex justify-between items-center text-sm font-body text-[#9C8E82]">
+                    <span className="flex items-center gap-1.5 px-3 py-1 bg-[#FDFBF7] rounded-lg border border-[#CDC0B0]/30">{catalogue.items?.length || 0} Items</span>
+                    <span>Updated: {new Date(catalogue.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-between border-t bg-slate-50/50 pt-4">
+                <CardFooter className="flex justify-between border-t border-[#CDC0B0]/50 bg-[#FDFBF7] pt-4 pb-4">
                   <Link href={`/dashboard/vendor/catalogues/${catalogue.id}`}>
-                    <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200">
+                    <Button variant="outline" size="sm" className="rounded-xl border-[#CDC0B0] hover:bg-[#EEDDCC]/50 text-[#2C2621] hover:border-[#9C8E82] font-body transition-colors">
                       <Edit2 className="mr-2 h-4 w-4" /> Edit
                     </Button>
                   </Link>
-                  <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-50" onClick={() => handleDelete(catalogue.id)}>
+                  <Button variant="ghost" size="sm" className="rounded-xl text-[#B85C5C] hover:bg-[#B85C5C]/10 font-body transition-colors" onClick={() => handleDelete(catalogue.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </CardFooter>

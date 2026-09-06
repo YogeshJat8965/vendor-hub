@@ -1,27 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navLinks = [
     { label: 'Explore', href: '/explore' },
@@ -31,34 +32,36 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md shadow-sm">
+    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-[#CDC0B0]/30 py-1' : 'bg-white/80 backdrop-blur-md py-3'}`}>
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-baseline space-x-1 group">
             <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600"
+              whileHover={{ scale: 1.02 }}
+              className="text-3xl font-heading font-bold text-[#2C2621]"
             >
               VendorHub
             </motion.div>
+            <span className="font-accent text-xl text-[#CDB79E] group-hover:text-[#2C2621] transition-colors duration-300 hidden sm:inline-block">marketplace</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-2">
+          <nav className="hidden md:flex items-center space-x-6">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-4 py-2 rounded-lg text-base font-semibold transition-all duration-200 ${
+                  className={`text-base font-body font-medium transition-all duration-300 relative group ${
                     isActive 
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                      ? 'text-[#2C2621]' 
+                      : 'text-[#6B5E54] hover:text-[#2C2621]'
                   }`}
                 >
                   {link.label}
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#CDB79E] transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                 </Link>
               );
             })}
@@ -69,8 +72,8 @@ export function Header() {
             {isAuthenticated ? (
               <>
                 <Button 
-                  variant="ghost" 
-                  className="gap-2"
+                  variant="outline" 
+                  className="gap-2 rounded-xl"
                   asChild
                 >
                   <Link href={
@@ -86,7 +89,7 @@ export function Header() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="gap-2"
+                  className="gap-2 text-[#B85C5C] hover:bg-[#B85C5C]/10 hover:text-[#B85C5C]"
                   onClick={logout}
                 >
                   <LogOut className="h-4 w-4" />
@@ -95,10 +98,10 @@ export function Header() {
               </>
             ) : (
               <>
-                <Button variant="ghost" asChild>
+                <Button variant="ghost" className="text-[#2C2621]" asChild>
                   <Link href="/login">Login</Link>
                 </Button>
-                <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Button asChild className="bg-[#2C2621] text-white hover:bg-[#2C2621]/90 rounded-xl px-6">
                   <Link href="/signup">Get Started</Link>
                 </Button>
               </>
@@ -109,35 +112,43 @@ export function Header() {
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="touch-target">
+                <Button variant="ghost" size="icon" className="touch-target text-[#2C2621]">
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
-                <nav className="flex flex-col space-y-2 mt-8">
-                  {navLinks.map((link) => {
-                    const isActive = pathname === link.href;
-                    return (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setIsOpen(false)}
-                        className={`text-lg font-semibold transition-all py-3 px-4 rounded-lg touch-target ${
-                          isActive 
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md' 
-                            : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
-                        }`}
-                      >
-                        {link.label}
-                      </Link>
-                    );
-                  })}
-                  <div className="pt-4 border-t space-y-2">
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-white border-l-[#CDC0B0]/50">
+                <div className="flex flex-col space-y-6 mt-8">
+                  <div className="flex items-baseline space-x-1 pb-4 border-b border-[#CDC0B0]/30">
+                    <div className="text-2xl font-heading font-bold text-[#2C2621]">VendorHub</div>
+                    <span className="font-accent text-lg text-[#CDB79E]">marketplace</span>
+                  </div>
+                  
+                  <nav className="flex flex-col space-y-4">
+                    {navLinks.map((link) => {
+                      const isActive = pathname === link.href;
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`text-lg font-body font-medium transition-all py-2 touch-target ${
+                            isActive 
+                              ? 'text-[#2C2621] border-l-2 border-[#CDB79E] pl-4' 
+                              : 'text-[#6B5E54] hover:text-[#2C2621] hover:pl-2'
+                          }`}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                  
+                  <div className="pt-6 border-t border-[#CDC0B0]/30 space-y-3">
                     {isAuthenticated ? (
                       <>
                         <Button 
                           variant="outline" 
-                          className="w-full touch-target gap-2" 
+                          className="w-full touch-target gap-2 justify-start rounded-xl" 
                           asChild
                           onClick={() => setIsOpen(false)}
                         >
@@ -153,8 +164,8 @@ export function Header() {
                           </Link>
                         </Button>
                         <Button 
-                          variant="outline" 
-                          className="w-full touch-target gap-2" 
+                          variant="ghost" 
+                          className="w-full touch-target gap-2 justify-start text-[#B85C5C] hover:bg-[#B85C5C]/10" 
                           onClick={() => {
                             logout();
                             setIsOpen(false);
@@ -166,16 +177,16 @@ export function Header() {
                       </>
                     ) : (
                       <>
-                        <Button variant="outline" className="w-full touch-target" asChild>
+                        <Button variant="outline" className="w-full touch-target rounded-xl" asChild>
                           <Link href="/login">Login</Link>
                         </Button>
-                        <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 touch-target" asChild>
+                        <Button className="w-full bg-[#2C2621] text-white touch-target rounded-xl" asChild>
                           <Link href="/signup">Get Started</Link>
                         </Button>
                       </>
                     )}
                   </div>
-                </nav>
+                </div>
               </SheetContent>
             </Sheet>
           </div>

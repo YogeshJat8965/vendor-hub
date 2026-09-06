@@ -69,11 +69,12 @@ function Sidebar() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-r">
+    <div className="flex flex-col h-full bg-[#FFFFFF] border-r border-[#CDC0B0]/50">
       {/* Logo */}
       <div className="p-6">
-        <Link href="/" className="block">
-          <h1 className="text-2xl font-bold gradient-text">VendorHub</h1>
+        <Link href="/" className="block group">
+          <h1 className="text-2xl font-heading font-bold text-[#2C2621]">VendorHub</h1>
+          <span className="font-accent text-lg text-[#CDB79E] group-hover:text-[#2C2621] transition-colors duration-300">marketplace</span>
         </Link>
       </div>
 
@@ -82,15 +83,15 @@ function Sidebar() {
       {/* User Info */}
       <div className="p-6">
         <div className="flex items-center gap-3">
-          <Avatar className="w-12 h-12">
+          <Avatar className="w-12 h-12 border border-[#CDC0B0]/30">
             <AvatarImage src={user.avatar || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+            <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold">
               {user.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate">{user.name}</h3>
-            <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{user.name}</h3>
+            <p className="font-body text-xs text-[#6B5E54] truncate">{user.email}</p>
           </div>
         </div>
       </div>
@@ -107,15 +108,15 @@ function Sidebar() {
             <Link key={item.href} href={item.href}>
               <motion.div
                 whileHover={{ x: 4 }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors touch-target ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 touch-target font-body font-medium ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-[#EEDDCC] text-[#2C2621] shadow-warm-sm'
+                    : 'text-[#6B5E54] hover:bg-[#E7DBCD]/50 hover:text-[#2C2621]'
                 }`}
               >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.title}</span>
-                {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
+                <span className="flex-1">{item.title}</span>
+                {isActive && <ChevronRight className="w-4 h-4 ml-auto text-[#2C2621]" />}
               </motion.div>
             </Link>
           );
@@ -128,7 +129,7 @@ function Sidebar() {
       <div className="p-4">
         <Button
           variant="ghost"
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 touch-target"
+          className="w-full justify-start text-[#B85C5C] hover:text-white hover:bg-[#B85C5C] touch-target rounded-xl font-body transition-colors duration-300"
           onClick={handleLogout}
         >
           <LogOut className="w-5 h-5 mr-3" />
@@ -152,22 +153,23 @@ function MobileSidebar() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="lg:hidden touch-target">
+        <Button variant="ghost" size="icon" className="lg:hidden touch-target text-[#2C2621]">
           <Menu className="w-6 h-6" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-80 p-0">
+      <SheetContent side="left" className="w-80 p-0 border-r-[#CDC0B0]/50 bg-white">
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 flex items-center justify-between">
-            <Link href="/" onClick={() => setOpen(false)}>
-              <h1 className="text-2xl font-bold gradient-text">VendorHub</h1>
+            <Link href="/" onClick={() => setOpen(false)} className="group">
+              <h1 className="text-2xl font-heading font-bold text-[#2C2621]">VendorHub</h1>
+              <span className="font-accent text-lg text-[#CDB79E]">marketplace</span>
             </Link>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setOpen(false)}
-              className="touch-target"
+              className="touch-target text-[#6B5E54] hover:bg-[#E7DBCD]/50 rounded-full"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -178,15 +180,15 @@ function MobileSidebar() {
           {/* User Info */}
           <div className="p-6">
             <div className="flex items-center gap-3">
-              <Avatar className="w-12 h-12">
+              <Avatar className="w-12 h-12 border border-[#CDC0B0]/30">
                 <AvatarImage src={user.avatar || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+                <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold">
                   {user.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm truncate">{user.name}</h3>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{user.name}</h3>
+                <p className="font-body text-xs text-[#6B5E54] truncate">{user.email}</p>
               </div>
             </div>
           </div>
@@ -203,15 +205,15 @@ function MobileSidebar() {
                 <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
                   <motion.div
                     whileTap={{ scale: 0.98 }}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors touch-target ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 touch-target font-body font-medium ${
                       isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-[#EEDDCC] text-[#2C2621] shadow-warm-sm'
+                        : 'text-[#6B5E54] hover:bg-[#E7DBCD]/50 hover:text-[#2C2621]'
                     }`}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.title}</span>
-                    {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
+                    <span className="flex-1">{item.title}</span>
+                    {isActive && <ChevronRight className="w-4 h-4 ml-auto text-[#2C2621]" />}
                   </motion.div>
                 </Link>
               );
@@ -224,7 +226,7 @@ function MobileSidebar() {
           <div className="p-4">
             <Button
               variant="ghost"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 touch-target"
+              className="w-full justify-start text-[#B85C5C] hover:text-white hover:bg-[#B85C5C] touch-target rounded-xl font-body transition-colors duration-300"
               onClick={handleLogout}
             >
               <LogOut className="w-5 h-5 mr-3" />
@@ -265,29 +267,29 @@ export default function CustomerDashboardLayout({
 
   return (
     <ProtectedRoute requiredRole="customer">
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-[#FDFBF7]">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 flex-shrink-0">
+        <aside className="hidden lg:block w-72 flex-shrink-0">
           <Sidebar />
         </aside>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Top Bar */}
-          <header className="bg-white border-b px-4 sm:px-6 py-4 flex items-center gap-4">
+          <header className="bg-white border-b border-[#CDC0B0]/50 px-4 sm:px-6 py-4 flex items-center gap-4 shadow-[0_2px_10px_rgba(44,38,33,0.03)] z-10">
             <MobileSidebar />
           
           {/* Breadcrumbs */}
-          <nav className="flex items-center gap-2 text-sm">
+          <nav className="flex items-center gap-2 text-sm font-body">
             {breadcrumbs.map((crumb, index) => (
               <div key={`breadcrumb-${index}`} className="flex items-center gap-2">
-                {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+                {index > 0 && <ChevronRight className="w-4 h-4 text-[#9C8E82]" />}
                 <Link
                   href={crumb.href}
                   className={`${
                     index === breadcrumbs.length - 1
-                      ? 'text-gray-900 font-medium'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'text-[#2C2621] font-semibold'
+                      : 'text-[#6B5E54] hover:text-[#C4975A] transition-colors'
                   }`}
                 >
                   {crumb.title}
@@ -299,7 +301,7 @@ export default function CustomerDashboardLayout({
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-4 sm:px-6 py-8">
+          <div className="container mx-auto px-4 sm:px-8 py-8 lg:py-10 max-w-6xl">
             {children}
           </div>
         </main>

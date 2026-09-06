@@ -126,28 +126,39 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
   };
 
   if (loading) {
-    return <div className="flex h-[600px] items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-blue-600" /></div>;
+    return (
+      <div className="flex h-[600px] items-center justify-center bg-[#FDFBF7] rounded-3xl border border-[#CDC0B0]">
+        <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="flex h-[600px] border rounded-xl overflow-hidden bg-white shadow-sm">
+    <div className="flex h-[600px] border border-[#CDC0B0] rounded-3xl overflow-hidden bg-white shadow-warm-md">
       {/* Sidebar: Conversations List */}
-      <div className="w-1/3 border-r bg-slate-50 flex flex-col">
-        <div className="p-4 border-b bg-white">
-          <h2 className="font-bold text-lg">Inbox</h2>
+      <div className="w-1/3 border-r border-[#CDC0B0]/50 bg-[#FDFBF7] flex flex-col">
+        <div className="p-5 border-b border-[#CDC0B0]/50 bg-[#FDFBF7]">
+          <h2 className="font-heading font-bold text-xl text-[#2C2621]">Inbox</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
-            <div className="p-6 text-center text-slate-500">No conversations found.</div>
+            <div className="p-8 text-center text-[#6B5E54] font-body">
+              <MessageSquare className="w-8 h-8 mx-auto mb-3 text-[#CDB79E]" />
+              <p>No conversations found.</p>
+            </div>
           ) : (
             conversations.map(conv => (
               <div 
                 key={conv.id} 
                 onClick={() => handleSelectConv(conv)}
-                className={`p-4 border-b cursor-pointer hover:bg-slate-100 transition-colors ${activeConv?.id === conv.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''}`}
+                className={`p-4 border-b border-[#CDC0B0]/30 cursor-pointer transition-colors ${activeConv?.id === conv.id ? 'bg-[#EEDDCC] border-l-4 border-l-[#C4975A]' : 'hover:bg-[#EEDDCC]/40'}`}
               >
-                <div className="font-semibold">{userRole === 'CUSTOMER' ? 'Vendor ID: ' + conv.vendorId : 'Customer ID: ' + conv.customerId}</div>
-                <div className="text-sm text-slate-500 line-clamp-1">{conv.lastMessage || 'No messages yet'}</div>
+                <div className="font-heading font-semibold text-[#2C2621] mb-1">
+                  {userRole === 'CUSTOMER' ? 'Vendor ID: ' + conv.vendorId : 'Customer ID: ' + conv.customerId}
+                </div>
+                <div className="text-sm font-body text-[#6B5E54] line-clamp-1">
+                  {conv.lastMessage || 'No messages yet'}
+                </div>
               </div>
             ))
           )}
@@ -155,29 +166,33 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
       </div>
 
       {/* Main: Chat Area */}
-      <div className="flex-1 flex flex-col bg-white">
+      <div className="flex-1 flex flex-col bg-white relative">
         {activeConv ? (
           <>
-            <div className="p-4 border-b flex items-center shadow-sm z-10">
-              <Avatar className="h-10 w-10 mr-3">
-                <AvatarFallback className="bg-blue-100 text-blue-600">
+            <div className="p-4 border-b border-[#CDC0B0]/50 flex items-center shadow-sm z-10 bg-white">
+              <Avatar className="h-10 w-10 mr-4 border border-[#CDC0B0]">
+                <AvatarFallback className="bg-[#FDFBF7] text-[#C4975A] font-heading font-bold">
                   {userRole === 'CUSTOMER' ? 'V' : 'C'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <div className="font-bold">{userRole === 'CUSTOMER' ? 'Vendor Chat' : 'Customer Chat'}</div>
-                <div className="text-xs text-green-500">Online</div>
+                <div className="font-heading font-bold text-[#2C2621]">
+                  {userRole === 'CUSTOMER' ? 'Vendor Chat' : 'Customer Chat'}
+                </div>
+                <div className="text-xs font-body text-[#8A9A5B] flex items-center gap-1 mt-0.5">
+                  <span className="w-2 h-2 rounded-full bg-[#8A9A5B]"></span> Online
+                </div>
               </div>
             </div>
             
-            <div className="flex-1 p-4 overflow-y-auto bg-slate-50 space-y-4">
+            <div className="flex-1 p-5 overflow-y-auto bg-[#FDFBF7] space-y-6">
               {messages.map((m, i) => {
                 const isMine = m.senderRole === userRole;
                 return (
                   <div key={i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMine ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white border text-slate-800 rounded-tl-sm shadow-sm'}`}>
-                      {m.content}
-                      <div className={`text-[10px] mt-1 text-right ${isMine ? 'text-blue-200' : 'text-slate-400'}`}>
+                    <div className={`max-w-[75%] rounded-2xl px-5 py-3 shadow-sm ${isMine ? 'bg-[#C4975A] text-white rounded-tr-sm' : 'bg-white border border-[#CDC0B0] text-[#2C2621] rounded-tl-sm'}`}>
+                      <div className="font-body text-[15px] leading-relaxed">{m.content}</div>
+                      <div className={`text-[11px] mt-1 text-right font-medium ${isMine ? 'text-white/80' : 'text-[#9C8E82]'}`}>
                         {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -187,8 +202,8 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
               <div ref={messagesEndRef} />
             </div>
             
-            <div className="p-4 bg-white border-t flex gap-2">
-              <Button variant="outline" size="icon" className="shrink-0 text-slate-500">
+            <div className="p-4 bg-white border-t border-[#CDC0B0]/50 flex gap-3">
+              <Button variant="outline" size="icon" className="shrink-0 text-[#6B5E54] border-[#CDC0B0] hover:bg-[#FDFBF7] hover:text-[#C4975A] rounded-xl h-12 w-12">
                 <ImageIcon className="w-5 h-5" />
               </Button>
               <Input 
@@ -196,17 +211,20 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
                 value={inputMsg}
                 onChange={e => setInputMsg(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                className="flex-1"
+                className="flex-1 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
               />
-              <Button onClick={sendMessage} className="bg-blue-600 hover:bg-blue-700 shrink-0">
+              <Button onClick={sendMessage} className="bg-[#C4975A] hover:bg-[#B38549] text-white shrink-0 rounded-xl h-12 px-6 shadow-warm-sm font-body">
                 <Send className="w-4 h-4 mr-2" /> Send
               </Button>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-slate-400 flex-col">
-            <MessageSquare className="w-16 h-16 mb-4 opacity-20" />
-            <p>Select a conversation to start messaging</p>
+          <div className="flex-1 flex items-center justify-center text-[#9C8E82] flex-col bg-[#FDFBF7]">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-[#CDC0B0]">
+              <MessageSquare className="w-8 h-8 text-[#CDB79E]" />
+            </div>
+            <p className="font-heading font-medium text-lg text-[#2C2621]">Your Inbox</p>
+            <p className="font-body text-[#6B5E54] mt-1">Select a conversation to start messaging</p>
           </div>
         )}
       </div>

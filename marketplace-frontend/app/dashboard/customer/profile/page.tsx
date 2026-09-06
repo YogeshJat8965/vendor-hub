@@ -205,10 +205,10 @@ export default function CustomerProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+      <div className="min-h-screen bg-[#FDFBF7] pt-20 px-4">
         <div className="max-w-4xl mx-auto py-8">
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin" />
           </div>
         </div>
       </div>
@@ -216,36 +216,36 @@ export default function CustomerProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+    <div className="min-h-screen bg-[#FDFBF7] pt-20 px-4 rounded-3xl">
       <div className="max-w-4xl mx-auto py-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your account information and preferences</p>
+          <h1 className="text-3xl font-heading font-bold text-[#2C2621] mb-2">Profile Settings</h1>
+          <p className="text-[#6B5E54] font-body">Manage your account information and preferences</p>
         </div>
 
         {/* Profile Photo */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Photo</CardTitle>
+        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
+          <CardHeader className="border-b border-[#CDC0B0]/30 bg-[#FDFBF7]/50 rounded-t-3xl">
+            <CardTitle className="font-heading text-xl text-[#2C2621]">Profile Photo</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="flex items-center gap-6">
               <div
                 className="relative"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
-                <Avatar className="w-24 h-24 border-2 border-dashed border-transparent hover:border-blue-400 transition-colors">
+                <Avatar className="w-24 h-24 border-2 border-dashed border-[#CDC0B0] hover:border-[#9C8E82] transition-colors bg-[#FDFBF7]">
                   <AvatarImage src={photoUrl || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white text-3xl">
+                  <AvatarFallback className="bg-[#EEDDCC] text-[#2C2621] text-3xl font-heading">
                     {user?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 {photoUrl && (
                   <button
                     onClick={handleDeletePhoto}
-                    className="absolute top-0 right-0 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg"
+                    className="absolute top-0 right-0 w-6 h-6 bg-[#B85C5C] text-white rounded-full flex items-center justify-center hover:bg-[#A34F4F] shadow-warm-sm"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -263,6 +263,7 @@ export default function CustomerProfilePage() {
                   variant="outline"
                   onClick={handlePhotoClick}
                   disabled={isUploadingPhoto}
+                  className="border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
                 >
                   {isUploadingPhoto ? (
                     <>
@@ -271,12 +272,12 @@ export default function CustomerProfilePage() {
                     </>
                   ) : (
                     <>
-                      <Camera className="w-4 h-4 mr-2" />
+                      <Camera className="w-4 h-4 mr-2 text-[#9C8E82]" />
                       Upload Photo
                     </>
                   )}
                 </Button>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-[#9C8E82] mt-2 font-body">
                   JPG, PNG or WEBP. Max size 2MB. Drag & drop supported
                 </p>
               </div>
@@ -285,265 +286,267 @@ export default function CustomerProfilePage() {
         </Card>
 
         {/* Personal Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
+        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
+          <CardHeader className="border-b border-[#CDC0B0]/30 bg-[#FDFBF7]/50 rounded-t-3xl">
+            <CardTitle className="font-heading text-xl text-[#2C2621]">Personal Information</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
               {/* Full Name */}
               <div>
-                <Label htmlFor="fullName" className="mb-2">Full Name</Label>
+                <Label htmlFor="fullName" className="mb-2 font-body text-[#2C2621]">Full Name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                   <Input
                     id="fullName"
-                    className={`pl-10 h-12 ${profileForm.formState.errors.fullName ? 'border-red-500' : ''}`}
+                    className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.fullName ? 'border-[#B85C5C]' : ''}`}
                     {...profileForm.register('fullName')}
                   />
                 </div>
                 {profileForm.formState.errors.fullName && (
-                  <p className="text-sm text-red-500 mt-1">{profileForm.formState.errors.fullName.message}</p>
+                  <p className="text-sm text-[#B85C5C] mt-1 font-body">{profileForm.formState.errors.fullName.message}</p>
                 )}
               </div>
 
               {/* Email & Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="email" className="mb-2">Email Address</Label>
+                  <Label htmlFor="email" className="mb-2 font-body text-[#2C2621]">Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="email"
                       type="email"
-                      className={`pl-10 h-12 ${profileForm.formState.errors.email ? 'border-red-500' : ''}`}
+                      className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.email ? 'border-[#B85C5C]' : ''}`}
                       {...profileForm.register('email')}
                       disabled
                     />
                   </div>
                   {profileForm.formState.errors.email && (
-                    <p className="text-sm text-red-500 mt-1">{profileForm.formState.errors.email.message}</p>
+                    <p className="text-sm text-[#B85C5C] mt-1 font-body">{profileForm.formState.errors.email.message}</p>
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="phone" className="mb-2">Phone Number</Label>
+                  <Label htmlFor="phone" className="mb-2 font-body text-[#2C2621]">Phone Number</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                     <Input
                       id="phone"
                       type="tel"
-                      className={`pl-10 h-12 ${profileForm.formState.errors.phone ? 'border-red-500' : ''}`}
+                      className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.phone ? 'border-[#B85C5C]' : ''}`}
                       {...profileForm.register('phone')}
                     />
                   </div>
                   {profileForm.formState.errors.phone && (
-                    <p className="text-sm text-red-500 mt-1">{profileForm.formState.errors.phone.message}</p>
+                    <p className="text-sm text-[#B85C5C] mt-1 font-body">{profileForm.formState.errors.phone.message}</p>
                   )}
                 </div>
               </div>
 
               {/* Address */}
               <div>
-                <Label htmlFor="address" className="mb-2">Street Address</Label>
+                <Label htmlFor="address" className="mb-2 font-body text-[#2C2621]">Street Address</Label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                   <Input
                     id="address"
-                  className="pl-10 h-12 touch-target"
-                  {...profileForm.register('address')}
-                />
+                    className="pl-10 h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    {...profileForm.register('address')}
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* City, State, Zip */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {/* City, State, Zip */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                  <Label htmlFor="city" className="mb-2 font-body text-[#2C2621]">City</Label>
+                  <Input
+                    id="city"
+                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    {...profileForm.register('city')}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state" className="mb-2 font-body text-[#2C2621]">State</Label>
+                  <Input
+                    id="state"
+                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    {...profileForm.register('state')}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="zipCode" className="mb-2 font-body text-[#2C2621]">ZIP Code</Label>
+                  <Input
+                    id="zipCode"
+                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    {...profileForm.register('zipCode')}
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                size="lg"
+                className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] touch-target rounded-xl font-body"
+                disabled={isUpdating}
+              >
+                {isUpdating ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Change Password */}
+        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
+          <CardHeader className="border-b border-[#CDC0B0]/30 bg-[#FDFBF7]/50 rounded-t-3xl">
+            <CardTitle className="font-heading text-xl text-[#2C2621]">Change Password</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
+              {/* Current Password */}
               <div>
-                <Label htmlFor="city" className="mb-2">City</Label>
-                <Input
-                  id="city"
-                  className="h-12 touch-target"
-                  {...profileForm.register('city')}
-                />
+                <Label htmlFor="currentPassword" className="mb-2 font-body text-[#2C2621]">Current Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
+                  <Input
+                    id="currentPassword"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    className={`pl-10 pr-10 h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${passwordForm.formState.errors.currentPassword ? 'border-[#B85C5C]' : ''}`}
+                    {...passwordForm.register('currentPassword')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#6B5E54]"
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {passwordForm.formState.errors.currentPassword && (
+                  <p className="text-sm text-[#B85C5C] mt-1 font-body">{passwordForm.formState.errors.currentPassword.message}</p>
+                )}
               </div>
+
+              {/* New Password */}
               <div>
-                <Label htmlFor="state" className="mb-2">State</Label>
-                <Input
-                  id="state"
-                  className="h-12 touch-target"
-                  {...profileForm.register('state')}
-                />
+                <Label htmlFor="newPassword" className="mb-2 font-body text-[#2C2621]">New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
+                  <Input
+                    id="newPassword"
+                    type={showNewPassword ? 'text' : 'password'}
+                    className={`pl-10 pr-10 h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${passwordForm.formState.errors.newPassword ? 'border-[#B85C5C]' : ''}`}
+                    {...passwordForm.register('newPassword')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#6B5E54]"
+                  >
+                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {passwordForm.formState.errors.newPassword && (
+                  <p className="text-sm text-[#B85C5C] mt-1 font-body">{passwordForm.formState.errors.newPassword.message}</p>
+                )}
               </div>
+
+              {/* Confirm Password */}
               <div>
-                <Label htmlFor="zipCode" className="mb-2">ZIP Code</Label>
-                <Input
-                  id="zipCode"
-                  className="h-12 touch-target"
-                  {...profileForm.register('zipCode')}
-                />
+                <Label htmlFor="confirmPassword" className="mb-2 font-body text-[#2C2621]">Confirm New Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className={`pl-10 pr-10 h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${passwordForm.formState.errors.confirmPassword ? 'border-[#B85C5C]' : ''}`}
+                    {...passwordForm.register('confirmPassword')}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#6B5E54]"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                {passwordForm.formState.errors.confirmPassword && (
+                  <p className="text-sm text-[#B85C5C] mt-1 font-body">{passwordForm.formState.errors.confirmPassword.message}</p>
+                )}
               </div>
-            </div>
 
-            <Button
-              type="submit"
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 touch-target"
-              disabled={isUpdating}
-            >
-              {isUpdating ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-5 h-5 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <Button
+                type="submit"
+                variant="outline"
+                size="lg"
+                className="touch-target border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
+                disabled={isUpdating}
+              >
+                {isUpdating ? 'Updating...' : 'Update Password'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-      {/* Change Password */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
-            {/* Current Password */}
-            <div>
-              <Label htmlFor="currentPassword" className="mb-2">Current Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  id="currentPassword"
-                  type={showCurrentPassword ? 'text' : 'password'}
-                  className={`pl-10 pr-10 h-12 touch-target ${passwordForm.formState.errors.currentPassword ? 'border-red-500' : ''}`}
-                  {...passwordForm.register('currentPassword')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+        {/* Notification Preferences */}
+        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
+          <CardHeader className="border-b border-[#CDC0B0]/30 bg-[#FDFBF7]/50 rounded-t-3xl">
+            <CardTitle className="font-heading text-xl text-[#2C2621]">Notification Preferences</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium font-body text-[#2C2621] mb-1">Email Notifications</h4>
+                <p className="text-sm font-body text-[#6B5E54]">Receive quote updates and messages via email</p>
               </div>
-              {passwordForm.formState.errors.currentPassword && (
-                <p className="text-sm text-red-500 mt-1">{passwordForm.formState.errors.currentPassword.message}</p>
-              )}
+              <Switch
+                checked={emailNotifications}
+                onCheckedChange={setEmailNotifications}
+                className="data-[state=checked]:bg-[#5B8C5A]"
+              />
             </div>
-
-            {/* New Password */}
-            <div>
-              <Label htmlFor="newPassword" className="mb-2">New Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  id="newPassword"
-                  type={showNewPassword ? 'text' : 'password'}
-                  className={`pl-10 pr-10 h-12 touch-target ${passwordForm.formState.errors.newPassword ? 'border-red-500' : ''}`}
-                  {...passwordForm.register('newPassword')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+            <Separator className="bg-[#CDC0B0]/50" />
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium font-body text-[#2C2621] mb-1">SMS Notifications</h4>
+                <p className="text-sm font-body text-[#6B5E54]">Get urgent updates via text message</p>
               </div>
-              {passwordForm.formState.errors.newPassword && (
-                <p className="text-sm text-red-500 mt-1">{passwordForm.formState.errors.newPassword.message}</p>
-              )}
+              <Switch
+                checked={smsNotifications}
+                onCheckedChange={setSmsNotifications}
+                className="data-[state=checked]:bg-[#5B8C5A]"
+              />
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Confirm Password */}
-            <div>
-              <Label htmlFor="confirmPassword" className="mb-2">Confirm New Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  className={`pl-10 pr-10 h-12 touch-target ${passwordForm.formState.errors.confirmPassword ? 'border-red-500' : ''}`}
-                  {...passwordForm.register('confirmPassword')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
+        {/* Danger Zone */}
+        <Card className="border-[#B85C5C]/30 bg-[#B85C5C]/5 rounded-3xl shadow-warm-sm">
+          <CardHeader className="border-b border-[#B85C5C]/20 bg-white/50 rounded-t-3xl">
+            <CardTitle className="text-[#B85C5C] font-heading text-xl">Danger Zone</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium font-body text-[#2C2621] mb-1">Delete Account</h4>
+                <p className="text-sm font-body text-[#B85C5C]/80">Permanently delete your account and all data</p>
               </div>
-              {passwordForm.formState.errors.confirmPassword && (
-                <p className="text-sm text-red-500 mt-1">{passwordForm.formState.errors.confirmPassword.message}</p>
-              )}
+              <Button className="bg-[#B85C5C] hover:bg-[#A34F4F] text-white rounded-xl font-body">
+                Delete Account
+              </Button>
             </div>
-
-            <Button
-              type="submit"
-              variant="outline"
-              size="lg"
-              className="touch-target"
-              disabled={isUpdating}
-            >
-              {isUpdating ? 'Updating...' : 'Update Password'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Notification Preferences */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notification Preferences</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium mb-1">Email Notifications</h4>
-              <p className="text-sm text-gray-600">Receive quote updates and messages via email</p>
-            </div>
-            <Switch
-              checked={emailNotifications}
-              onCheckedChange={setEmailNotifications}
-            />
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium mb-1">SMS Notifications</h4>
-              <p className="text-sm text-gray-600">Get urgent updates via text message</p>
-            </div>
-            <Switch
-              checked={smsNotifications}
-              onCheckedChange={setSmsNotifications}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Danger Zone */}
-      <Card className="border-red-200">
-        <CardHeader>
-          <CardTitle className="text-red-600">Danger Zone</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-medium mb-1">Delete Account</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Permanently delete your account and all data</p>
-            </div>
-            <Button variant="destructive">
-              Delete Account
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

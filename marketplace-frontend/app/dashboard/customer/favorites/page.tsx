@@ -83,10 +83,10 @@ export default function CustomerFavoritesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+      <div className="min-h-screen bg-[#FDFBF7] pt-20 px-4 rounded-3xl">
         <div className="max-w-7xl mx-auto py-8">
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin" />
           </div>
         </div>
       </div>
@@ -94,33 +94,33 @@ export default function CustomerFavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+    <div className="min-h-screen bg-[#FDFBF7] pt-20 px-4 rounded-3xl">
       <div className="max-w-7xl mx-auto py-8 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">My Favorites</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {vendors.length} {vendors.length === 1 ? 'vendor' : 'vendors'} saved
+          <h1 className="text-3xl font-heading font-bold text-[#2C2621] mb-2">My Favorites</h1>
+          <p className="text-[#6B5E54] font-body">
+            {vendors.length} {vendors.length === 1 ? 'professional' : 'professionals'} saved
           </p>
         </div>
 
         {vendors.length > 0 && (
           /* Search Bar */
-          <Card>
+          <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
             <CardContent className="p-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                 <Input
                   type="text"
                   placeholder="Search favorites..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12"
+                  className="pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9C8E82] hover:text-[#6B5E54]"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -140,50 +140,50 @@ export default function CustomerFavoritesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="group hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                <Card className="group hover:shadow-warm-lg transition-all duration-300 relative overflow-hidden border-[#CDC0B0] bg-white rounded-3xl h-full flex flex-col">
                   <button
                     onClick={() => handleRemoveFavorite(vendor.slug)}
-                    className="absolute top-4 right-4 z-10 p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors shadow-lg"
+                    className="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-white/80 backdrop-blur-sm text-[#B85C5C] hover:bg-white hover:text-[#A34F4F] transition-all shadow-warm-sm border border-[#CDC0B0]/50"
                     aria-label="Remove from favorites"
                   >
                     <Heart className="w-5 h-5 fill-current" />
                   </button>
                   
-                  <Link href={`/vendors/${vendor.slug}`}>
-                    <CardContent className="p-0">
+                  <Link href={`/vendors/${vendor.slug}`} className="flex-1 flex flex-col">
+                    <CardContent className="p-0 flex-1 flex flex-col">
                       {/* Vendor Image */}
-                      <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden">
+                      <div className="relative h-48 bg-[#EEDDCC] overflow-hidden border-b border-[#CDC0B0]/30">
                         {vendor.profileImage ? (
                           <img
                             src={vendor.profileImage}
                             alt={vendor.businessName}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <span className="text-6xl font-bold text-white">
-                              {vendor.businessName.charAt(0)}
+                            <span className="text-5xl font-heading font-bold text-[#CDB79E]">
+                              {vendor.businessName.charAt(0).toUpperCase()}
                             </span>
                           </div>
                         )}
                       </div>
 
                       {/* Vendor Info */}
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors">
+                      <div className="p-6 flex-1 flex flex-col">
+                        <h3 className="text-xl font-heading font-bold text-[#2C2621] mb-2 group-hover:text-[#6B5E54] transition-colors line-clamp-1">
                           {vendor.businessName}
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        <p className="text-[#6B5E54] font-body mb-4 flex-1">
                           {vendor.vendorType}
                         </p>
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center justify-between text-sm font-body mt-auto">
+                          <span className="text-[#9C8E82] truncate pr-4">
                             {vendor.city}, {vendor.state}
                           </span>
-                          <div className="flex items-center">
-                            <span className="text-yellow-500 mr-1">★</span>
-                            <span className="font-medium">{vendor.rating}</span>
-                            <span className="text-gray-400 ml-1">
+                          <div className="flex items-center flex-shrink-0 bg-[#FDFBF7] px-2 py-1 rounded-lg border border-[#CDC0B0]/30">
+                            <span className="text-[#C4975A] mr-1">★</span>
+                            <span className="font-medium text-[#2C2621]">{vendor.rating}</span>
+                            <span className="text-[#9C8E82] ml-1">
                               ({vendor.reviewCount})
                             </span>
                           </div>
@@ -197,27 +197,27 @@ export default function CustomerFavoritesPage() {
           </div>
         ) : (
           /* Empty State */
-          <Card>
+          <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
             <CardContent className="p-12 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <Heart className="w-10 h-10 text-gray-400" />
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-[#EEDDCC]/50 border border-[#CDC0B0]/50 flex items-center justify-center">
+                <Heart className="w-10 h-10 text-[#CDB79E]" />
               </div>
-              <h3 className="text-xl font-bold mb-2">
-                {searchQuery ? 'No favorites found' : 'No favorite vendors yet'}
+              <h3 className="text-xl font-heading font-bold text-[#2C2621] mb-2">
+                {searchQuery ? 'No professionals found' : 'No saved professionals yet'}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="font-body text-[#6B5E54] mb-8 max-w-md mx-auto">
                 {searchQuery
-                  ? 'Try adjusting your search terms'
-                  : 'Start adding vendors to your favorites to see them here'}
+                  ? 'Try adjusting your search terms to find who you\'re looking for.'
+                  : 'Start adding professionals to your favorites to keep track of ones you like.'}
               </p>
               {!searchQuery && (
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] rounded-xl font-body px-8"
                   asChild
                 >
                   <Link href="/explore">
-                    Explore Vendors
+                    Explore Professionals
                   </Link>
                 </Button>
               )}

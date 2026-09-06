@@ -45,10 +45,10 @@ export default function VendorAnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
+      <div className="min-h-screen bg-[#FDFBF7] pt-20 px-4 rounded-3xl">
         <div className="max-w-7xl mx-auto py-8">
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="w-8 h-8 border-4 border-[#CDC0B0] border-t-[#2C2621] rounded-full animate-spin"></div>
           </div>
         </div>
       </div>
@@ -56,25 +56,25 @@ export default function VendorAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
-      <div className="max-w-7xl mx-auto py-8 space-y-6">
+    <div className="min-h-screen bg-[#FDFBF7] rounded-3xl pt-8 sm:pt-12 px-4 sm:px-8 pb-20">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Analytics</h1>
-            <p className="text-gray-600">Track your business performance</p>
+            <h1 className="text-3xl font-heading font-bold text-[#2C2621] mb-2">Analytics</h1>
+            <p className="text-[#6B5E54] font-body">Track your business performance and engagement.</p>
           </div>
           
           {/* Period Selector */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 bg-white p-1 rounded-xl border border-[#CDC0B0]/50 shadow-sm inline-flex">
             {['7', '30', '90', '365'].map((days) => (
               <button
                 key={days}
                 onClick={() => setPeriod(days)}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-4 py-2 rounded-lg font-body font-medium transition-colors text-sm ${
                   period === days
-                    ? 'bg-primary text-white'
-                    : 'bg-white border border-gray-200 hover:bg-gray-50'
+                    ? 'bg-[#C4975A] text-white shadow-sm'
+                    : 'bg-transparent text-[#6B5E54] hover:bg-[#FDFBF7]'
                 }`}
               >
                 {days === '7' ? '7D' : days === '30' ? '30D' : days === '90' ? '90D' : '1Y'}
@@ -90,16 +90,16 @@ export default function VendorAnalyticsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Card>
+            <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm hover:shadow-warm-md transition-all overflow-hidden group">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <MessageSquare className="h-6 w-6 text-blue-600" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="p-3 bg-[#FDFBF7] rounded-2xl border border-[#CDC0B0]/30 group-hover:bg-[#EEDDCC] transition-colors">
+                    <MessageSquare className="h-6 w-6 text-[#C4975A]" />
                   </div>
-                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <TrendingUp className="h-5 w-5 text-[#8A9A5B]" />
                 </div>
-                <p className="text-sm text-gray-600 mb-1">Total Quotes</p>
-                <p className="text-3xl font-bold">{analytics?.totalQuotes || 0}</p>
+                <p className="text-sm font-body font-medium text-[#9C8E82] mb-1 uppercase tracking-wider">Total Quotes</p>
+                <p className="text-4xl font-heading font-bold text-[#2C2621]">{analytics?.totalQuotes || 0}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -109,16 +109,16 @@ export default function VendorAnalyticsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Card>
+            <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm hover:shadow-warm-md transition-all overflow-hidden group">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <Eye className="h-6 w-6 text-purple-600" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="p-3 bg-[#FDFBF7] rounded-2xl border border-[#CDC0B0]/30 group-hover:bg-[#EEDDCC] transition-colors">
+                    <Eye className="h-6 w-6 text-[#C4975A]" />
                   </div>
-                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <TrendingUp className="h-5 w-5 text-[#8A9A5B]" />
                 </div>
-                <p className="text-sm text-gray-600 mb-1">Profile Views</p>
-                <p className="text-3xl font-bold">{analytics?.totalViews || 0}</p>
+                <p className="text-sm font-body font-medium text-[#9C8E82] mb-1 uppercase tracking-wider">Profile Views</p>
+                <p className="text-4xl font-heading font-bold text-[#2C2621]">{analytics?.totalViews || 0}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -128,16 +128,16 @@ export default function VendorAnalyticsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <Card>
+            <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm hover:shadow-warm-md transition-all overflow-hidden group">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-yellow-100 rounded-lg">
-                    <Star className="h-6 w-6 text-yellow-600" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="p-3 bg-[#FDFBF7] rounded-2xl border border-[#CDC0B0]/30 group-hover:bg-[#EEDDCC] transition-colors">
+                    <Star className="h-6 w-6 text-[#C4975A]" />
                   </div>
-                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <TrendingUp className="h-5 w-5 text-[#8A9A5B]" />
                 </div>
-                <p className="text-sm text-gray-600 mb-1">Average Rating</p>
-                <p className="text-3xl font-bold">{analytics?.averageRating?.toFixed(1) || '0.0'}</p>
+                <p className="text-sm font-body font-medium text-[#9C8E82] mb-1 uppercase tracking-wider">Average Rating</p>
+                <p className="text-4xl font-heading font-bold text-[#2C2621]">{analytics?.averageRating?.toFixed(1) || '0.0'}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -147,32 +147,32 @@ export default function VendorAnalyticsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Card>
+            <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm hover:shadow-warm-md transition-all overflow-hidden group">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <MessageSquare className="h-6 w-6 text-green-600" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="p-3 bg-[#FDFBF7] rounded-2xl border border-[#CDC0B0]/30 group-hover:bg-[#EEDDCC] transition-colors">
+                    <Calendar className="h-6 w-6 text-[#C4975A]" />
                   </div>
-                  <Calendar className="h-5 w-5 text-gray-400" />
+                  <div className="h-5 w-5"></div>
                 </div>
-                <p className="text-sm text-gray-600 mb-1">Total Reviews</p>
-                <p className="text-3xl font-bold">{analytics?.totalReviews || 0}</p>
+                <p className="text-sm font-body font-medium text-[#9C8E82] mb-1 uppercase tracking-wider">Total Reviews</p>
+                <p className="text-4xl font-heading font-bold text-[#2C2621]">{analytics?.totalReviews || 0}</p>
               </CardContent>
             </Card>
           </motion.div>
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Quote Requests Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-blue-600" />
+          <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
+            <CardHeader className="bg-[#FDFBF7] border-b border-[#CDC0B0]/50 pb-4 pt-6 px-6">
+              <CardTitle className="flex items-center gap-2 font-heading text-lg text-[#2C2621]">
+                <MessageSquare className="h-5 w-5 text-[#C4975A]" />
                 Quote Requests Trend
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="h-64 flex items-end justify-between gap-2">
                 {analytics?.quoteTrend && analytics.quoteTrend.length > 0 ? (
                   analytics.quoteTrend.map((data, index) => {
@@ -180,21 +180,21 @@ export default function VendorAnalyticsPage() {
                     const height = maxCount > 0 ? (data.count / maxCount) * 100 : 0;
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center">
-                        <div className="w-full bg-blue-500 rounded-t hover:bg-blue-600 transition-colors relative group"
+                        <div className="w-full bg-[#CDB79E] rounded-t-sm hover:bg-[#C4975A] transition-colors relative group"
                           style={{ height: `${height}%`, minHeight: data.count > 0 ? '20px' : '4px' }}
                         >
-                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#2C2621] text-[#FDFBF7] font-body text-xs px-2 py-1 rounded-lg whitespace-nowrap shadow-lg">
                             {data.count} quotes
                           </div>
                         </div>
-                        <span className="text-xs text-gray-500 mt-2">
+                        <span className="text-xs font-body font-medium text-[#9C8E82] mt-3 rotate-45 origin-top-left md:rotate-0">
                           {new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     );
                   })
                 ) : (
-                  <div className="w-full flex items-center justify-center h-full text-gray-400">
+                  <div className="w-full flex items-center justify-center h-full text-[#9C8E82] font-body">
                     No data available
                   </div>
                 )}
@@ -203,14 +203,14 @@ export default function VendorAnalyticsPage() {
           </Card>
 
           {/* Profile Views Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5 text-purple-600" />
+          <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
+            <CardHeader className="bg-[#FDFBF7] border-b border-[#CDC0B0]/50 pb-4 pt-6 px-6">
+              <CardTitle className="flex items-center gap-2 font-heading text-lg text-[#2C2621]">
+                <Eye className="h-5 w-5 text-[#C4975A]" />
                 Profile Views Trend
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="h-64 flex items-end justify-between gap-2">
                 {analytics?.viewsTrend && analytics.viewsTrend.length > 0 ? (
                   analytics.viewsTrend.map((data, index) => {
@@ -218,21 +218,21 @@ export default function VendorAnalyticsPage() {
                     const height = maxCount > 0 ? (data.count / maxCount) * 100 : 0;
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center">
-                        <div className="w-full bg-purple-500 rounded-t hover:bg-purple-600 transition-colors relative group"
+                        <div className="w-full bg-[#EEDDCC] rounded-t-sm hover:bg-[#D4A373] transition-colors relative group"
                           style={{ height: `${height}%`, minHeight: data.count > 0 ? '20px' : '4px' }}
                         >
-                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#2C2621] text-[#FDFBF7] font-body text-xs px-2 py-1 rounded-lg whitespace-nowrap shadow-lg">
                             {data.count} views
                           </div>
                         </div>
-                        <span className="text-xs text-gray-500 mt-2">
+                        <span className="text-xs font-body font-medium text-[#9C8E82] mt-3 rotate-45 origin-top-left md:rotate-0">
                           {new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     );
                   })
                 ) : (
-                  <div className="w-full flex items-center justify-center h-full text-gray-400">
+                  <div className="w-full flex items-center justify-center h-full text-[#9C8E82] font-body">
                     No data available
                   </div>
                 )}
@@ -241,35 +241,35 @@ export default function VendorAnalyticsPage() {
           </Card>
 
           {/* Rating Trend Chart */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-600" />
+          <Card className="lg:col-span-2 border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
+            <CardHeader className="bg-[#FDFBF7] border-b border-[#CDC0B0]/50 pb-4 pt-6 px-6">
+              <CardTitle className="flex items-center gap-2 font-heading text-lg text-[#2C2621]">
+                <Star className="h-5 w-5 text-[#C4975A]" />
                 Rating Trend
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="h-64 flex items-end justify-between gap-2">
                 {analytics?.ratingTrend && analytics.ratingTrend.length > 0 ? (
                   analytics.ratingTrend.map((data, index) => {
                     const height = (data.rating / 5) * 100;
                     return (
                       <div key={index} className="flex-1 flex flex-col items-center">
-                        <div className="w-full bg-yellow-500 rounded-t hover:bg-yellow-600 transition-colors relative group"
+                        <div className="w-full bg-gradient-to-t from-[#EEDDCC] to-[#C4975A] rounded-t-sm hover:from-[#D4A373] hover:to-[#B38549] transition-colors relative group"
                           style={{ height: `${height}%`, minHeight: data.rating > 0 ? '20px' : '4px' }}
                         >
-                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-[#2C2621] text-[#FDFBF7] font-body text-xs px-2 py-1 rounded-lg whitespace-nowrap shadow-lg">
                             {data.rating.toFixed(1)} ★
                           </div>
                         </div>
-                        <span className="text-xs text-gray-500 mt-2">
+                        <span className="text-xs font-body font-medium text-[#9C8E82] mt-3">
                           {new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     );
                   })
                 ) : (
-                  <div className="w-full flex items-center justify-center h-full text-gray-400">
+                  <div className="w-full flex items-center justify-center h-full text-[#9C8E82] font-body">
                     No data available
                   </div>
                 )}
