@@ -81,16 +81,27 @@ export function QuoteRequestDialog({
     try {
       setIsSubmitting(true);
 
+      // Convert budget string to a number for the backend
+      let parsedBudget = null;
+      if (formData.budget) {
+        const num = parseFloat(formData.budget.replace(/[^0-9.]/g, ''));
+        if (!isNaN(num)) parsedBudget = num;
+      }
+
+      // Combine location and timeline into the description since backend doesn't have dedicated fields for them
+      const fullDescription = `${formData.description}
+${formData.location ? `\nLocation: ${formData.location}` : ''}
+${formData.timeline ? `\nTimeline: ${formData.timeline}` : ''}`;
+
       const quoteData = {
         vendorSlug,
+        customerName: user.name || user.email.split('@')[0],
         customerEmail: user.email,
-        serviceType: formData.serviceType,
-        description: formData.description,
-        budget: formData.budget || 'Not specified',
-        timeline: formData.timeline || 'Flexible',
-        contactPhone: formData.contactPhone || user.email,
-        location: formData.location,
-        status: 'PENDING',
+        customerMobile: formData.contactPhone || '',
+        serviceRequested: formData.serviceType,
+        projectDescription: fullDescription.trim(),
+        budget: parsedBudget,
+        status: 'NEW',
         catalogueId: catalogueId,
         catalogueItemId: catalogueItemId,
       };

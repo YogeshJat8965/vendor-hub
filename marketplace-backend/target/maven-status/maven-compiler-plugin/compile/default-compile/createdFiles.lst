@@ -11,7 +11,6 @@ com/marketplace/repository/CustomerProfileRepository.class
 com/marketplace/repository/MessageRepository.class
 com/marketplace/controller/auth/AuthController.class
 com/marketplace/model/CatalogueItem.class
-com/marketplace/service/QuoteService.class
 com/marketplace/dto/VendorStats.class
 com/marketplace/model/Message.class
 com/marketplace/dto/auth/LoginDto.class
@@ -37,7 +36,6 @@ com/marketplace/controller/ExploreController.class
 com/marketplace/controller/vendor/CatalogueController.class
 com/marketplace/dto/DashboardMetrics.class
 com/marketplace/dto/auth/SignupDto.class
-com/marketplace/controller/QuoteController.class
 com/marketplace/config/WebSocketAuthInterceptor.class
 com/marketplace/config/DataInitializer.class
 com/marketplace/model/Catalogue.class

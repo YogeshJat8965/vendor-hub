@@ -51,10 +51,7 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
       // Let's first try to get the real User object.
       // But we can get it from profile.
       const rolePath = userRole === 'CUSTOMER' ? 'customer' : 'vendor';
-      let actualUserId = userId;
-      
-      const profileRes = await apiClient.get(`/${rolePath}/profile?email=${user?.email}`);
-      actualUserId = profileRes.data.id;
+      const actualUserId = user?.email || userId;
       
       const res = await apiClient.get(`/conversations/${rolePath}/${actualUserId}`);
       setConversations(res.data);
@@ -83,10 +80,12 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
       stompClient.current.deactivate();
     }
     
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+    const wsUrl = apiUrl.replace('/api', '/ws');
     
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${process.env.NEXT_PUBLIC_API_URL}/ws`),
+      webSocketFactory: () => new SockJS(wsUrl),
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },

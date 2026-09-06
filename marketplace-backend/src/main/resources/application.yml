@@ -4,7 +4,7 @@ spring:
   
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/marketplace}
+      uri: ${MONGODB_URI:mongodb+srv://yogeshjat8965_db_user:rSqxEps5KTz7o2Qp@vendorhub.whs5yyc.mongodb.net/marketplace?retryWrites=true&w=majority}
       database: marketplace
   
   servlet:
