@@ -24,7 +24,11 @@ export default function CataloguesPage() {
   const fetchCatalogues = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor/catalogues?email=${user?.email}`);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiUrl}/api/vendor/catalogues?email=${user?.email}`, {
+        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+      });
       if (!res.ok) throw new Error('Failed to fetch catalogues');
       const data = await res.json();
       setCatalogues(data);
@@ -38,8 +42,11 @@ export default function CataloguesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this catalogue?')) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/vendor/catalogues/${id}?email=${user?.email}`, {
-        method: 'DELETE'
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${apiUrl}/api/vendor/catalogues/${id}?email=${user?.email}`, {
+        method: 'DELETE',
+        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
       });
       if (!res.ok) throw new Error('Failed to delete catalogue');
       setCatalogues(catalogues.filter(c => c.id !== id));
@@ -96,17 +103,20 @@ export default function CataloguesPage() {
             >
               <Card className="overflow-hidden hover:shadow-warm-lg transition-shadow duration-300 border-[#CDC0B0] bg-white rounded-3xl h-full flex flex-col">
                 <div className="h-56 bg-[#FDFBF7] relative border-b border-[#CDC0B0]">
-                  {catalogue.coverImage ? (
-                    <img 
-                      src={catalogue.coverImage.startsWith('http') ? catalogue.coverImage : `${process.env.NEXT_PUBLIC_API_URL}${catalogue.coverImage}`} 
-                      alt={catalogue.name} 
-                      className="w-full h-full object-cover" 
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-[#CDB79E]">
-                      <ImageIcon className="h-12 w-12 opacity-50" />
-                    </div>
-                  )}
+                  {(() => {
+                    const firstImg = catalogue.coverImage || catalogue.items?.find((i: any) => i.images?.length > 0)?.images?.[0];
+                    return firstImg ? (
+                      <img 
+                        src={firstImg.startsWith('http') ? firstImg : `${process.env.NEXT_PUBLIC_API_URL}${firstImg}`} 
+                        alt={catalogue.name} 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-[#CDB79E]">
+                        <ImageIcon className="h-12 w-12 opacity-50" />
+                      </div>
+                    );
+                  })()}
                   <Badge className="absolute top-4 right-4 bg-white/90 text-[#2C2621] border border-[#CDC0B0]/50 shadow-warm-sm backdrop-blur-sm font-body px-3 py-1 rounded-full">
                     {catalogue.type === 'PREMIUM' ? '✨ Premium' : 'Basic'}
                   </Badge>

@@ -10,6 +10,7 @@
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/controller/admin/AdminController.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/dto/auth/LoginDto.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/model/Notification.java
+/home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/config/CloudinaryConfig.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/model/Message.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/model/User.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/repository/UserRepository.java
@@ -52,6 +53,7 @@
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/model/PageView.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/model/CatalogueItem.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/model/vendor/Vendor.java
+/home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/dto/ConversationDTO.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/repository/CategoryRepository.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/controller/ExploreController.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/service/QuoteService.java

@@ -116,8 +116,9 @@ export default function ExplorePage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [filteredVendors, setFilteredVendors] = useState<Vendor[]>([]);
 
-  // Fetch vendors from API
+  // Fetch vendors from API & scroll to top instantly
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     fetchVendors();
   }, []);
 
@@ -187,7 +188,7 @@ export default function ExplorePage() {
       
       <main className="min-h-screen bg-[#FDFBF7] selection:bg-[#EEDDCC] selection:text-[#2C2621]">
         {/* Hero Search Section */}
-        <section className="relative overflow-hidden pt-24 pb-16">
+        <section className="relative overflow-hidden pt-8 pb-8">
           {/* Background Decor */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#EEDDCC]/40 rounded-full blur-[100px] -z-10 translate-x-1/3 -translate-y-1/3" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#CDC0B0]/20 rounded-full blur-[80px] -z-10 -translate-x-1/4 translate-y-1/4" />
@@ -197,16 +198,13 @@ export default function ExplorePage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
-              className="max-w-4xl mx-auto"
+              className="max-w-5xl mx-auto"
             >
               {/* Heading */}
-              <div className="text-center mb-10">
-                <p className="font-accent text-3xl text-[#CDB79E] mb-2">Discover Excellence</p>
-                <h1 className="text-5xl sm:text-6xl font-heading font-bold text-[#2C2621] leading-tight">
-                  Find Your Perfect{' '}
-                  <span className="text-[#9C8E82]">
-                    Design Partner
-                  </span>
+              <div className="text-center mb-6">
+                <p className="font-accent text-2xl sm:text-3xl text-[#C4975A] mb-1">Discover Excellence</p>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-[#2C2621] leading-tight whitespace-nowrap">
+                  Find Your Perfect <span className="text-[#9C8E82]">Design Partner</span>
                 </h1>
               </div>
 
@@ -215,7 +213,7 @@ export default function ExplorePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="bg-white/80 backdrop-blur-md rounded-3xl p-3 shadow-warm-lg border border-[#CDC0B0]/50"
+                className="bg-white rounded-3xl p-3 shadow-warm-lg border border-[#CDC0B0]/50"
               >
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1 relative">
@@ -226,7 +224,7 @@ export default function ExplorePage() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      className="pl-12 h-14 text-base font-body border-0 focus-visible:ring-0 text-[#2C2621] bg-[#FDFBF7] rounded-2xl placeholder:text-[#9C8E82]"
+                      className="pl-12 h-14 text-base font-body border border-[#CDC0B0]/40 focus-visible:ring-1 focus-visible:ring-[#C4975A] text-[#2C2621] bg-white rounded-2xl placeholder:text-[#9C8E82]"
                     />
                   </div>
                   <div className="relative sm:w-64">
@@ -237,7 +235,7 @@ export default function ExplorePage() {
                       value={locationQuery}
                       onChange={(e) => setLocationQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      className="pl-12 h-14 text-base font-body border-0 focus-visible:ring-0 text-[#2C2621] bg-[#FDFBF7] rounded-2xl placeholder:text-[#9C8E82]"
+                      className="pl-12 h-14 text-base font-body border border-[#CDC0B0]/40 focus-visible:ring-1 focus-visible:ring-[#C4975A] text-[#2C2621] bg-white rounded-2xl placeholder:text-[#9C8E82]"
                     />
                   </div>
                   <Button
@@ -254,7 +252,7 @@ export default function ExplorePage() {
         </section>
 
         {/* Filters & Results */}
-        <section className="py-12 bg-[#FDFBF7]">
+        <section className="py-6 bg-white border-t border-[#CDC0B0]/20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {/* Filter Bar */}
             <div className="mb-10 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-white rounded-2xl p-4 shadow-warm-sm border border-[#CDC0B0]/30">
@@ -262,12 +260,12 @@ export default function ExplorePage() {
                 {/* Mobile Filter Sheet */}
                 <Sheet>
                   <SheetTrigger asChild>
-                    <Button variant="outline" className="touch-target sm:hidden font-body text-[#2C2621] border-[#CDC0B0] rounded-xl">
+                    <Button variant="outline" className="touch-target sm:hidden font-body text-[#2C2621] border-[#CDC0B0] rounded-xl bg-white">
                       <SlidersHorizontal className="w-4 h-4 mr-2" />
                       Filters
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="left" className="w-80 bg-[#FDFBF7] border-r-[#CDC0B0]/30">
+                  <SheetContent side="left" className="w-80 bg-white border-r-[#CDC0B0]/30">
                     <SheetHeader>
                       <SheetTitle className="font-heading text-[#2C2621]">Filter Options</SheetTitle>
                     </SheetHeader>
@@ -309,7 +307,7 @@ export default function ExplorePage() {
                 {/* Desktop Filters */}
                 <div className="hidden sm:flex gap-3">
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-56 touch-target bg-[#FDFBF7] border-[#CDC0B0] hover:border-[#9C8E82] transition-colors font-body rounded-xl text-[#2C2621]">
+                    <SelectTrigger className="w-56 touch-target bg-white border-[#CDC0B0] hover:border-[#9C8E82] transition-colors font-body rounded-xl text-[#2C2621]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-[#CDC0B0] shadow-warm-lg rounded-xl">
@@ -326,7 +324,7 @@ export default function ExplorePage() {
                   </Select>
 
                   <Select value={selectedSort} onValueChange={setSelectedSort}>
-                    <SelectTrigger className="w-56 touch-target bg-[#FDFBF7] border-[#CDC0B0] hover:border-[#9C8E82] transition-colors font-body rounded-xl text-[#2C2621]">
+                    <SelectTrigger className="w-56 touch-target bg-white border-[#CDC0B0] hover:border-[#9C8E82] transition-colors font-body rounded-xl text-[#2C2621]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-[#CDC0B0] shadow-warm-lg rounded-xl">
@@ -391,8 +389,8 @@ export default function ExplorePage() {
                       businessName: vendor.businessName || vendor.storeName,
                       category: vendor.vendorType,
                       description: 'Exquisite designs tailored to your sophisticated taste. Transforming spaces into living art.',
-                      logoUrl: '',
-                      bannerUrl: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=600',
+                      logoUrl: vendor.logoUrl || '',
+                      bannerUrl: vendor.bannerUrl || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=600',
                       city: vendor.city || 'Mumbai',
                       state: vendor.state || 'MH',
                       rating: vendor.rating || 4.9,

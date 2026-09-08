@@ -19,7 +19,7 @@ export function CallToAction() {
           transition={{ duration: 0.8 }}
           className="max-w-4xl mx-auto text-center"
         >
-          <h2 className="font-accent text-3xl md:text-4xl text-[#EEDDCC] mb-4">
+          <h2 className="font-accent text-3xl md:text-4xl text-[#C4975A] mb-4">
             Begin your journey
           </h2>
           <h3 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-8 leading-tight">

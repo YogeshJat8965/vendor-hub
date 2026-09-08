@@ -47,12 +47,11 @@ export default function CustomerProfilePage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -119,6 +118,8 @@ export default function CustomerProfilePage() {
         photoUrl,
       });
       toast.success('Profile updated successfully');
+      setIsEditing(false);
+      await fetchProfile();
     } catch (error) {
       console.error('Update error:', error);
       toast.error('Failed to update profile');
@@ -158,6 +159,7 @@ export default function CustomerProfilePage() {
     try {
       const url = await UploadService.uploadProfilePhoto(file, user.email);
       setPhotoUrl(url);
+      window.dispatchEvent(new Event('profileUpdated'));
       toast.success('Profile photo uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
@@ -168,6 +170,7 @@ export default function CustomerProfilePage() {
 
   const handleDeletePhoto = () => {
     setPhotoUrl(null);
+    window.dispatchEvent(new Event('profileUpdated'));
     toast.success('Profile photo removed');
   };
 
@@ -190,6 +193,7 @@ export default function CustomerProfilePage() {
     try {
       const url = await UploadService.uploadProfilePhoto(files[0], user.email);
       setPhotoUrl(url);
+      window.dispatchEvent(new Event('profileUpdated'));
       toast.success('Profile photo uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error);
@@ -236,9 +240,9 @@ export default function CustomerProfilePage() {
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
               >
-                <Avatar className="w-24 h-24 border-2 border-dashed border-[#CDC0B0] hover:border-[#9C8E82] transition-colors bg-[#FDFBF7]">
+                <Avatar className="w-36 h-36 border-4 border-[#CDC0B0] hover:border-[#9C8E82] transition-colors bg-[#FDFBF7] shadow-sm">
                   <AvatarImage src={photoUrl || undefined} />
-                  <AvatarFallback className="bg-[#EEDDCC] text-[#2C2621] text-3xl font-heading">
+                  <AvatarFallback className="bg-[#EEDDCC] text-[#2C2621] text-5xl font-heading">
                     {user?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -299,8 +303,9 @@ export default function CustomerProfilePage() {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                   <Input
                     id="fullName"
-                    className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.fullName ? 'border-[#B85C5C]' : ''}`}
+                    className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.fullName ? 'border-[#B85C5C]' : ''} disabled:bg-[#FDFBF7]/50 disabled:opacity-70`}
                     {...profileForm.register('fullName')}
+                    disabled={!isEditing}
                   />
                 </div>
                 {profileForm.formState.errors.fullName && (
@@ -317,7 +322,7 @@ export default function CustomerProfilePage() {
                     <Input
                       id="email"
                       type="email"
-                      className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.email ? 'border-[#B85C5C]' : ''}`}
+                      className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.email ? 'border-[#B85C5C]' : ''} disabled:bg-[#FDFBF7]/50 disabled:opacity-70`}
                       {...profileForm.register('email')}
                       disabled
                     />
@@ -333,8 +338,9 @@ export default function CustomerProfilePage() {
                     <Input
                       id="phone"
                       type="tel"
-                      className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.phone ? 'border-[#B85C5C]' : ''}`}
+                      className={`pl-10 h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${profileForm.formState.errors.phone ? 'border-[#B85C5C]' : ''} disabled:bg-[#FDFBF7]/50 disabled:opacity-70`}
                       {...profileForm.register('phone')}
+                      disabled={!isEditing}
                     />
                   </div>
                   {profileForm.formState.errors.phone && (
@@ -350,8 +356,9 @@ export default function CustomerProfilePage() {
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9C8E82]" />
                   <Input
                     id="address"
-                    className="pl-10 h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    className="pl-10 h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] disabled:bg-[#FDFBF7]/50 disabled:opacity-70"
                     {...profileForm.register('address')}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
@@ -362,46 +369,80 @@ export default function CustomerProfilePage() {
                   <Label htmlFor="city" className="mb-2 font-body text-[#2C2621]">City</Label>
                   <Input
                     id="city"
-                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] disabled:bg-[#FDFBF7]/50 disabled:opacity-70"
                     {...profileForm.register('city')}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div>
                   <Label htmlFor="state" className="mb-2 font-body text-[#2C2621]">State</Label>
                   <Input
                     id="state"
-                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] disabled:bg-[#FDFBF7]/50 disabled:opacity-70"
                     {...profileForm.register('state')}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div>
                   <Label htmlFor="zipCode" className="mb-2 font-body text-[#2C2621]">ZIP Code</Label>
                   <Input
                     id="zipCode"
-                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                    className="h-12 touch-target rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] disabled:bg-[#FDFBF7]/50 disabled:opacity-70"
                     {...profileForm.register('zipCode')}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                size="lg"
-                className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] touch-target rounded-xl font-body"
-                disabled={isUpdating}
-              >
-                {isUpdating ? (
+              <div className="flex gap-4">
+                {isEditing ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                    Saving...
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] touch-target rounded-xl font-body"
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-5 h-5 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditing(false);
+                        fetchProfile(); // Reset to original values
+                      }}
+                      className="touch-target border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
+                      disabled={isUpdating}
+                    >
+                      Cancel
+                    </Button>
                   </>
                 ) : (
-                  <>
-                    <Save className="w-5 h-5 mr-2" />
-                    Save Changes
-                  </>
+                  <Button
+                    type="button"
+                    size="lg"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsEditing(true);
+                    }}
+                    className="bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] touch-target rounded-xl font-body"
+                  >
+                    Edit Profile
+                  </Button>
                 )}
-              </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
@@ -498,37 +539,6 @@ export default function CustomerProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Notification Preferences */}
-        <Card className="border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm">
-          <CardHeader className="border-b border-[#CDC0B0]/30 bg-[#FDFBF7]/50 rounded-t-3xl">
-            <CardTitle className="font-heading text-xl text-[#2C2621]">Notification Preferences</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium font-body text-[#2C2621] mb-1">Email Notifications</h4>
-                <p className="text-sm font-body text-[#6B5E54]">Receive quote updates and messages via email</p>
-              </div>
-              <Switch
-                checked={emailNotifications}
-                onCheckedChange={setEmailNotifications}
-                className="data-[state=checked]:bg-[#5B8C5A]"
-              />
-            </div>
-            <Separator className="bg-[#CDC0B0]/50" />
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium font-body text-[#2C2621] mb-1">SMS Notifications</h4>
-                <p className="text-sm font-body text-[#6B5E54]">Get urgent updates via text message</p>
-              </div>
-              <Switch
-                checked={smsNotifications}
-                onCheckedChange={setSmsNotifications}
-                className="data-[state=checked]:bg-[#5B8C5A]"
-              />
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Danger Zone */}
         <Card className="border-[#B85C5C]/30 bg-[#B85C5C]/5 rounded-3xl shadow-warm-sm">

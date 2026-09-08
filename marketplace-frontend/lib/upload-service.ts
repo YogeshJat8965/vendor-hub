@@ -44,6 +44,21 @@ export const uploadConfigs = {
     maxHeight: 1200,
     compressionQuality: 0.8,
   },
+  catalogueImage: {
+    maxSizeMB: 5,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+    maxWidth: 1920,
+    maxHeight: 1080,
+    compressionQuality: 0.85,
+  },
+  catalogueVideo: {
+    maxSizeMB: 50,
+    allowedTypes: ['video/mp4', 'video/webm'],
+  },
+  cataloguePdf: {
+    maxSizeMB: 20,
+    allowedTypes: ['application/pdf'],
+  },
 };
 
 export class UploadService {
@@ -269,6 +284,91 @@ export class UploadService {
     } catch (error) {
       console.error('Upload failed:', error);
       toast.error('Failed to upload gallery image');
+      throw error;
+    }
+  }
+
+  /**
+   * Upload catalogue image
+   */
+  static async uploadCatalogueImage(
+    file: File,
+    vendorEmail: string
+  ): Promise<string> {
+    const config = uploadConfigs.catalogueImage;
+    const error = this.validateFile(file, config);
+    if (error) {
+      toast.error(error);
+      throw new Error(error);
+    }
+    try {
+      const compressedBlob = await this.compressImage(file, config);
+      const formData = new FormData();
+      formData.append('file', compressedBlob, file.name);
+      formData.append('email', vendorEmail);
+      const response = await apiClient.post('/vendor/upload/catalogue-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data.url;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload catalogue image');
+      throw error;
+    }
+  }
+
+  /**
+   * Upload catalogue video (No compression, just size limit)
+   */
+  static async uploadCatalogueVideo(
+    file: File,
+    vendorEmail: string
+  ): Promise<string> {
+    const config = uploadConfigs.catalogueVideo;
+    const error = this.validateFile(file, config);
+    if (error) {
+      toast.error(error);
+      throw new Error(error);
+    }
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('email', vendorEmail);
+      const response = await apiClient.post('/vendor/upload/catalogue-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data.url;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload video');
+      throw error;
+    }
+  }
+
+  /**
+   * Upload catalogue PDF (No compression, just size limit)
+   */
+  static async uploadCataloguePdf(
+    file: File,
+    vendorEmail: string
+  ): Promise<string> {
+    const config = uploadConfigs.cataloguePdf;
+    const error = this.validateFile(file, config);
+    if (error) {
+      toast.error(error);
+      throw new Error(error);
+    }
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('email', vendorEmail);
+      const response = await apiClient.post('/vendor/upload/catalogue-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data.url;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload PDF');
       throw error;
     }
   }

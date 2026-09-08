@@ -21,6 +21,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
 
 const navItems = [
   {
@@ -50,17 +52,24 @@ const navItems = [
   },
 ];
 
-// Mock user data - will be replaced with API
-const user = {
-  name: 'John Doe',
-  email: 'john@example.com',
-  avatar: null,
-};
-
 function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPhoto = () => {
+      if (user?.email) {
+        apiClient.get(`/customer/profile?email=${user.email}`)
+          .then(res => setPhotoUrl(res.data.photoUrl || null))
+          .catch(console.error);
+      }
+    };
+    fetchPhoto();
+    window.addEventListener('profileUpdated', fetchPhoto);
+    return () => window.removeEventListener('profileUpdated', fetchPhoto);
+  }, [user]);
 
   const handleLogout = () => {
     if (confirm('Are you sure you want to logout?')) {
@@ -83,15 +92,15 @@ function Sidebar() {
       {/* User Info */}
       <div className="p-6">
         <div className="flex items-center gap-3">
-          <Avatar className="w-12 h-12 border border-[#CDC0B0]/30">
-            <AvatarImage src={user.avatar || undefined} />
-            <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold">
-              {user.name.charAt(0)}
+          <Avatar className="w-16 h-16 border-2 border-[#CDC0B0]/50 shadow-sm">
+            <AvatarImage src={photoUrl || undefined} />
+            <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold text-2xl">
+              {user?.name?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{user.name}</h3>
-            <p className="font-body text-xs text-[#6B5E54] truncate">{user.email}</p>
+            <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{user?.name}</h3>
+            <p className="font-body text-xs text-[#6B5E54] truncate">{user?.email}</p>
           </div>
         </div>
       </div>
@@ -144,10 +153,24 @@ function MobileSidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout } = useAuth();
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPhoto = () => {
+      if (user?.email && open) {
+        apiClient.get(`/customer/profile?email=${user.email}`)
+          .then(res => setPhotoUrl(res.data.photoUrl || null))
+          .catch(console.error);
+      }
+    };
+    fetchPhoto();
+    window.addEventListener('profileUpdated', fetchPhoto);
+    return () => window.removeEventListener('profileUpdated', fetchPhoto);
+  }, [user, open]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/login');
+    logout();
   };
 
   return (
@@ -180,15 +203,15 @@ function MobileSidebar() {
           {/* User Info */}
           <div className="p-6">
             <div className="flex items-center gap-3">
-              <Avatar className="w-12 h-12 border border-[#CDC0B0]/30">
-                <AvatarImage src={user.avatar || undefined} />
-                <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold">
-                  {user.name.charAt(0)}
+              <Avatar className="w-16 h-16 border-2 border-[#CDC0B0]/50 shadow-sm">
+                <AvatarImage src={photoUrl || undefined} />
+                <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold text-2xl">
+                  {user?.name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{user.name}</h3>
-                <p className="font-body text-xs text-[#6B5E54] truncate">{user.email}</p>
+                <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{user?.name}</h3>
+                <p className="font-body text-xs text-[#6B5E54] truncate">{user?.email}</p>
               </div>
             </div>
           </div>
@@ -260,7 +283,7 @@ export default function CustomerDashboardLayout({
       const title = path.charAt(0).toUpperCase() + path.slice(1);
       return { href, title };
     });
-    return breadcrumbs;
+    return breadcrumbs.filter(crumb => crumb.title.toLowerCase() !== 'customer');
   };
 
   const breadcrumbs = generateBreadcrumbs();

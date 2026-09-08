@@ -168,7 +168,7 @@ export default function CustomerDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <p className="font-accent text-2xl text-[#CDB79E] mb-1">Welcome back</p>
+        <p className="font-accent text-2xl text-[#C4975A] mb-1">Welcome back</p>
         <h1 className="text-3xl sm:text-4xl font-heading font-bold text-[#2C2621] mb-2">
           {user?.name || 'there'}!
         </h1>

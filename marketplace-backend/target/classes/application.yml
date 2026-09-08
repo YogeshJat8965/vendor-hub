@@ -26,3 +26,8 @@ logging:
   level:
     com.marketplace: DEBUG
     org.springframework.security: DEBUG
+
+cloudinary:
+  cloud-name: dtzjzuoud
+  api-key: 272113567425682
+  api-secret: lon_Vq1ouhoZ0KnIZ1Ib6spT4Ik

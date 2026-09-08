@@ -9,7 +9,7 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <h3 className="text-[#2C2621] text-2xl font-heading font-bold">VendorHub</h3>
-            <p className="font-accent text-xl text-[#CDB79E]">Where design meets home</p>
+            <p className="font-accent text-xl text-[#C4975A]">Where design meets home</p>
             <p className="text-sm font-body leading-relaxed pt-2">
               Connecting you with India's finest interior designers, architects, and premium home service professionals.
             </p>

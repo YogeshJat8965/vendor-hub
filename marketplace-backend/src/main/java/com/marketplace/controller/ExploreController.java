@@ -30,6 +30,16 @@ public class ExploreController {
         }
     }
     
+    @GetMapping("/id/{id}/profile")
+    public ResponseEntity<?> getVendorProfileById(@PathVariable String id) {
+        try {
+            Vendor vendor = vendorService.getVendorById(id);
+            return ResponseEntity.ok(vendor);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
     @GetMapping("/check-slug")
     public ResponseEntity<?> checkSlugAvailability(@RequestParam String storeName) {
         String slug = SlugGenerator.generateSlug(storeName);

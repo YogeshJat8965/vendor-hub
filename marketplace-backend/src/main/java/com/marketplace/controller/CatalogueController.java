@@ -1,4 +1,4 @@
-package com.marketplace.controller.vendor;
+package com.marketplace.controller;
 
 import com.marketplace.model.Catalogue;
 import com.marketplace.service.CatalogueService;
@@ -60,6 +60,15 @@ public class CatalogueController {
     public ResponseEntity<?> getCataloguesPublic(@PathVariable String vendorId) {
         try {
             return ResponseEntity.ok(catalogueService.getVendorCatalogues(vendorId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/catalogues/{id}")
+    public ResponseEntity<?> getCatalogueById(@PathVariable String id) {
+        try {
+            return ResponseEntity.ok(catalogueService.getCatalogueById(id));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

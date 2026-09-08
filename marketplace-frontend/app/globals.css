@@ -139,6 +139,21 @@
   animation: imageReveal 1.2s ease-out forwards; 
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes cardShine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* Parallax Utilities */
 .parallax-slow { 
   transform: translateZ(-1px) scale(2); 

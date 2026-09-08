@@ -154,7 +154,9 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
                 className={`p-4 border-b border-[#CDC0B0]/30 cursor-pointer transition-colors ${activeConv?.id === conv.id ? 'bg-[#EEDDCC] border-l-4 border-l-[#C4975A]' : 'hover:bg-[#EEDDCC]/40'}`}
               >
                 <div className="font-heading font-semibold text-[#2C2621] mb-1">
-                  {userRole === 'CUSTOMER' ? 'Vendor ID: ' + conv.vendorId : 'Customer ID: ' + conv.customerId}
+                  {userRole === 'CUSTOMER' 
+                    ? conv.vendorStoreName || conv.vendorName || conv.vendorId 
+                    : conv.customerName || conv.customerId}
                 </div>
                 <div className="text-sm font-body text-[#6B5E54] line-clamp-1">
                   {conv.lastMessage || 'No messages yet'}
@@ -172,12 +174,16 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
             <div className="p-4 border-b border-[#CDC0B0]/50 flex items-center shadow-sm z-10 bg-white">
               <Avatar className="h-10 w-10 mr-4 border border-[#CDC0B0]">
                 <AvatarFallback className="bg-[#FDFBF7] text-[#C4975A] font-heading font-bold">
-                  {userRole === 'CUSTOMER' ? 'V' : 'C'}
+                  {userRole === 'CUSTOMER' 
+                    ? (activeConv.vendorStoreName || activeConv.vendorName || 'V').charAt(0).toUpperCase() 
+                    : (activeConv.customerName || 'C').charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="font-heading font-bold text-[#2C2621]">
-                  {userRole === 'CUSTOMER' ? 'Vendor Chat' : 'Customer Chat'}
+                  {userRole === 'CUSTOMER' 
+                    ? activeConv.vendorStoreName || activeConv.vendorName || activeConv.vendorId 
+                    : activeConv.customerName || activeConv.customerId}
                 </div>
                 <div className="text-xs font-body text-[#8A9A5B] flex items-center gap-1 mt-0.5">
                   <span className="w-2 h-2 rounded-full bg-[#8A9A5B]"></span> Online

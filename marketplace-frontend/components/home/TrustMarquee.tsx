@@ -29,11 +29,11 @@ export function TrustMarquee() {
                 key={index} 
                 className="flex items-center gap-3 px-12 group cursor-default"
               >
-                <Icon className="w-5 h-5 text-[#CDB79E] group-hover:text-[#EEDDCC] transition-colors" />
-                <span className="font-heading text-[#9C8E82] group-hover:text-[#EEDDCC] transition-colors text-lg tracking-wide">
+                <Icon className="w-5 h-5 text-[#C4975A] group-hover:text-[#EEDDCC] transition-colors" />
+                <span className="font-heading text-[#CDB79E] group-hover:text-[#EEDDCC] transition-colors text-lg tracking-wide">
                   {feature.text}
                 </span>
-                <span className="text-[#3A332C] mx-8 text-xl">•</span>
+                <span className="text-[#6B5E54] mx-8 text-xl">•</span>
               </div>
             );
           })}

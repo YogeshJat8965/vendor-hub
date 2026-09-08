@@ -1,444 +1,315 @@
 'use client';
 
-import { motion, useInView } from 'framer-motion';
-import { 
-  Users, 
-  Target, 
-  Heart, 
-  TrendingUp, 
-  CheckCircle, 
-  Award, 
-  Shield,
-  Zap,
-  Globe,
-  ArrowRight,
-  Star,
-  Clock,
-  DollarSign,
-  Handshake
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import {
+  Sparkles,
+  ArrowRight,
+  Building2,
+  CheckCircle,
+  Paintbrush,
+  Compass,
+  Award,
+  ShieldCheck,
+  Heart,
+  Zap,
+  CheckCircle2,
+  Lock,
+  Star,
+  FileCheck,
+  Users,
+  Linkedin,
+  Twitter,
+  Globe
+} from 'lucide-react';
 import Link from 'next/link';
-import { useRef, useEffect, useState } from 'react';
-
-// Counter Animation Component
-function AnimatedCounter({ value, inView }: { value: string, inView: boolean }) {
-  const [count, setCount] = useState(0);
-  const isNumber = /^\d+$/.test(value.replace(/[+K%,]/g, ''));
-  const numericValue = isNumber ? parseInt(value.replace(/[+K%,]/g, '')) : 0;
-  const isK = value.includes('K');
-  const hasPlus = value.includes('+');
-  const isPercent = value.includes('%');
-
-  useEffect(() => {
-    if (!inView) return;
-    
-    let start = 0;
-    const end = numericValue;
-    const duration = 2000;
-    const increment = end / (duration / 16);
-
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
-      } else {
-        setCount(start);
-      }
-    }, 16);
-
-    return () => clearInterval(timer);
-  }, [inView, numericValue]);
-
-  const displayValue = Math.floor(count);
-  return (
-    <>
-      {isK ? `${displayValue}K` : displayValue.toLocaleString()}
-      {hasPlus && '+'}
-      {isPercent && '%'}
-    </>
-  );
-}
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring', stiffness: 300, damping: 24 },
-  },
-};
-
-const stats = [
-  { label: 'Active Vendors', value: '500+', icon: Users },
-  { label: 'Happy Customers', value: '10000+', icon: Heart },
-  { label: 'Services Completed', value: '25000+', icon: CheckCircle },
-  { label: 'Customer Satisfaction', value: '98%', icon: Award },
-];
-
-const achievements = [
-  {
-    title: 'Industry Leading',
-    description: 'Recognized as one of the fastest-growing service marketplaces',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Award Winning',
-    description: 'Best Customer Service Platform 2025',
-    icon: Award,
-  },
-  {
-    title: 'Nationwide Coverage',
-    description: 'Serving customers in over 100 cities',
-    icon: Globe,
-  },
-  {
-    title: 'Verified Quality',
-    description: '100% background checked and verified vendors',
-    icon: Shield,
-  },
-];
-
-const timeline = [
-  {
-    year: '2020',
-    title: 'VendorHub Founded',
-    description: 'Started with a vision to connect homeowners with trusted service providers',
-  },
-  {
-    year: '2021',
-    title: 'Rapid Growth',
-    description: 'Expanded to 20 cities and onboarded 100+ verified vendors',
-  },
-  {
-    year: '2022',
-    title: 'Innovation Award',
-    description: 'Received recognition for best customer experience platform',
-  },
-  {
-    year: '2023',
-    title: 'Nationwide Launch',
-    description: 'Expanded operations to cover 100+ cities across the country',
-  },
-  {
-    year: '2024',
-    title: 'Market Leader',
-    description: 'Reached 500+ vendors and 10,000+ satisfied customers',
-  },
-  {
-    year: '2025',
-    title: 'Future Ready',
-    description: 'Introducing AI-powered matching and instant booking features',
-  },
-];
-
-const whyChooseUs = [
-  {
-    icon: Shield,
-    title: 'Verified & Trusted',
-    description: 'Every vendor undergoes background checks and credential verification',
-    color: 'from-blue-500 to-blue-600',
-  },
-  {
-    icon: Clock,
-    title: 'Quick Response',
-    description: 'Get quotes within 24 hours from multiple vendors',
-    color: 'from-purple-500 to-purple-600',
-  },
-  {
-    icon: DollarSign,
-    title: 'Best Prices',
-    description: 'Compare quotes and choose the best value for your budget',
-    color: 'from-green-500 to-green-600',
-  },
-  {
-    icon: Star,
-    title: 'Quality Guaranteed',
-    description: 'Read reviews and ratings from real customers',
-    color: 'from-yellow-500 to-yellow-600',
-  },
-  {
-    icon: Handshake,
-    title: 'Customer Support',
-    description: '24/7 support team ready to help you anytime',
-    color: 'from-pink-500 to-pink-600',
-  },
-  {
-    icon: Zap,
-    title: 'Easy Booking',
-    description: 'Simple, fast booking process with instant confirmation',
-    color: 'from-indigo-500 to-indigo-600',
-  },
-];
-
-const values = [
-  {
-    title: 'Trust & Transparency',
-    description: 'We verify all vendors and maintain transparent pricing to build trust between customers and service providers.',
-    icon: CheckCircle,
-  },
-  {
-    title: 'Quality Service',
-    description: 'Only the best vendors make it to our platform. We ensure quality through rigorous vetting and customer reviews.',
-    icon: Award,
-  },
-  {
-    title: 'Customer First',
-    description: 'Your satisfaction is our priority. We provide 24/7 support and guarantee quality workmanship on all services.',
-    icon: Heart,
-  },
-  {
-    title: 'Innovation',
-    description: 'We continuously improve our platform with the latest technology to make finding and booking services effortless.',
-    icon: TrendingUp,
-  },
-];
-
-const team = [
-  {
-    name: 'John Smith',
-    role: 'CEO & Founder',
-    bio: '15+ years in home services industry. Former VP at ServicePro',
-    initial: 'JS',
-    gradient: 'from-blue-500 to-blue-600',
-  },
-  {
-    name: 'Sarah Johnson',
-    role: 'Chief Operating Officer',
-    bio: 'Expert in vendor relations and marketplace operations',
-    initial: 'SJ',
-    gradient: 'from-purple-500 to-purple-600',
-  },
-  {
-    name: 'Mike Williams',
-    role: 'Chief Technology Officer',
-    bio: 'Tech innovator with 20+ years in platform development',
-    initial: 'MW',
-    gradient: 'from-pink-500 to-pink-600',
-  },
-  {
-    name: 'Emily Chen',
-    role: 'Head of Customer Success',
-    bio: 'Passionate about delivering exceptional experiences',
-    initial: 'EC',
-    gradient: 'from-green-500 to-green-600',
-  },
-];
+import Image from 'next/image';
 
 export default function AboutPage() {
-  const statsRef = useRef(null);
-  const statsInView = useInView(statsRef, { once: false, margin: '-100px' });
-  
   return (
-    <>
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2C2621] flex flex-col font-body selection:bg-[#EEDDCC] selection:text-[#2C2621]">
       <Header />
-      <div className="min-h-screen bg-white">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-24 sm:py-32">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
-          
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="max-w-4xl mx-auto text-center"
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-blue-200 shadow-sm mb-6"
+
+      <main className="flex-grow">
+        {/* Phase 1: Grand Cinematic Hero Section */}
+        <section className="relative pt-8 sm:pt-14 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-white border-b border-[#CDC0B0]/20">
+          {/* Subtle warm background ambient glow */}
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-[#EEDDCC]/40 blur-[140px] rounded-full pointer-events-none" />
+          <div className="absolute bottom-10 right-10 w-[500px] h-[350px] bg-[#C4975A]/15 blur-[130px] rounded-full pointer-events-none" />
+
+          <div className="max-w-[1400px] mx-auto relative z-10">
+            {/* Top Text Header Block */}
+            <div className="text-center max-w-4xl mx-auto mb-12 sm:mb-16">
+              {/* <motion.div
+                initial={{ opacity: 0, y: -15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EEDDCC]/60 border border-[#CDC0B0]/40 text-[#C4975A] text-xs sm:text-sm font-semibold uppercase tracking-widest mb-6 shadow-sm"
               >
-                <Award className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-700">Trusted Since 2020</span>
-              </motion.div>
+                <Sparkles className="w-4 h-4 text-[#C4975A]" />
+                About VendorHub • Our Vision & Legacy
+              </motion.div> */}
 
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6"
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="font-heading text-3xl sm:text-5xl lg:text-6xl font-bold text-[#2C2621] tracking-tight leading-[1.15] mb-6"
               >
-                Building Trust in the{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
-                  Service Industry
+                Where Architectural Vision Meets <br className="hidden sm:block" />
+                <span className="font-accent font-normal text-[#C4975A] text-4xl sm:text-6xl lg:text-7xl pl-2">
+                  Master Craftsmanship
                 </span>
               </motion.h1>
-              
+
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-lg sm:text-xl text-gray-700 mb-10 max-w-3xl mx-auto leading-relaxed"
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="font-body text-[#6B5E54] text-base sm:text-xl max-w-3xl mx-auto leading-relaxed mb-8"
               >
-                VendorHub is revolutionizing how people find and hire trusted service providers. 
-                We're creating a transparent marketplace where quality meets convenience.
+                VendorHub was created as a digital haven for luxury design. We bridge the gap between discerning homeowners and verified interior designers, architects, and master artisans—redefining how bespoke spaces come to life.
               </motion.p>
 
+              {/* Action Buttons */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center"
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="flex flex-wrap items-center justify-center gap-4"
               >
-                <Link href="/explore">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all inline-flex items-center gap-2"
-                  >
-                    Explore Services
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.button>
+                <Link
+                  href="/explore"
+                  className="inline-flex items-center gap-2 bg-[#2C2621] text-white hover:bg-[#3D352E] transition-all px-8 py-3.5 rounded-full font-medium text-sm sm:text-base shadow-warm hover:shadow-warm-md hover:-translate-y-0.5"
+                >
+                  Explore Verified Studios
+                  <ArrowRight className="w-4 h-4 text-[#C4975A]" />
                 </Link>
-                <Link href="/signup">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 bg-white border-2 border-gray-900 text-gray-900 hover:bg-gray-50 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Become a Vendor
-                  </motion.button>
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 border border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] transition-all px-8 py-3.5 rounded-full font-medium text-sm sm:text-base"
+                >
+                  Join as a Vendor
                 </Link>
               </motion.div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section ref={statsRef} className="py-20 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
-          
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={statsInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl sm:text-4xl font-bold mb-3">Our Impact in Numbers</h2>
-              <p className="text-blue-200 text-lg">Growing together with our community</p>
-            </motion.div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={statsInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -8 }}
-                    className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/15 transition-all"
-                  >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 text-white mb-4 shadow-lg">
-                      <Icon className="w-8 h-8" />
-                    </div>
-                    <div className="text-4xl sm:text-5xl font-bold mb-2">
-                      <AnimatedCounter value={stat.value} inView={statsInView} />
-                    </div>
-                    <p className="text-sm text-blue-200">{stat.label}</p>
-                  </motion.div>
-                );
-              })}
             </div>
-          </div>
-        </section>
 
-        {/* Mission & Vision Section */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-              {/* Mission */}
+            {/* Widescreen Hero Image Showcase with Ambient Glow */}
+            <motion.div
+              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="relative max-w-6xl mx-auto group"
+            >
+              {/* Ambient Golden Backlight */}
+              <div className="absolute -inset-3 bg-gradient-to-r from-[#EEDDCC] via-[#C4975A]/25 to-[#EEDDCC] rounded-[2.5rem] blur-2xl opacity-70 group-hover:opacity-100 transition duration-700 pointer-events-none" />
+
+              {/* Main Image Frame Container */}
+              <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-[#CDC0B0]/40 bg-white">
+                <Image
+                  src="/heroImageForAboutUs.png"
+                  alt="VendorHub Architectural & Interior Design Sanctuary"
+                  width={1536}
+                  height={1024}
+                  priority
+                  className="w-full h-auto object-contain block transition-transform duration-700 ease-out group-hover:scale-[1.01]"
+                />
+              </div>
+
+              {/* Floating Luxury Badge */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-10 border-2 border-blue-100"
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="absolute -bottom-5 left-4 sm:left-8 bg-white/95 backdrop-blur-md border border-[#CDC0B0]/40 rounded-2xl p-4 shadow-xl flex items-center gap-3.5 z-20"
               >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center mb-6 shadow-lg">
-                  <Target className="w-8 h-8 text-white" />
+                <div className="w-11 h-11 rounded-xl bg-[#EEDDCC]/70 flex items-center justify-center text-[#C4975A] font-bold text-lg shadow-inner">
+                  ★
                 </div>
-                <h2 className="text-3xl font-bold mb-4 text-gray-900">Our Mission</h2>
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  To simplify the process of finding and hiring trusted local service providers by creating a 
-                  transparent, efficient marketplace that benefits both homeowners and skilled professionals. 
-                  We believe everyone deserves access to quality services without the hassle.
+                <div>
+                  <div className="font-heading font-bold text-[#2C2621] text-xs sm:text-sm">Premier Digital Sanctuary</div>
+                  <div className="text-[11px] sm:text-xs text-[#6B5E54]">Hand-Vetted Designers & Master Craftspeople</div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Phase 2: The VendorHub Origin & Brand Story Section */}
+        <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-[#F5F4F0] relative overflow-hidden border-b border-[#CDC0B0]/20">
+          <div className="max-w-[1300px] mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+
+              {/* Left Column: Narrative & Philosophy (6 Cols) */}
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, margin: "-80px" }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="lg:col-span-6 text-left"
+              >
+                <span className="font-body text-[#C4975A] font-semibold uppercase tracking-widest text-xs sm:text-sm block mb-3">
+                  Our Origin & Philosophy
+                </span>
+
+                <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C2621] leading-[1.2] mb-6">
+                  Bridging the Gap in <br />
+                  <span className="font-accent font-normal text-[#C4975A] text-4xl sm:text-5xl lg:text-6xl">
+                    Luxury Interior Design
+                  </span>
+                </h2>
+
+                <p className="font-body text-[#6B5E54] text-base sm:text-lg leading-relaxed mb-6">
+                  For decades, finding exceptional interior designers, architects, and custom fabricators was a fragmented process plagued by word-of-mouth guesswork, opaque pricing, and unverified credentials.
                 </p>
+
+
+                <p className="font-body text-[#6B5E54] text-base sm:text-lg leading-relaxed mb-8">
+                  Today, VendorHub serves as an exclusive ecosystem that empowers clients to discover verified luxury talent with complete clarity—while giving master artisans the platform to scale their design studios.
+                </p>
+
+                {/* Key Story Checklist */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    'Hand-Vetted Craftspeople',
+                    'Transparent Milestone Escrow',
+                    'Bespoke Project Matching',
+                    'End-to-End Concierge Support'
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-3">
+                      <div className="w-5 h-5 rounded-full bg-[#EEDDCC] flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-3.5 h-3.5 text-[#C4975A]" />
+                      </div>
+                      <span className="text-sm font-medium text-[#2C2621]">{item}</span>
+                    </div>
+                  ))}
+                </div>
               </motion.div>
 
-              {/* Vision */}
+              {/* Right Column: High-End Craftsmanship Image (6 Cols) */}
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-10 border-2 border-pink-100"
+                initial={{ opacity: 0, x: 50, scale: 0.96 }}
+                whileInView={{ opacity: 1, x: 0, scale: 1 }}
+                viewport={{ once: false, margin: "-80px" }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="lg:col-span-6 w-full"
               >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-600 to-purple-600 flex items-center justify-center mb-6 shadow-lg">
-                  <Globe className="w-8 h-8 text-white" />
+                <div className="relative group">
+                  {/* Ambient Glow */}
+                  <div className="absolute -inset-3 bg-gradient-to-r from-[#EEDDCC] via-[#C4975A]/20 to-[#EEDDCC] rounded-[2.5rem] blur-2xl opacity-70 group-hover:opacity-100 transition duration-700 pointer-events-none" />
+
+                  {/* Image Frame */}
+                  <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-[#CDC0B0]/40 bg-white">
+                    <Image
+                      src="/about-brand-story.png"
+                      alt="Master Craftsmanship & Design Philosophy"
+                      width={1536}
+                      height={1024}
+                      priority
+                      className="w-full h-auto object-contain block transition-transform duration-700 ease-out group-hover:scale-[1.01]"
+                    />
+                  </div>
+
+                  {/* Decorative Floating Corner Card */}
+                  <div className="absolute -bottom-6 -right-4 sm:bottom-6 sm:-right-6 bg-white/95 backdrop-blur-md border border-[#CDC0B0]/40 rounded-2xl p-4 shadow-xl flex items-center gap-3 z-20">
+                    <div className="w-10 h-10 rounded-xl bg-[#EEDDCC]/70 flex items-center justify-center text-[#C4975A]">
+                      <Compass className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-heading font-bold text-[#2C2621] text-xs sm:text-sm">Curated Excellence</div>
+                      <div className="text-[11px] text-[#6B5E54]">Guaranteed Authentic Artisans</div>
+                    </div>
+                  </div>
                 </div>
-                <h2 className="text-3xl font-bold mb-4 text-gray-900">Our Vision</h2>
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  To become the most trusted and preferred platform for home services nationwide, setting new 
-                  standards for quality, reliability, and customer satisfaction. We envision a future where 
-                  finding the right professional is as easy as a few clicks.
-                </p>
               </motion.div>
+
             </div>
           </div>
         </section>
 
-        {/* Why Choose Us Section */}
-        <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
-                Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">VendorHub</span>
-              </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                We're committed to providing the best experience for both customers and vendors
-              </p>
-            </motion.div>
+        {/* Phase 3: Core Brand Pillars / Values Section */}
+        <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-white border-b border-[#CDC0B0]/20 relative overflow-hidden">
+          {/* Subtle Ambient Background Elements */}
+          <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-[#EEDDCC]/30 blur-[150px] rounded-full pointer-events-none" />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-              {whyChooseUs.map((item, index) => {
-                const Icon = item.icon;
+          <div className="max-w-[1300px] mx-auto relative z-10">
+            {/* Section Header */}
+            <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+              <span className="font-body text-[#C4975A] font-semibold uppercase tracking-widest text-xs sm:text-sm block mb-3">
+                Our Core Pillars
+              </span>
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C2621] mb-6">
+                The Standards That Define Us
+              </h2>
+              <p className="font-body text-[#6B5E54] text-base sm:text-lg leading-relaxed">
+                Every feature, interaction, and project on VendorHub is anchored in our commitment to architectural excellence, complete transparency, and client peace of mind.
+              </p>
+            </div>
+
+            {/* 4 Interactive Value Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
+              {[
+                {
+                  icon: Award,
+                  title: 'Uncompromising Artistry',
+                  subtitle: 'Top 5% Hand-Vetted Studios',
+                  description: 'We rigorously audit every designer, architect, and craftsman against strict quality benchmarks before granting sanctuary access.'
+                },
+                {
+                  icon: ShieldCheck,
+                  title: 'Absolute Transparency',
+                  subtitle: 'Zero Hidden Markups',
+                  description: 'Direct studio-to-client collaboration with milestone-based escrow payments that guarantee financial peace of mind.'
+                },
+                {
+                  icon: Heart,
+                  title: 'Concierge Care',
+                  subtitle: 'Personalized Project Support',
+                  description: 'Dedicated design concierge specialists guide both homeowners and studios from initial consultation to final space handover.'
+                },
+                {
+                  icon: Zap,
+                  title: 'Digital Innovation',
+                  subtitle: 'AI Aesthetic Matching',
+                  description: 'Utilizing smart matching technology, digital quote comparisons, and real-time project milestone tracking tools.'
+                }
+              ].map((pillar, idx) => {
+                const Icon = pillar.icon;
                 return (
                   <motion.div
-                    key={item.title}
-                    initial={{ opacity: 0, y: 20 }}
+                    key={pillar.title}
+                    initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -8 }}
-                    className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border border-gray-100"
+                    viewport={{ once: false, margin: "-60px" }}
+                    transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    className="relative bg-[#F5F4F0] rounded-3xl p-8 sm:p-10 border border-[#CDC0B0]/40 shadow-sm hover:shadow-2xl hover:shadow-[#C4975A]/15 hover:-translate-y-2 hover:border-[#C4975A]/60 transition-all duration-500 group overflow-hidden flex flex-col justify-between"
                   >
-                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-6 shadow-md`}>
-                      <Icon className="w-7 h-7 text-white" />
+                    {/* Hover Gradient Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/50 to-[#EEDDCC]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                    <div className="relative z-10">
+                      {/* Icon */}
+                      <div className="w-14 h-14 rounded-2xl bg-[#EEDDCC]/60 flex items-center justify-center text-[#C4975A] mb-6 group-hover:scale-110 group-hover:bg-[#C4975A] group-hover:text-white group-hover:-rotate-3 transition-all duration-300 shadow-sm group-hover:shadow-md">
+                        <Icon className="w-7 h-7" />
+                      </div>
+
+                      {/* Title & Subtitle */}
+                      <span className="text-[11px] font-semibold uppercase tracking-widest text-[#C4975A] block mb-1">
+                        {pillar.subtitle}
+                      </span>
+                      <h3 className="font-heading font-bold text-xl sm:text-2xl text-[#2C2621] mb-4 group-hover:text-[#C4975A] transition-colors duration-300">
+                        {pillar.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="font-body text-[#6B5E54] text-sm leading-relaxed group-hover:text-[#3D352E] transition-colors duration-300">
+                        {pillar.description}
+                      </p>
                     </div>
-                    <h3 className="text-xl font-bold mb-3 text-gray-900">{item.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{item.description}</p>
+
+                    {/* Decorative Top Accent Line */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#C4975A] to-[#EEDDCC] scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                   </motion.div>
                 );
               })}
@@ -446,124 +317,338 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Team Section */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">Meet Our Leadership</h2>
-              <p className="text-xl text-gray-600">Passionate leaders building the future of home services</p>
-            </motion.div>
+        {/* Phase 4: Our Quality & Trust Process Section */}
+        <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-[#F5F4F0] border-b border-[#CDC0B0]/20 relative overflow-hidden">
+          <div className="max-w-[1300px] mx-auto relative z-10">
+            {/* Section Header */}
+            <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+              <span className="font-body text-[#C4975A] font-semibold uppercase tracking-widest text-xs sm:text-sm block mb-3">
+                Seamless Collaboration
+              </span>
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C2621] mb-6">
+                Our Quality & Trust Process
+              </h2>
+              <p className="font-body text-[#6B5E54] text-base sm:text-lg leading-relaxed">
+                A transparent, step-by-step framework connecting homeowners with experienced interior designers and architectural professionals.
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-              {team.map((member, index) => (
+            {/* Grid Layout: Left 4 Steps List (5 Cols), Right Wide Process Image (7 Cols) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
+              
+              {/* Left Column: 4 Steps List (5 Cols) */}
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-3.5">
+                {[
+                  {
+                    num: '01',
+                    icon: ShieldCheck,
+                    title: 'Profile & Business Verification',
+                    description: 'We verify vendor details and business profiles to ensure you connect with authentic, legitimate professionals.'
+                  },
+                  {
+                    num: '02',
+                    icon: CheckCircle2,
+                    title: 'Authentic Portfolio Showcase',
+                    description: 'Vendors display real past projects and design portfolios so you can easily review their aesthetic and craftsmanship.'
+                  },
+                  {
+                    num: '03',
+                    icon: FileCheck,
+                    title: 'Direct & Transparent Quotes',
+                    description: 'Receive itemized project estimates directly from vendors with zero hidden markups or ambiguous fees.'
+                  },
+                  {
+                    num: '04',
+                    icon: Star,
+                    title: 'Verified Client Reviews',
+                    description: 'Real feedback and star ratings from completed projects help you choose the right partner with confidence.'
+                  }
+                ].map((stage, idx) => {
+                  const Icon = stage.icon;
+                  return (
+                    <motion.div
+                      key={stage.num}
+                      initial={{ opacity: 0, x: -40 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: false, margin: "-50px" }}
+                      transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      className="bg-white rounded-2xl p-5 sm:p-5 border border-[#CDC0B0]/40 shadow-sm hover:shadow-xl hover:border-[#C4975A]/60 transition-all duration-300 group flex items-start gap-4 flex-1"
+                    >
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#EEDDCC]/60 flex items-center justify-center text-[#C4975A] font-heading font-bold text-base sm:text-lg flex-shrink-0 group-hover:bg-[#C4975A] group-hover:text-white transition-colors duration-300 mt-0.5">
+                        {stage.num}
+                      </div>
+                      <div>
+                        <h3 className="font-heading font-bold text-base sm:text-lg text-[#2C2621] mb-1.5 group-hover:text-[#C4975A] transition-colors duration-300">
+                          {stage.title}
+                        </h3>
+                        <p className="font-body text-[#4A3E35] text-sm sm:text-base leading-relaxed font-normal">
+                          {stage.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Right Column: Process Image (7 Cols - Expanded Width & Full Height Matched) */}
+              <motion.div
+                initial={{ opacity: 0, x: 50, scale: 0.96 }}
+                whileInView={{ opacity: 1, x: 0, scale: 1 }}
+                viewport={{ once: false, margin: "-80px" }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="lg:col-span-7 w-full h-full flex flex-col"
+              >
+                <div className="relative group h-full flex flex-col">
+                  {/* Ambient Glow */}
+                  <div className="absolute -inset-3 bg-gradient-to-r from-[#EEDDCC] via-[#C4975A]/20 to-[#EEDDCC] rounded-[2.5rem] blur-2xl opacity-70 group-hover:opacity-100 transition duration-700 pointer-events-none" />
+
+                  {/* Main Image Frame Container */}
+                  <div className="relative w-full h-full min-h-[420px] lg:min-h-[480px] rounded-3xl overflow-hidden shadow-2xl border border-[#CDC0B0]/40 bg-white">
+                    <Image
+                      src="/about-vetting-process.png"
+                      alt="VendorHub Quality & Trust Process"
+                      fill
+                      priority
+                      className="object-cover object-center block transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                    />
+                  </div>
+
+                  {/* Floating Experience Badge */}
+                  <div className="absolute -bottom-5 left-4 sm:left-6 bg-white/95 backdrop-blur-md border border-[#CDC0B0]/40 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 z-20">
+                    <div className="w-10 h-10 rounded-xl bg-[#EEDDCC]/70 flex items-center justify-center text-[#C4975A]">
+                      <Award className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-heading font-bold text-[#2C2621] text-xs sm:text-sm">Verified Vendor Profiles</div>
+                      <div className="text-[11px] text-[#6B5E54]">Rated by Real Clients</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* Phase 5: Leadership & Editorial Curators Team Section */}
+        <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 bg-white border-b border-[#CDC0B0]/20 relative overflow-hidden">
+          <div className="max-w-[1300px] mx-auto relative z-10">
+            {/* Section Header */}
+            <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+              <span className="font-body text-[#C4975A] font-semibold uppercase tracking-widest text-xs sm:text-sm block mb-3">
+                Leadership & Curation
+              </span>
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-[#2C2621] mb-6">
+                The Minds Behind VendorHub
+              </h2>
+              <p className="font-body text-[#6B5E54] text-base sm:text-lg leading-relaxed">
+                A dedicated team of architectural curators, technology innovators, and design industry veterans guiding our sanctuary.
+              </p>
+            </div>
+
+            {/* Team Grid (4 Members) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
+              {[
+                {
+                  name: 'Alexander Vance',
+                  role: 'Founder & Chief Executive Officer',
+                  bio: 'Former Principal Architect with 15+ years in luxury residential design. Dedicated to empowering independent studios.',
+                  filename: 'team-founder.png',
+                  recType: 'Professional portrait of male founder in a modern architectural studio backdrop.'
+                },
+                {
+                  name: 'Elena Rostova',
+                  role: 'Head of Architectural Curation',
+                  bio: 'Award-winning interior curator with deep expertise in European furniture, bespoke joinery, and rare material sourcing.',
+                  filename: 'team-curator.png',
+                  recType: 'Elegant portrait of female head curator holding material swatches or design sketch.'
+                },
+                {
+                  name: 'Marcus Sterling',
+                  role: 'Chief Technology Officer',
+                  bio: 'Pioneer in marketplace platform architecture & AI matching, bringing digital elegance to luxury commerce.',
+                  filename: 'team-cto.png',
+                  recType: 'Modern tech leader portrait in a lit studio office environment.'
+                },
+                {
+                  name: 'Sophia Chen',
+                  role: 'Head of Client & Vendor Concierge',
+                  bio: 'Over a decade in hospitality & luxury project management, ensuring seamless collaboration from inquiry to handover.',
+                  filename: 'team-concierge.png',
+                  recType: 'Warm, professional portrait of female concierge lead.'
+                }
+              ].map((member, idx) => (
                 <motion.div
                   key={member.name}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -8 }}
-                  className="text-center bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border border-gray-100"
+                  viewport={{ once: false, margin: "-50px" }}
+                  transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="bg-[#F5F4F0] rounded-3xl overflow-hidden border border-[#CDC0B0]/40 shadow-sm hover:shadow-2xl hover:border-[#C4975A]/60 transition-all duration-500 group flex flex-col justify-between"
                 >
-                  <div className={`w-28 h-28 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${member.gradient} flex items-center justify-center shadow-lg`}>
-                    <span className="text-3xl font-bold text-white">{member.initial}</span>
+                  {/* Member Image Container with Placeholder Guidance */}
+                  <div className="relative w-full aspect-[4/5] bg-white overflow-hidden flex flex-col items-center justify-center border-b border-[#CDC0B0]/30">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-5 text-center z-10 bg-white/80 backdrop-blur-md">
+                      <div className="w-10 h-10 rounded-xl bg-[#EEDDCC]/70 flex items-center justify-center text-[#C4975A] mb-2 shadow-inner">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <p className="text-[10px] font-bold text-[#C4975A] tracking-widest uppercase mb-1">Image Placeholder</p>
+                      <p className="text-xs text-[#2C2621] font-bold mb-1">
+                        <code className="bg-white/90 px-2 py-0.5 rounded border border-[#CDC0B0]/40 font-mono text-[11px] text-[#C4975A]">{member.filename}</code>
+                      </p>
+                      <p className="text-[11px] text-[#6B5E54] leading-tight mt-1">
+                        {member.recType}
+                      </p>
+                    </div>
+
+                    <Image
+                      src={`/${member.filename}`}
+                      alt={member.name}
+                      fill
+                      className="object-cover z-0 opacity-0 transition-opacity duration-500 group-hover:scale-105"
+                      onLoadingComplete={(e) => e.classList.remove('opacity-0')}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    />
                   </div>
-                  <h3 className="text-xl font-bold mb-1 text-gray-900">{member.name}</h3>
-                  <p className="text-blue-600 font-semibold mb-3">{member.role}</p>
-                  <p className="text-sm text-gray-600 leading-relaxed">{member.bio}</p>
+
+                  {/* Member Info Block */}
+                  <div className="p-6 sm:p-7 text-left flex-grow flex flex-col justify-between">
+                    <div>
+                      <span className="text-[11px] font-semibold uppercase tracking-widest text-[#C4975A] block mb-1">
+                        {member.role}
+                      </span>
+                      <h3 className="font-heading font-bold text-xl text-[#2C2621] mb-3 group-hover:text-[#C4975A] transition-colors duration-300">
+                        {member.name}
+                      </h3>
+                      <p className="font-body text-[#6B5E54] text-xs sm:text-sm leading-relaxed mb-6">
+                        {member.bio}
+                      </p>
+                    </div>
+
+                    {/* Social / Contact Links */}
+                    <div className="flex items-center gap-3 pt-4 border-t border-[#CDC0B0]/30 text-[#6B5E54]">
+                      <a href="#" className="hover:text-[#C4975A] transition-colors p-1.5 rounded-lg hover:bg-[#EEDDCC]/40">
+                        <Linkedin className="w-4 h-4" />
+                      </a>
+                      <a href="#" className="hover:text-[#C4975A] transition-colors p-1.5 rounded-lg hover:bg-[#EEDDCC]/40">
+                        <Twitter className="w-4 h-4" />
+                      </a>
+                      <a href="#" className="hover:text-[#C4975A] transition-colors p-1.5 rounded-lg hover:bg-[#EEDDCC]/40">
+                        <Globe className="w-4 h-4" />
+                      </a>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Values Section */}
-        <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Phase 6: Final Dual-Path Luxury Call to Action Section */}
+        <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 bg-[#F5F4F0] text-center relative overflow-hidden">
+          {/* Ambient Background Glows */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-[#EEDDCC]/50 blur-[150px] rounded-full pointer-events-none" />
+
+          <div className="max-w-[1300px] mx-auto relative z-10">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
+              viewport={{ once: false }}
+              transition={{ duration: 0.6 }}
+              className="text-center max-w-4xl mx-auto mb-16"
             >
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-gray-900">Our Core Values</h2>
-              <p className="text-xl text-gray-600">The principles that guide everything we do</p>
+              <span className="font-body text-[#C4975A] font-semibold uppercase tracking-widest text-xs sm:text-sm block mb-3">
+                Begin Your Journey
+              </span>
+              <h2 className="font-heading text-2xl sm:text-4xl lg:text-5xl font-bold text-[#2C2621] mb-6 sm:whitespace-nowrap">
+                Step Into the VendorHub Sanctuary
+              </h2>
+              <p className="font-body text-[#6B5E54] text-base sm:text-lg leading-relaxed max-w-3xl mx-auto">
+                Whether you are seeking to build your architectural masterpiece or expand your design studio, VendorHub is built for you.
+              </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              {values.map((value, index) => {
-                const Icon = value.icon;
-                return (
-                  <motion.div
-                    key={value.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all border border-gray-100"
+            {/* Dual-Path Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12">
+
+              {/* Card 1: For Homeowners */}
+              <motion.div
+                initial={{ opacity: 0, x: -40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="bg-white rounded-3xl p-8 sm:p-12 border border-[#CDC0B0]/40 shadow-xl hover:shadow-2xl hover:border-[#C4975A]/60 transition-all duration-500 text-left flex flex-col justify-between group relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#C4975A] to-[#EEDDCC]" />
+
+                <div>
+                  <div className="w-14 h-14 rounded-2xl bg-[#EEDDCC]/60 flex items-center justify-center text-[#C4975A] mb-6 group-hover:scale-110 group-hover:bg-[#C4975A] group-hover:text-white transition-all duration-300 shadow-sm">
+                    <Building2 className="w-7 h-7" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#C4975A] block mb-2">
+                    For Homeowners & Estates
+                  </span>
+                  <h3 className="font-heading font-bold text-2xl sm:text-3xl text-[#2C2621] mb-4">
+                    Transform Your Architectural Space
+                  </h3>
+                  <p className="font-body text-[#6B5E54] text-base leading-relaxed mb-8">
+                    Explore verified luxury interior designers, architects, and custom artisans. Request transparent quotes and collaborate with complete peace of mind.
+                  </p>
+                </div>
+
+                <div>
+                  <Link
+                    href="/explore"
+                    className="inline-flex items-center gap-2 bg-[#2C2621] text-white hover:bg-[#3D352E] transition-all px-8 py-4 rounded-full font-medium text-sm sm:text-base shadow-warm hover:shadow-warm-md hover:-translate-y-0.5 w-full sm:w-auto justify-center"
                   >
-                    <div className="w-14 h-14 mb-4 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-md">
-                      <Icon className="w-7 h-7 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-3 text-gray-900">{value.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{value.description}</p>
-                  </motion.div>
-                );
-              })}
+                    Explore Verified Studios
+                    <ArrowRight className="w-4 h-4 text-[#C4975A]" />
+                  </Link>
+                </div>
+              </motion.div>
+
+              {/* Card 2: For Vendors */}
+              <motion.div
+                initial={{ opacity: 0, x: 40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="bg-white rounded-3xl p-8 sm:p-12 border border-[#CDC0B0]/40 shadow-xl hover:shadow-2xl hover:border-[#C4975A]/60 transition-all duration-500 text-left flex flex-col justify-between group relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#2C2621] to-[#C4975A]" />
+
+                <div>
+                  <div className="w-14 h-14 rounded-2xl bg-[#EEDDCC]/60 flex items-center justify-center text-[#C4975A] mb-6 group-hover:scale-110 group-hover:bg-[#C4975A] group-hover:text-white transition-all duration-300 shadow-sm">
+                    <Sparkles className="w-7 h-7" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#C4975A] block mb-2">
+                    For Designers & Artisans
+                  </span>
+                  <h3 className="font-heading font-bold text-2xl sm:text-3xl text-[#2C2621] mb-4">
+                    Elevate Your Design Studio
+                  </h3>
+                  <p className="font-body text-[#6B5E54] text-base leading-relaxed mb-8">
+                    Join our exclusive network of hand-vetted professionals. Connect with high-value clients, send professional quotes, and secure your milestone payments.
+                  </p>
+                </div>
+
+                <div>
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center gap-2 bg-[#C4975A] text-white hover:bg-[#B38649] transition-all px-8 py-4 rounded-full font-medium text-sm sm:text-base shadow-warm hover:shadow-warm-md hover:-translate-y-0.5 w-full sm:w-auto justify-center"
+                  >
+                    Apply as an Elite Vendor
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </Link>
+                </div>
+              </motion.div>
+
             </div>
           </div>
         </section>
+      </main>
 
-        {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:14px_24px]" />
-          
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-                Ready to Experience the Difference?
-              </h2>
-              <p className="text-xl mb-10 max-w-2xl mx-auto text-blue-100 leading-relaxed">
-                Join thousands of satisfied customers and vendors who trust VendorHub 
-                for their service needs every day
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/explore">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 bg-white text-blue-600 hover:bg-gray-100 font-semibold rounded-xl shadow-lg hover:shadow-2xl transition-all inline-flex items-center gap-2"
-                  >
-                    Find Service Providers
-                    <ArrowRight className="w-5 h-5" />
-                  </motion.button>
-                </Link>
-                <Link href="/signup">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="px-8 py-4 bg-white/10 backdrop-blur-sm border-2 border-white text-white hover:bg-white/20 font-semibold rounded-xl shadow-lg hover:shadow-2xl transition-all"
-                  >
-                    List Your Services
-                  </motion.button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-      </div>
       <Footer />
-    </>
+    </div>
   );
 }

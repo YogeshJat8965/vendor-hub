@@ -34,6 +34,8 @@ import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
 import { QuoteRequestDialog } from '@/components/dialogs/QuoteRequestDialog';
+import { useAuth } from '@/lib/auth-context';
+import { CatalogueAnimatedCard } from '@/components/ui/catalogue-animated-card';
 
 interface Vendor {
   id: string;
@@ -65,6 +67,7 @@ interface Review {
 export default function VendorProfilePage() {
   const params = useParams();
   const slug = params?.slug as string;
+  const { user } = useAuth();
   
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -82,8 +85,34 @@ export default function VendorProfilePage() {
   useEffect(() => {
     if (slug) {
       fetchVendorData();
+      const favorites = localStorage.getItem('favorites') || '';
+      const slugs = favorites.split(',').filter(Boolean);
+      setIsLiked(slugs.includes(slug));
     }
   }, [slug]);
+
+  const handleToggleFavorite = () => {
+    if (!user) {
+      toast.error('Please log in to add to favorites');
+      return;
+    }
+
+    const favorites = localStorage.getItem('favorites') || '';
+    let slugs = favorites.split(',').filter(Boolean);
+    
+    if (isLiked) {
+      slugs = slugs.filter(s => s !== slug);
+      toast.success('Removed from favorites');
+    } else {
+      if (!slugs.includes(slug)) {
+        slugs.push(slug);
+      }
+      toast.success('Added to favorites');
+    }
+    
+    localStorage.setItem('favorites', slugs.join(','));
+    setIsLiked(!isLiked);
+  };
 
   const fetchVendorData = async () => {
     try {
@@ -158,8 +187,12 @@ export default function VendorProfilePage() {
       
       <main className="min-h-screen bg-gray-50">
         {/* Banner Section */}
-        <div className="relative h-64 sm:h-80 bg-gradient-to-br from-blue-500 to-purple-500">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500" />
+        <div className="relative h-64 sm:h-80 bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden">
+          {vendor.bannerUrl ? (
+            <img src={vendor.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500" />
+          )}
           
           {/* Action Buttons */}
           <div className="absolute top-4 right-4 flex gap-2">
@@ -167,11 +200,24 @@ export default function VendorProfilePage() {
               size="icon"
               variant="secondary"
               className="rounded-full touch-target"
-              onClick={() => setIsLiked(!isLiked)}
+              onClick={handleToggleFavorite}
             >
               <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
             </Button>
-            <Button size="icon" variant="secondary" className="rounded-full touch-target">
+            <Button 
+              size="icon" 
+              variant="secondary" 
+              className="rounded-full touch-target"
+              onClick={() => {
+                if (!user) {
+                  toast.error('Please log in to share vendor profile');
+                  return;
+                }
+                const url = `${window.location.origin}/vendors/${slug}`;
+                navigator.clipboard.writeText(url);
+                toast.success('Vendor profile link copied to clipboard!');
+              }}
+            >
               <Share2 className="w-5 h-5" />
             </Button>
           </div>
@@ -183,10 +229,14 @@ export default function VendorProfilePage() {
             <Card className="p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row gap-6">
                 {/* Logo */}
-                <div className="flex-shrink-0">
-                  <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-5xl font-bold shadow-xl">
-                    {displayName.charAt(0)}
-                  </div>
+                <div className="flex-shrink-0 z-10 relative">
+                  {vendor.logoUrl ? (
+                    <img src={vendor.logoUrl} alt="Logo" className="w-32 h-32 rounded-2xl object-cover shadow-xl border-4 border-white bg-white" />
+                  ) : (
+                    <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-5xl font-bold shadow-xl border-4 border-white">
+                      {displayName.charAt(0)}
+                    </div>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -283,58 +333,9 @@ export default function VendorProfilePage() {
                           <p className="text-gray-500">No catalogues available yet.</p>
                         </div>
                       ) : (
-                        <div className="space-y-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {catalogues.map(catalogue => (
-                            <div key={catalogue.id} className="space-y-6">
-                              <div>
-                                <h3 className="text-xl font-bold text-gray-900">{catalogue.name}</h3>
-                                {catalogue.description && <p className="text-gray-600 mt-1">{catalogue.description}</p>}
-                              </div>
-                              
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {catalogue.items?.map((item: any) => (
-                                  <div key={item.id} className="group rounded-xl border bg-white overflow-hidden hover:shadow-lg transition-all duration-300">
-                                    <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden">
-                                      {item.images && item.images.length > 0 ? (
-                                        <img 
-                                          src={item.images[0].startsWith('http') ? item.images[0] : `${process.env.NEXT_PUBLIC_API_URL}${item.images[0]}`} 
-                                          alt={item.title} 
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                                        />
-                                      ) : (
-                                        <div className="flex items-center justify-center h-full text-gray-400">
-                                          <ImageIcon className="w-12 h-12 opacity-50" />
-                                        </div>
-                                      )}
-                                      {item.startingPrice > 0 && (
-                                        <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1 shadow-sm">
-                                          Starting at ₹{item.startingPrice.toLocaleString('en-IN')}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="p-5 space-y-4">
-                                      <div>
-                                        <h4 className="font-bold text-lg leading-tight mb-1">{item.title}</h4>
-                                        <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>
-                                      </div>
-                                      <Button 
-                                        className="w-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white transition-colors"
-                                        onClick={() => {
-                                          setSelectedCatalogueId(catalogue.id);
-                                          setSelectedCatalogueItemId(item.id);
-                                          setQuoteServiceType(`Quote for: ${item.title} (${catalogue.name})`);
-                                          setQuoteDescription(`I'm interested in the "${item.title}" design from your "${catalogue.name}" catalogue. Please provide more details and a quote.`);
-                                          setShowQuoteDialog(true);
-                                        }}
-                                      >
-                                        <MessageSquare className="w-4 h-4 mr-2" />
-                                        Get Quote for this Design
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                            <CatalogueAnimatedCard key={catalogue.id} catalogue={catalogue} />
                           ))}
                         </div>
                       )}
@@ -363,9 +364,19 @@ export default function VendorProfilePage() {
                   <Card>
                     <CardContent className="p-6">
                       <h2 className="text-2xl font-bold mb-4">Gallery</h2>
-                      <div className="text-center py-12">
-                        <p className="text-gray-500">No gallery images available yet.</p>
-                      </div>
+                      {!vendor.gallery || vendor.gallery.length === 0 ? (
+                        <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-100">
+                          <p className="text-gray-500">No gallery images available yet.</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {vendor.gallery.map((url: string, index: number) => (
+                            <div key={index} className="relative aspect-square rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                              <img src={url} alt={`Gallery image ${index + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>

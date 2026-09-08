@@ -35,7 +35,7 @@ export function Testimonials() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 max-w-3xl mx-auto">
-          <h2 className="font-accent text-3xl text-[#CDB79E] mb-2">Testimonials</h2>
+          <h2 className="font-accent text-3xl text-[#C4975A] mb-2">Testimonials</h2>
           <h3 className="font-heading text-4xl sm:text-5xl font-bold text-[#2C2621] mb-6">
             Stories of Transformation
           </h3>

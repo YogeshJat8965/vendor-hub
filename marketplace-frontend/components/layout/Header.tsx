@@ -32,7 +32,7 @@ export function Header() {
   ];
 
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-[#CDC0B0]/30 py-1' : 'bg-white/80 backdrop-blur-md py-3'}`}>
+    <header className={`sticky top-0 z-50 w-full bg-white transition-all duration-300 ${scrolled ? 'shadow-md border-b border-[#CDC0B0]/30 py-2' : 'border-b border-[#CDC0B0]/20 py-4'}`}>
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -43,7 +43,7 @@ export function Header() {
             >
               VendorHub
             </motion.div>
-            <span className="font-accent text-xl text-[#CDB79E] group-hover:text-[#2C2621] transition-colors duration-300 hidden sm:inline-block">marketplace</span>
+            <span className="font-accent text-xl text-[#C4975A] group-hover:text-[#2C2621] transition-colors duration-300 hidden sm:inline-block">marketplace</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -120,7 +120,7 @@ export function Header() {
                 <div className="flex flex-col space-y-6 mt-8">
                   <div className="flex items-baseline space-x-1 pb-4 border-b border-[#CDC0B0]/30">
                     <div className="text-2xl font-heading font-bold text-[#2C2621]">VendorHub</div>
-                    <span className="font-accent text-lg text-[#CDB79E]">marketplace</span>
+                    <span className="font-accent text-lg text-[#C4975A]">marketplace</span>
                   </div>
                   
                   <nav className="flex flex-col space-y-4">

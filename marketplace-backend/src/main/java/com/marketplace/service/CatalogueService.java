@@ -109,10 +109,10 @@ public class CatalogueService {
     }
 
     private void validateItems(List<CatalogueItem> items, String plan) {
-        int maxItems = "PREMIUM".equals(plan) ? 30 : 10;
+        int maxItems = 3;
         
         if (items.size() > maxItems) {
-            throw new RuntimeException("Catalogue items limit reached for " + plan + " plan. Maximum allowed: " + maxItems);
+            throw new RuntimeException("Catalogue items limit reached. Maximum allowed per catalogue is 3 items.");
         }
 
         for (CatalogueItem item : items) {

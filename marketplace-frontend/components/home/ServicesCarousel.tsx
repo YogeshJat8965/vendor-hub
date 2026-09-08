@@ -5,12 +5,13 @@ import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const services = [
   {
     title: 'Interior Design',
     description: 'Bespoke spaces that reflect your personality.',
-    image: 'https://images.unsplash.com/photo-1616487625407-7ce1b2dc8978?auto=format&fit=crop&q=80&w=800',
+    image: '/living room design.jpg',
     tags: ['Residential', 'Commercial']
   },
   {
@@ -58,7 +59,7 @@ export function ServicesCarousel() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div className="max-w-2xl">
-            <h2 className="font-accent text-3xl text-[#CDB79E] mb-2">Our Expertise</h2>
+            <h2 className="font-accent text-3xl text-[#C4975A] mb-2">Our Expertise</h2>
             <h3 className="font-heading text-4xl sm:text-5xl font-bold text-[#2C2621]">
               Curated Services
             </h3>
@@ -110,10 +111,13 @@ export function ServicesCarousel() {
                       <h4 className="font-heading text-2xl font-semibold text-[#2C2621] mb-2">{service.title}</h4>
                       <p className="font-body text-sm text-[#6B5E54] line-clamp-2">{service.description}</p>
                     </div>
-                    <div className="flex items-center gap-2 text-[#C4975A] font-body font-medium group-hover:text-[#2C2621] transition-colors cursor-pointer">
+                    <Link 
+                      href="/explore" 
+                      className="inline-flex items-center gap-2 text-[#C4975A] font-body font-medium hover:text-[#2C2621] transition-colors cursor-pointer"
+                    >
                       <span>Explore</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
                 </motion.div>
               </div>

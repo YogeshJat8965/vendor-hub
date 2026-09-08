@@ -31,7 +31,6 @@ interface Quote {
 }
 
 interface VendorStats {
-  totalViews: number;
   quoteRequests: number;
   pendingQuotes: number;
   acceptedQuotes: number;
@@ -67,7 +66,6 @@ export default function VendorDashboardPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<VendorStats>({
-    totalViews: 0,
     quoteRequests: 0,
     pendingQuotes: 0,
     acceptedQuotes: 0,
@@ -91,7 +89,6 @@ export default function VendorDashboardPage() {
       const statsResponse = await apiClient.get(`/vendor/dashboard/stats?email=${user?.email}`);
       if (statsResponse.data) {
         setStats({
-          totalViews: statsResponse.data.totalViews || 0,
           quoteRequests: statsResponse.data.quoteRequests || 0,
           pendingQuotes: statsResponse.data.pendingQuotes || 0,
           acceptedQuotes: statsResponse.data.acceptedQuotes || 0,
@@ -154,14 +151,6 @@ export default function VendorDashboardPage() {
 
   const statsCards = [
     {
-      title: 'Total Views',
-      value: (stats?.totalViews ?? 0).toLocaleString(),
-      change: 'This month',
-      icon: Eye,
-      color: 'text-[#2C2621]',
-      bgColor: 'bg-[#EEDDCC]',
-    },
-    {
       title: 'Quote Requests',
       value: (stats?.quoteRequests ?? 0).toString(),
       change: `${stats?.pendingQuotes ?? 0} pending`,
@@ -196,7 +185,7 @@ export default function VendorDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <p className="font-accent text-2xl text-[#CDB79E] mb-1">Welcome back</p>
+        <p className="font-accent text-2xl text-[#C4975A] mb-1">Welcome back</p>
         <h1 className="text-3xl sm:text-4xl font-heading font-bold text-[#2C2621] mb-2">{user?.name}! 👋</h1>
         <p className="text-[#6B5E54] font-body">Here's an overview of your business performance</p>
       </motion.div>
@@ -206,7 +195,7 @@ export default function VendorDashboardPage() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {statsCards.map((stat) => {
           const Icon = stat.icon;
@@ -357,7 +346,7 @@ export default function VendorDashboardPage() {
               </div>
               <div>
                 <h3 className="text-xl font-heading font-bold text-white">Great Performance!</h3>
-                <p className="text-[#CDB79E] font-body">Your profile has {stats.totalViews} views</p>
+                <p className="text-[#CDB79E] font-body">You have received {stats.quoteRequests} quote requests</p>
               </div>
             </div>
             <p className="text-sm font-body text-[#9C8E82] mb-6">

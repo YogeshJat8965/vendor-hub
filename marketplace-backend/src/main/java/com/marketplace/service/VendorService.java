@@ -21,6 +21,11 @@ public class VendorService {
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
     }
     
+    public Vendor getVendorById(String id) {
+        return vendorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Vendor not found"));
+    }
+    
     public Vendor getVendorByEmail(String email) {
         return vendorRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
@@ -58,7 +63,19 @@ public class VendorService {
     public Vendor updateVendorByEmail(String email, Vendor updates) {
         Vendor vendor = getVendorByEmail(email);
         
-        if (updates.getBusinessName() != null) vendor.setBusinessName(updates.getBusinessName());
+        if (updates.getBusinessName() != null && !updates.getBusinessName().equals(vendor.getBusinessName())) {
+            vendor.setBusinessName(updates.getBusinessName());
+            
+            // Generate unique slug based on new business name
+            String baseSlug = com.marketplace.util.SlugGenerator.generateSlug(updates.getBusinessName());
+            String newSlug = baseSlug;
+            int counter = 1;
+            while (vendorRepository.existsBySlug(newSlug)) {
+                newSlug = baseSlug + "-" + counter;
+                counter++;
+            }
+            vendor.setSlug(newSlug);
+        }
         if (updates.getOwnerName() != null) vendor.setOwnerName(updates.getOwnerName());
         if (updates.getMobile() != null) vendor.setMobile(updates.getMobile());
         if (updates.getCity() != null) vendor.setCity(updates.getCity());

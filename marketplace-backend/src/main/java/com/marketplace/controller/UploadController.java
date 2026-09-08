@@ -1,5 +1,7 @@
 package com.marketplace.controller;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.marketplace.model.CustomerProfile;
 import com.marketplace.model.vendor.Vendor;
 import com.marketplace.repository.CustomerProfileRepository;
@@ -21,15 +23,16 @@ public class UploadController {
     
     private final CustomerProfileRepository customerProfileRepository;
     private final VendorRepository vendorRepository;
+    private final Cloudinary cloudinary;
     
     @PostMapping("/customer/upload/photo")
     public ResponseEntity<?> uploadCustomerPhoto(
             @RequestParam("file") MultipartFile file,
             @RequestParam("email") String email) {
         try {
-            // Simulate file upload - in production, upload to cloud storage
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            String fileUrl = "/uploads/customers/" + fileName;
+            // Upload to Cloudinary
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+            String fileUrl = uploadResult.get("url").toString();
             
             // Update customer profile with photo URL
             CustomerProfile profile = customerProfileRepository.findByEmail(email)
@@ -55,8 +58,8 @@ public class UploadController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("email") String email) {
         try {
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            String fileUrl = "/uploads/vendors/logos/" + fileName;
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+            String fileUrl = uploadResult.get("url").toString();
             
             Vendor vendor = vendorRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Vendor not found"));
@@ -77,8 +80,8 @@ public class UploadController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("email") String email) {
         try {
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            String fileUrl = "/uploads/vendors/banners/" + fileName;
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+            String fileUrl = uploadResult.get("url").toString();
             
             Vendor vendor = vendorRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Vendor not found"));
@@ -99,8 +102,8 @@ public class UploadController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("email") String email) {
         try {
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            String fileUrl = "/uploads/vendors/gallery/" + fileName;
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+            String fileUrl = uploadResult.get("url").toString();
             
             Vendor vendor = vendorRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Vendor not found"));
@@ -109,6 +112,11 @@ public class UploadController {
             if (gallery == null) {
                 gallery = new ArrayList<>();
             }
+            
+            if (gallery.size() >= 5) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Maximum 5 gallery photos allowed"));
+            }
+            
             gallery.add(fileUrl);
             vendor.setGallery(gallery);
             vendorRepository.save(vendor);
@@ -165,8 +173,8 @@ public class UploadController {
             
             // Note: In production, enforce size limits based on type and vendor plan.
             
-            String fileName = UUID.randomUUID().toString() + extension;
-            String fileUrl = "/uploads/vendors/catalogues/" + fileName;
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+            String fileUrl = uploadResult.get("url").toString();
             
             return ResponseEntity.ok(Map.of(
                 "message", "Catalogue file uploaded successfully",

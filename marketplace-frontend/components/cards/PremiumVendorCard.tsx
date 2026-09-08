@@ -56,11 +56,10 @@ export function PremiumVendorCard({ vendor, index = 0 }: PremiumVendorCardProps)
         {/* Banner Image */}
         <div className="relative h-48 bg-[#EEDDCC] overflow-hidden">
           {bannerUrl ? (
-            <Image
+            <img
               src={bannerUrl}
               alt={`${businessName} banner`}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-700"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             />
           ) : (
             <div className="absolute inset-0 bg-[#EEDDCC]" />
@@ -86,11 +85,9 @@ export function PremiumVendorCard({ vendor, index = 0 }: PremiumVendorCardProps)
           <div className="absolute -bottom-8 left-6">
             <div className="w-20 h-20 rounded-2xl bg-white shadow-warm-md overflow-hidden border-4 border-white">
               {logoUrl ? (
-                <Image
+                <img
                   src={logoUrl}
                   alt={`${businessName} logo`}
-                  width={80}
-                  height={80}
                   className="object-cover w-full h-full"
                 />
               ) : (

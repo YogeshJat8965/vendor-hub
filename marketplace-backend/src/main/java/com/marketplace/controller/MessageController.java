@@ -43,7 +43,7 @@ public class MessageController {
     @GetMapping("/api/conversations/customer/{customerId}")
     public ResponseEntity<?> getCustomerConversations(@PathVariable String customerId) {
         try {
-            List<Conversation> conversations = messagingService.getCustomerConversations(customerId);
+            List<com.marketplace.dto.ConversationDTO> conversations = messagingService.getCustomerConversations(customerId);
             return ResponseEntity.ok(conversations);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -53,7 +53,7 @@ public class MessageController {
     @GetMapping("/api/conversations/vendor/{vendorId}")
     public ResponseEntity<?> getVendorConversations(@PathVariable String vendorId) {
         try {
-            List<Conversation> conversations = messagingService.getVendorConversations(vendorId);
+            List<com.marketplace.dto.ConversationDTO> conversations = messagingService.getVendorConversations(vendorId);
             return ResponseEntity.ok(conversations);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -15,6 +15,9 @@ import {
   TrendingUp,
   Layers,
   MessageSquare,
+  Share2,
+  User,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -25,6 +28,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
 
 const navItems = [
   {
@@ -33,20 +38,9 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Quotes',
-    href: '/dashboard/vendor/quotes',
-    icon: FileText,
-    badge: 5, // Pending quotes count
-  },
-  {
-    title: 'Reviews',
-    href: '/dashboard/vendor/reviews',
-    icon: Star,
-  },
-  {
-    title: 'Inbox',
-    href: '/dashboard/vendor/inbox',
-    icon: MessageSquare,
+    title: 'Storefront',
+    href: '/dashboard/vendor/storefront',
+    icon: Store,
   },
   {
     title: 'Catalogues',
@@ -54,31 +48,28 @@ const navItems = [
     icon: Layers,
   },
   {
-    title: 'Storefront',
-    href: '/dashboard/vendor/storefront',
-    icon: Store,
+    title: 'Inbox',
+    href: '/dashboard/vendor/inbox',
+    icon: MessageSquare,
+  },
+  {
+    title: 'Quotes',
+    href: '/dashboard/vendor/quotes',
+    icon: FileText,
+  },
+  {
+    title: 'Reviews',
+    href: '/dashboard/vendor/reviews',
+    icon: Star,
   },
   {
     title: 'Analytics',
     href: '/dashboard/vendor/analytics',
     icon: TrendingUp,
   },
-  {
-    title: 'Settings',
-    href: '/dashboard/vendor/settings',
-    icon: Settings,
-  },
 ];
 
-// Mock vendor data - will be replaced with API
-const vendor = {
-  businessName: 'Johns Plumbing Services',
-  email: 'john@johnsplumbing.com',
-  logo: null,
-  isPremium: true,
-};
-
-function Sidebar() {
+function Sidebar({ vendorData }: { vendorData: any }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
@@ -104,23 +95,17 @@ function Sidebar() {
       {/* Vendor Info */}
       <div className="p-6">
         <div className="flex items-center gap-3">
-          <Avatar className="w-12 h-12 border border-[#CDC0B0]/30">
-            <AvatarImage src={vendor.logo || undefined} />
-            <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold">
-              {vendor.businessName.charAt(0)}
+          <Avatar className="w-16 h-16 border-2 border-[#CDC0B0]/50 shadow-sm">
+            <AvatarImage src={vendorData?.logoUrl || undefined} />
+            <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold text-2xl">
+              {(vendorData?.storeName || vendorData?.businessName || 'V').charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{vendor.businessName}</h3>
-            <p className="font-body text-xs text-[#6B5E54] truncate">{vendor.email}</p>
+            <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{vendorData?.storeName || vendorData?.businessName || 'Loading...'}</h3>
+            <p className="font-body text-xs text-[#6B5E54] truncate">{vendorData?.email || ''}</p>
           </div>
         </div>
-        {vendor.isPremium && (
-          <Badge className="mt-3 bg-[#2C2621] text-[#EEDDCC] hover:bg-[#2C2621]/90 border-0 shadow-warm-sm">
-            <TrendingUp className="w-3 h-3 mr-1 text-[#CDB79E]" />
-            Premium
-          </Badge>
-        )}
       </div>
 
       <Separator />
@@ -172,7 +157,7 @@ function Sidebar() {
   );
 }
 
-function MobileSidebar() {
+function MobileSidebar({ vendorData }: { vendorData: any }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -212,23 +197,17 @@ function MobileSidebar() {
           {/* Vendor Info */}
           <div className="p-6">
             <div className="flex items-center gap-3">
-              <Avatar className="w-12 h-12 border border-[#CDC0B0]/30">
-                <AvatarImage src={vendor.logo || undefined} />
-                <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold">
-                  {vendor.businessName.charAt(0)}
+              <Avatar className="w-16 h-16 border-2 border-[#CDC0B0]/50 shadow-sm">
+                <AvatarImage src={vendorData?.logoUrl || undefined} />
+                <AvatarFallback className="bg-[#CDB79E] text-[#2C2621] font-heading font-semibold text-2xl">
+                  {(vendorData?.storeName || vendorData?.businessName || 'V').charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{vendor.businessName}</h3>
-                <p className="font-body text-xs text-[#6B5E54] truncate">{vendor.email}</p>
+                <h3 className="font-heading font-semibold text-[#2C2621] text-sm truncate">{vendorData?.storeName || vendorData?.businessName || 'Loading...'}</h3>
+                <p className="font-body text-xs text-[#6B5E54] truncate">{vendorData?.email || ''}</p>
               </div>
             </div>
-            {vendor.isPremium && (
-              <Badge className="mt-3 bg-[#2C2621] text-[#EEDDCC] border-0 shadow-warm-sm">
-                <TrendingUp className="w-3 h-3 mr-1 text-[#CDB79E]" />
-                Premium
-              </Badge>
-            )}
           </div>
 
           <Separator />
@@ -288,6 +267,21 @@ export default function VendorDashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const [vendorData, setVendorData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchVendor = () => {
+      if (user?.email) {
+        apiClient.get(`/vendor/profile?email=${user.email}`)
+          .then(res => setVendorData(res.data))
+          .catch(console.error);
+      }
+    };
+    fetchVendor();
+    window.addEventListener('profileUpdated', fetchVendor);
+    return () => window.removeEventListener('profileUpdated', fetchVendor);
+  }, [user]);
 
   // Generate breadcrumbs from pathname
   const generateBreadcrumbs = () => {
@@ -303,7 +297,7 @@ export default function VendorDashboardLayout({
       const title = path.charAt(0).toUpperCase() + path.slice(1);
       return { href, title };
     });
-    return breadcrumbs;
+    return breadcrumbs.filter(crumb => crumb.title.toLowerCase() !== 'vendor');
   };
 
   const breadcrumbs = generateBreadcrumbs();
@@ -313,14 +307,14 @@ export default function VendorDashboardLayout({
       <div className="flex h-screen bg-[#FDFBF7]">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:block w-72 flex-shrink-0">
-          <Sidebar />
+          <Sidebar vendorData={vendorData} />
         </aside>
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Top Bar */}
         <header className="bg-white border-b border-[#CDC0B0]/50 px-4 sm:px-6 py-4 flex items-center gap-4 shadow-[0_2px_10px_rgba(44,38,33,0.03)] z-10">
-          <MobileSidebar />
+          <MobileSidebar vendorData={vendorData} />
           
           {/* Breadcrumbs */}
           <nav className="flex items-center gap-2 text-sm font-body">
@@ -340,6 +334,42 @@ export default function VendorDashboardLayout({
               </div>
             ))}
           </nav>
+          
+          <div className="ml-auto flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-[#6B5E54] border-[#CDC0B0]/50 hover:text-[#2C2621] hover:bg-[#EEDDCC] touch-target rounded-xl"
+              onClick={() => {
+                if (vendorData?.slug) {
+                  const url = `${window.location.origin}/vendors/${vendorData.slug}`;
+                  window.open(url, '_blank');
+                } else {
+                  toast.error('Storefront link not available yet.');
+                }
+              }}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Public View
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-[#6B5E54] hover:text-[#2C2621] hover:bg-[#EEDDCC] touch-target rounded-xl"
+              onClick={() => {
+                if (vendorData?.slug) {
+                  const url = `${window.location.origin}/vendors/${vendorData.slug}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success('Storefront link copied to clipboard!');
+                } else {
+                  toast.error('Storefront link not available yet.');
+                }
+              }}
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Profile
+            </Button>
+          </div>
         </header>
 
         {/* Page Content */}

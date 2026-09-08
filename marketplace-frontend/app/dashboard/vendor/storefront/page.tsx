@@ -15,19 +15,25 @@ import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { UploadService } from '@/lib/upload-service';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const storefrontSchema = z.object({
   businessName: z.string().min(2, 'Business name is required'),
-  category: z.string().min(2, 'Category is required'),
   description: z.string().min(20, 'Description must be at least 20 characters'),
   longDescription: z.string().min(50, 'Detailed description must be at least 50 characters'),
   phone: z.string().min(10, 'Valid phone number required'),
   email: z.string().email('Valid email required'),
-  website: z.string().optional(),
   address: z.string().min(5, 'Address is required'),
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'State is required'),
-  zipCode: z.string().min(5, 'ZIP code is required'),
+  zipCode: z.string().optional(),
   yearsInBusiness: z.string().optional(),
 });
 
@@ -41,11 +47,14 @@ export default function VendorStorefrontPage() {
   const [newService, setNewService] = useState('');
   const [gallery, setGallery] = useState<string[]>([]);
   const [vendorSlug, setVendorSlug] = useState('');
+  const [initialBusinessName, setInitialBusinessName] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [showNameChangeAlert, setShowNameChangeAlert] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<StorefrontFormData | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -54,12 +63,10 @@ export default function VendorStorefrontPage() {
     resolver: zodResolver(storefrontSchema),
     defaultValues: {
       businessName: '',
-      category: '',
       description: '',
       longDescription: '',
       phone: '',
       email: '',
-      website: '',
       address: '',
       city: '',
       state: '',
@@ -82,12 +89,10 @@ export default function VendorStorefrontPage() {
       
       form.reset({
         businessName: profileData.businessName || '',
-        category: profileData.vendorType || '',
         description: profileData.description || '',
         longDescription: profileData.longDescription || '',
         phone: profileData.phone || '',
         email: profileData.email || user?.email || '',
-        website: profileData.website || '',
         address: profileData.address || '',
         city: profileData.city || '',
         state: profileData.state || '',
@@ -98,6 +103,7 @@ export default function VendorStorefrontPage() {
       setServices(profileData.services || []);
       setGallery(profileData.gallery || []);
       setVendorSlug(profileData.slug || '');
+      setInitialBusinessName(profileData.businessName || '');
       setLogoUrl(profileData.logoUrl || null);
       setBannerUrl(profileData.bannerUrl || null);
     } catch (error) {
@@ -109,6 +115,16 @@ export default function VendorStorefrontPage() {
   };
 
   const onSubmit = async (data: StorefrontFormData) => {
+    if (data.businessName !== initialBusinessName) {
+      setPendingFormData(data);
+      setShowNameChangeAlert(true);
+      return;
+    }
+
+    await processSubmit(data);
+  };
+
+  const processSubmit = async (data: StorefrontFormData) => {
     setIsUpdating(true);
     try {
       await apiClient.put('/vendor/profile', {
@@ -126,6 +142,7 @@ export default function VendorStorefrontPage() {
       toast.error('Failed to update profile');
     } finally {
       setIsUpdating(false);
+      setPendingFormData(null);
     }
   };
 
@@ -176,6 +193,11 @@ export default function VendorStorefrontPage() {
   const handleGallerySelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !user?.email) return;
+
+    if (gallery.length + files.length > 5) {
+      toast.error('Maximum 5 photos allowed in gallery');
+      return;
+    }
 
     setIsUploadingGallery(true);
     const uploadedUrls: string[] = [];
@@ -491,17 +513,6 @@ export default function VendorStorefrontPage() {
                   <p className="text-sm font-body text-[#B85C5C] mt-1">{form.formState.errors.businessName.message}</p>
                 )}
               </div>
-              <div>
-                <Label htmlFor="category" className="mb-2 font-body text-[#2C2621] font-medium">Category *</Label>
-                <Input
-                  id="category"
-                  className={`h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${form.formState.errors.category ? 'border-[#B85C5C]' : ''}`}
-                  {...form.register('category')}
-                />
-                {form.formState.errors.category && (
-                  <p className="text-sm font-body text-[#B85C5C] mt-1">{form.formState.errors.category.message}</p>
-                )}
-              </div>
             </div>
 
             <div>
@@ -575,17 +586,6 @@ export default function VendorStorefrontPage() {
             </div>
 
             <div>
-              <Label htmlFor="website" className="mb-2 font-body text-[#2C2621] font-medium">Website</Label>
-              <Input
-                id="website"
-                type="url"
-                placeholder="https://www.yourbusiness.com"
-                className="h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
-                {...form.register('website')}
-              />
-            </div>
-
-            <div>
               <Label htmlFor="address" className="mb-2 font-body text-[#2C2621] font-medium">Street Address *</Label>
               <Input
                 id="address"
@@ -621,7 +621,7 @@ export default function VendorStorefrontPage() {
                 )}
               </div>
               <div className="col-span-2 sm:col-span-1">
-                <Label htmlFor="zipCode" className="mb-2 font-body text-[#2C2621] font-medium">ZIP Code *</Label>
+                <Label htmlFor="zipCode" className="mb-2 font-body text-[#2C2621] font-medium">ZIP Code</Label>
                 <Input
                   id="zipCode"
                   className={`h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621] ${form.formState.errors.zipCode ? 'border-[#B85C5C]' : ''}`}
@@ -643,12 +643,29 @@ export default function VendorStorefrontPage() {
           <CardContent className="space-y-4 pt-6">
             <div className="flex gap-2">
               <Input
-                placeholder="Add a service (e.g. Living Room Design)..."
+                list="service-options"
+                placeholder="Select or type a service (e.g. Living Room Design)..."
                 value={newService}
                 onChange={(e) => setNewService(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addService())}
                 className="h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
               />
+              <datalist id="service-options">
+                <option value="Residential Interior Design" />
+                <option value="Commercial Interior Design" />
+                <option value="Living Room Design" />
+                <option value="Modular Kitchen Design" />
+                <option value="Bathroom Remodeling" />
+                <option value="Bedroom Design" />
+                <option value="Space Planning" />
+                <option value="Custom Furniture Design" />
+                <option value="Lighting Consultation" />
+                <option value="Color & Material Consultation" />
+                <option value="3D Rendering & Visualization" />
+                <option value="False Ceiling Design" />
+                <option value="Wardrobe Design" />
+                <option value="Turnkey Interior Execution" />
+              </datalist>
               <Button type="button" onClick={addService} className="h-12 w-12 rounded-xl bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] flex-shrink-0">
                 <Plus className="w-5 h-5" />
               </Button>
@@ -795,6 +812,40 @@ export default function VendorStorefrontPage() {
           </Button>
         </div>
       </form>
+
+      {/* Name Change Warning Dialog */}
+      <Dialog open={showNameChangeAlert} onOpenChange={setShowNameChangeAlert}>
+        <DialogContent className="bg-[#FDFBF7] border-[#CDC0B0] rounded-3xl p-6 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-heading text-[#2C2621]">Update Profile Link?</DialogTitle>
+            <DialogDescription className="font-body text-[#6B5E54] pt-3 text-base leading-relaxed">
+              Changing your Business Name will update your profile URL. Your old shareable link will no longer work, and you will need to share the new one. 
+              <br/><br/>
+              Do you want to proceed?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-3">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowNameChangeAlert(false)}
+              className="rounded-xl border-[#CDC0B0] text-[#6B5E54] hover:bg-[#EEDDCC] hover:text-[#2C2621] font-body flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              onClick={() => {
+                setShowNameChangeAlert(false);
+                if (pendingFormData) processSubmit(pendingFormData);
+              }}
+              className="rounded-xl bg-[#C4975A] hover:bg-[#B3874B] text-white font-body flex-1"
+            >
+              Yes, Update Name
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

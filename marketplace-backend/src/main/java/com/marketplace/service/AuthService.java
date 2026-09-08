@@ -38,7 +38,7 @@ public class AuthService {
         user.setUpdatedAt(Instant.now());
         
         User saved = userRepository.save(user);
-        return jwtService.generateToken(saved.getId(), saved.getEmail(), saved.getRole());
+        return jwtService.generateToken(saved.getId(), saved.getEmail(), saved.getRole(), saved.getName());
     }
     
     public String vendorSignup(VendorRegistrationDto dto) {
@@ -69,7 +69,7 @@ public class AuthService {
         vendor.setUpdatedAt(Instant.now());
         
         Vendor saved = vendorRepository.save(vendor);
-        return jwtService.generateToken(saved.getId(), saved.getEmail(), saved.getRole());
+        return jwtService.generateToken(saved.getId(), saved.getEmail(), saved.getRole(), saved.getStoreName());
     }
     
     public String login(LoginDto dto) {
@@ -77,7 +77,7 @@ public class AuthService {
         Optional<User> user = userRepository.findByEmail(dto.getEmail());
         if (user.isPresent()) {
             if (passwordEncoder.matches(dto.getPassword(), user.get().getPassword())) {
-                return jwtService.generateToken(user.get().getId(), user.get().getEmail(), user.get().getRole());
+                return jwtService.generateToken(user.get().getId(), user.get().getEmail(), user.get().getRole(), user.get().getName());
             }
         }
         
@@ -85,7 +85,7 @@ public class AuthService {
         Optional<Vendor> vendor = vendorRepository.findByEmail(dto.getEmail());
         if (vendor.isPresent()) {
             if (passwordEncoder.matches(dto.getPassword(), vendor.get().getPasswordHash())) {
-                return jwtService.generateToken(vendor.get().getId(), vendor.get().getEmail(), vendor.get().getRole());
+                return jwtService.generateToken(vendor.get().getId(), vendor.get().getEmail(), vendor.get().getRole(), vendor.get().getStoreName());
             }
         }
         
