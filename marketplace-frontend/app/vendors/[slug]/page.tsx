@@ -42,8 +42,11 @@ interface Vendor {
   slug: string;
   storeName: string;
   businessName?: string;
+  ownerName?: string;
   vendorType: string;
+  category?: string;
   description?: string;
+  longDescription?: string;
   city?: string;
   state?: string;
   address?: string;
@@ -54,6 +57,9 @@ interface Vendor {
   reviewCount?: number;
   status: string;
   subscriptionPlan?: string;
+  yearsInBusiness?: number;
+  services?: string[];
+  gallery?: string[];
 }
 
 interface Review {
@@ -185,146 +191,136 @@ export default function VendorProfilePage() {
     <>
       <Header />
       
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-gray-50 relative pb-10">
         {/* Banner Section */}
-        <div className="relative h-64 sm:h-80 bg-gradient-to-br from-blue-500 to-purple-500 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[70vh] lg:h-[85vh] bg-[#2C2621] overflow-hidden z-0">
           {vendor.bannerUrl ? (
-            <img src={vendor.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
+            <img src={vendor.bannerUrl} alt="Banner" className="absolute inset-0 w-full h-full object-cover opacity-90" />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#5C5346] to-[#2C2621] opacity-90" />
           )}
+          {/* Subtle gradient overlay for better text/card contrast at bottom */}
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-transparent to-black/20" />
+        </div>
           
-          {/* Action Buttons */}
-          <div className="absolute top-4 right-4 flex gap-2">
-            <Button
-              size="icon"
-              variant="secondary"
-              className="rounded-full touch-target"
-              onClick={handleToggleFavorite}
-            >
-              <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-            </Button>
-            <Button 
-              size="icon" 
-              variant="secondary" 
-              className="rounded-full touch-target"
-              onClick={() => {
-                if (!user) {
-                  toast.error('Please log in to share vendor profile');
-                  return;
-                }
-                const url = `${window.location.origin}/vendors/${slug}`;
-                navigator.clipboard.writeText(url);
-                toast.success('Vendor profile link copied to clipboard!');
-              }}
-            >
-              <Share2 className="w-5 h-5" />
-            </Button>
-          </div>
+        {/* Action Buttons */}
+        <div className="absolute top-4 right-4 sm:top-8 sm:right-8 flex gap-3 z-20">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="rounded-full touch-target shadow-md bg-white/80 hover:bg-white backdrop-blur-sm transition-all"
+            onClick={handleToggleFavorite}
+          >
+            <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'}`} />
+          </Button>
+          <Button 
+            size="icon" 
+            variant="secondary" 
+            className="rounded-full touch-target shadow-md bg-white/80 hover:bg-white backdrop-blur-sm transition-all"
+            onClick={() => {
+              if (!user) {
+                toast.error('Please log in to share vendor profile');
+                return;
+              }
+              const url = `${window.location.origin}/vendors/${slug}`;
+              navigator.clipboard.writeText(url);
+              toast.success('Vendor profile link copied to clipboard!');
+            }}
+          >
+            <Share2 className="w-5 h-5 text-gray-700" />
+          </Button>
         </div>
 
-        <div className="container mx-auto px-4 sm:px-6">
-          {/* Vendor Info Card */}
-          <div className="relative -mt-24 sm:-mt-32 mb-8">
-            <Card className="p-6 sm:p-8">
-              <div className="flex flex-col sm:flex-row gap-6">
-                {/* Logo */}
-                <div className="flex-shrink-0 z-10 relative">
-                  {vendor.logoUrl ? (
-                    <img src={vendor.logoUrl} alt="Logo" className="w-32 h-32 rounded-2xl object-cover shadow-xl border-4 border-white bg-white" />
-                  ) : (
-                    <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-5xl font-bold shadow-xl border-4 border-white">
-                      {displayName.charAt(0)}
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <h1 className="text-3xl sm:text-4xl font-bold">{displayName}</h1>
-                        {vendor.subscriptionPlan !== 'BASIC' && (
-                          <BadgeCheck className="w-8 h-8 text-blue-600" />
-                        )}
+        <div className="container mx-auto px-4 sm:px-6 relative z-10 pt-6 sm:pt-10">
+          {/* Main Content Area (Wrapped in Tabs) */}
+          <Tabs defaultValue="catalogues" className="max-w-5xl mx-auto pb-24 w-full">
+            {/* Unified Single Profile Card */}
+            <Card className="rounded-3xl shadow-2xl border-white/60 bg-white/95 backdrop-blur-md overflow-hidden">
+              <div className="p-6 sm:p-10">
+                <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 sm:items-center">
+                  {/* Logo */}
+                  <div className="flex-shrink-0 z-10 relative">
+                    {vendor.logoUrl ? (
+                      <img src={vendor.logoUrl} alt="Logo" className="w-32 h-32 rounded-2xl object-cover shadow-xl border-4 border-white bg-white" />
+                    ) : (
+                      <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-5xl font-bold shadow-xl border-4 border-white">
+                        {displayName.charAt(0)}
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-gray-600">
-                        <Badge variant="outline" className="text-sm">
-                          {vendor.vendorType}
-                        </Badge>
-                        {vendor.city && (
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            <span className="text-sm">{vendor.city}{vendor.state ? `, ${vendor.state}` : ''}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </div>
 
-                  {/* Stats */}
-                  <div className="flex flex-wrap gap-6 mb-6">
-                    {vendor.rating && (
+                  {/* Info */}
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h1 className="text-3xl sm:text-4xl font-bold">{displayName}</h1>
+                          {vendor.subscriptionPlan !== 'BASIC' && (
+                            <BadgeCheck className="w-8 h-8 text-blue-600" />
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-gray-600">
+                          {vendor.city && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-4 h-4" />
+                              <span className="text-sm">{vendor.city}{vendor.state ? `, ${vendor.state}` : ''}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex flex-wrap gap-6 mb-6">
+                      {vendor.rating && (
+                        <div className="flex items-center gap-2">
+                          <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                          <span className="font-bold text-lg">{vendor.rating.toFixed(1)}</span>
+                          <span className="text-gray-600">({vendor.reviewCount || 0} reviews)</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2">
-                        <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                        <span className="font-bold text-lg">{vendor.rating.toFixed(1)}</span>
-                        <span className="text-gray-600">({vendor.reviewCount || 0} reviews)</span>
+                        <Award className="w-5 h-5 text-green-600" />
+                        <span className="text-gray-900">{vendor.subscriptionPlan || 'BASIC'} Plan</span>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Award className="w-5 h-5 text-green-600" />
-                      <span className="text-gray-900">{vendor.subscriptionPlan || 'BASIC'} Plan</span>
                     </div>
-                  </div>
 
-                  {/* CTA Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button
-                      size="lg"
-                      onClick={() => {
-                        setSelectedCatalogueId(undefined);
-                        setSelectedCatalogueItemId(undefined);
-                        setQuoteServiceType(undefined);
-                        setQuoteDescription(undefined);
-                        setShowQuoteDialog(true);
-                      }}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 touch-target"
-                    >
-                      <MessageSquare className="w-5 h-5 mr-2" />
-                      Request Quote
-                    </Button>
-                    {vendor.mobile && (
-                      <Button size="lg" variant="outline" className="touch-target" asChild>
-                        <a href={`tel:${vendor.mobile}`}>
-                          <Phone className="w-5 h-5 mr-2" />
-                          Call Now
-                        </a>
+                    {/* CTA Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                      <Button
+                        size="lg"
+                        onClick={() => {
+                          setSelectedCatalogueId(undefined);
+                          setSelectedCatalogueItemId(undefined);
+                          setQuoteServiceType(undefined);
+                          setQuoteDescription(undefined);
+                          setShowQuoteDialog(true);
+                        }}
+                        className="bg-gradient-to-r from-[#8B7355] to-[#5C5346] hover:from-[#5C5346] hover:to-[#2C2621] text-white shadow-md hover:shadow-lg transition-all rounded-xl h-12 px-8 touch-target"
+                      >
+                        <MessageSquare className="w-5 h-5 mr-2" />
+                        Request Quote
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </Card>
-          </div>
 
-          {/* Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-16">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Tabs */}
-              <Tabs defaultValue="about" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 touch-target">
-                  <TabsTrigger value="about" className="touch-target">About</TabsTrigger>
-                  <TabsTrigger value="catalogues" className="touch-target">Catalogues</TabsTrigger>
-                  <TabsTrigger value="gallery" className="touch-target">Gallery</TabsTrigger>
-                  <TabsTrigger value="reviews" className="touch-target">Reviews</TabsTrigger>
+              {/* Tabs Options Bar Integrated */}
+              <div className="px-4 sm:px-10 pb-4 border-b border-[#E8E2D9]/60">
+                <TabsList className="grid w-full grid-cols-4 touch-target bg-gray-100/60 shadow-inner p-1.5 rounded-2xl">
+                  <TabsTrigger value="catalogues" className="touch-target rounded-xl font-medium data-[state=active]:bg-[#8B7355] data-[state=active]:text-white data-[state=active]:shadow-md transition-all py-3">Catalogues</TabsTrigger>
+                  <TabsTrigger value="about" className="touch-target rounded-xl font-medium data-[state=active]:bg-[#8B7355] data-[state=active]:text-white data-[state=active]:shadow-md transition-all py-3">About</TabsTrigger>
+                  <TabsTrigger value="gallery" className="touch-target rounded-xl font-medium data-[state=active]:bg-[#8B7355] data-[state=active]:text-white data-[state=active]:shadow-md transition-all py-3">Gallery</TabsTrigger>
+                  <TabsTrigger value="reviews" className="touch-target rounded-xl font-medium data-[state=active]:bg-[#8B7355] data-[state=active]:text-white data-[state=active]:shadow-md transition-all py-3">Reviews</TabsTrigger>
                 </TabsList>
+              </div>
+
+            <div className="w-full bg-white/50">
 
                 {/* Catalogues Tab */}
-                <TabsContent value="catalogues" className="mt-6">
-                  <Card>
-                    <CardContent className="p-6">
+                <TabsContent value="catalogues" className="m-0 px-6 pb-6 pt-4 sm:px-10 sm:pb-10 sm:pt-6">
+                  <div className="w-full">
                       <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                         <Layers className="w-6 h-6 text-blue-600" /> Catalogues & Services
                       </h2>
@@ -339,30 +335,122 @@ export default function VendorProfilePage() {
                           ))}
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                  </div>
                 </TabsContent>
 
                 {/* About Tab */}
-                <TabsContent value="about" className="mt-6">
-                  <Card>
-                    <CardContent className="p-6">
-                      <h2 className="text-2xl font-bold mb-4">About Us</h2>
-                      <div className="prose max-w-none">
-                        {vendor.description ? (
-                          <p className="text-gray-700 whitespace-pre-line">{vendor.description}</p>
-                        ) : (
-                          <p className="text-gray-500">No description available.</p>
+                <TabsContent value="about" className="m-0 px-6 pb-6 pt-4 sm:px-10 sm:pb-10 sm:pt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="md:col-span-2">
+                      <div className="p-2">
+                        <h2 className="text-2xl font-bold mb-6 font-heading text-[#2C2621]">About Us</h2>
+                        <div className="prose max-w-none text-[#5C5346] leading-relaxed">
+                          {vendor.description ? (
+                            <p className="whitespace-pre-line text-lg">{vendor.description}</p>
+                          ) : (
+                            <p className="italic">No description available.</p>
+                          )}
+                          {vendor.longDescription && (
+                            <p className="whitespace-pre-line text-base mt-4">{vendor.longDescription}</p>
+                          )}
+                        </div>
+
+                        {vendor.services && vendor.services.length > 0 && (
+                          <div className="mt-8 border-t border-[#E8E2D9] pt-6">
+                            <h3 className="text-xl font-bold mb-4 font-heading text-[#2C2621]">Services & Specialities</h3>
+                            <div className="flex flex-wrap gap-2">
+                              {vendor.services.map((service, index) => (
+                                <Badge key={index} variant="secondary" className="bg-[#F2ECE4] text-[#5C5346] hover:bg-[#E8E2D9] px-4 py-1.5 text-sm rounded-full">
+                                  {service}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="rounded-2xl border border-white/60 shadow-warm-sm bg-gradient-to-br from-white to-[#FAF8F5] p-6 space-y-6">
+                          <h3 className="font-bold text-[#2C2621] text-xl border-b border-[#E8E2D9] pb-3">Business Details</h3>
+                          
+                          {vendor.ownerName && (
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-[#F2ECE4] flex items-center justify-center shrink-0">
+                                <span className="text-[#8B7355] font-bold text-lg">{vendor.ownerName.charAt(0)}</span>
+                              </div>
+                              <div>
+                                <p className="text-sm text-[#8C837A]">Owner</p>
+                                <p className="font-medium text-[#2C2621]">{vendor.ownerName}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {vendor.yearsInBusiness !== undefined && (
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-[#F2ECE4] flex items-center justify-center shrink-0">
+                                <Clock className="w-6 h-6 text-[#8B7355]" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-[#8C837A]">Experience</p>
+                                <p className="font-medium text-[#2C2621]">{vendor.yearsInBusiness} Years</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {vendor.vendorType && (
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-[#F2ECE4] flex items-center justify-center shrink-0">
+                                <BadgeCheck className="w-6 h-6 text-[#8B7355]" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-[#8C837A]">Type</p>
+                                <p className="font-medium text-[#2C2621]">{vendor.vendorType}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {vendor.category && vendor.category !== vendor.vendorType && (
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-[#F2ECE4] flex items-center justify-center shrink-0">
+                                <Layers className="w-6 h-6 text-[#8B7355]" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-[#8C837A]">Category</p>
+                                <p className="font-medium text-[#2C2621]">{vendor.category}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {vendor.address && (
+                            <div className="flex items-start gap-4">
+                              <div className="w-12 h-12 rounded-full bg-[#F2ECE4] flex items-center justify-center shrink-0">
+                                <MapPin className="w-6 h-6 text-[#8B7355]" />
+                              </div>
+                              <div>
+                                <p className="text-sm text-[#8C837A]">Location</p>
+                                <p className="font-medium text-[#2C2621] leading-tight mt-1">{vendor.address}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-[#F2ECE4] flex items-center justify-center shrink-0">
+                              <Award className="w-6 h-6 text-[#8B7355]" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-[#8C837A]">Plan</p>
+                              <p className="font-medium text-[#2C2621]">{vendor.subscriptionPlan || 'BASIC'}</p>
+                            </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
                 </TabsContent>
 
                 {/* Gallery Tab */}
-                <TabsContent value="gallery" className="mt-6">
-                  <Card>
-                    <CardContent className="p-6">
+                <TabsContent value="gallery" className="m-0 px-6 pb-6 pt-4 sm:px-10 sm:pb-10 sm:pt-6">
+                  <div className="w-full">
                       <h2 className="text-2xl font-bold mb-4">Gallery</h2>
                       {!vendor.gallery || vendor.gallery.length === 0 ? (
                         <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-100">
@@ -377,14 +465,12 @@ export default function VendorProfilePage() {
                           ))}
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                  </div>
                 </TabsContent>
 
                 {/* Reviews Tab */}
-                <TabsContent value="reviews" className="mt-6">
-                  <Card>
-                    <CardContent className="p-6">
+                <TabsContent value="reviews" className="m-0 px-6 pb-6 pt-4 sm:px-10 sm:pb-10 sm:pt-6">
+                  <div className="w-full">
                       <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold">Customer Reviews</h2>
                         {vendor.rating && (
@@ -438,90 +524,11 @@ export default function VendorProfilePage() {
                           ))}
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                  </div>
                 </TabsContent>
-              </Tabs>
             </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Contact Info */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold mb-4">Contact Information</h3>
-                  <div className="space-y-4">
-                    {vendor.mobile && (
-                      <a
-                        href={`tel:${vendor.mobile}`}
-                        className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition-colors touch-target"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Phone className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <span>{vendor.mobile}</span>
-                      </a>
-                    )}
-                    {vendor.email && (
-                      <a
-                        href={`mailto:${vendor.email}`}
-                        className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition-colors touch-target"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Mail className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <span className="break-all">{vendor.email}</span>
-                      </a>
-                    )}
-                    {vendor.website && (
-                      <a
-                        href={`https://${vendor.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition-colors touch-target"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <Globe className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <span>{vendor.website}</span>
-                      </a>
-                    )}
-                    {vendor.address && (
-                      <div className="flex items-start gap-3 text-gray-700">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                          <MapPin className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <span>{vendor.address}</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Stats */}
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold mb-4">Quick Stats</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Subscription</span>
-                      <span className="font-semibold">{vendor.subscriptionPlan || 'BASIC'}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Total Reviews</span>
-                      <span className="font-semibold">{vendor.reviewCount || 0}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Status</span>
-                      <span className="font-semibold text-green-600">{vendor.status}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+            </Card>
+          </Tabs>
         </div>
       </main>
 
