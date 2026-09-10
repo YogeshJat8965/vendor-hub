@@ -1,20 +1,24 @@
 package com.marketplace.controller;
 
+import com.marketplace.model.QuoteRequest;
 import com.marketplace.model.vendor.Vendor;
+import com.marketplace.repository.QuoteRequestRepository;
 import com.marketplace.service.VendorService;
 import com.marketplace.util.SlugGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/explore")
 @RequiredArgsConstructor
 public class ExploreController {
-    
+
     private final VendorService vendorService;
-    
+    private final QuoteRequestRepository quoteRequestRepository;
+
     @GetMapping
     public ResponseEntity<?> getAllVendors() {
         return ResponseEntity.ok(vendorService.getAllActiveVendors());
@@ -39,7 +43,35 @@ public class ExploreController {
             return ResponseEntity.notFound().build();
         }
     }
-    
+
+    /**
+     * Public quote-activity summary for a vendor's storefront (counts only —
+     * no customer names, contact details, or project descriptions).
+     */
+    @GetMapping("/{slug}/stats")
+    public ResponseEntity<?> getVendorPublicStats(@PathVariable String slug) {
+        try {
+            // Confirms the vendor exists so an unknown slug returns 404, not zeros.
+            vendorService.getVendorBySlug(slug);
+
+            List<QuoteRequest> quotes = quoteRequestRepository.findByVendorSlug(slug);
+
+            long pending = quotes.stream().filter(q -> "NEW".equalsIgnoreCase(q.getStatus())).count();
+            long active = quotes.stream().filter(q -> "QUOTED".equalsIgnoreCase(q.getStatus())).count();
+            long completed = quotes.stream().filter(q -> "ACCEPTED".equalsIgnoreCase(q.getStatus())).count();
+
+            return ResponseEntity.ok(Map.of(
+                "pendingQuotes", pending,
+                "activeQuotes", active,
+                "completedQuotes", completed,
+                "totalQuotes", quotes.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+
     @GetMapping("/check-slug")
     public ResponseEntity<?> checkSlugAvailability(@RequestParam String storeName) {
         String slug = SlugGenerator.generateSlug(storeName);

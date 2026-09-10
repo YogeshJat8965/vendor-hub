@@ -1,1 +1,126 @@
-zsh: no such file or directory: ./start-backend.sh
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m----------------< [0;36mcom.marketplace:marketplace-backend[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding marketplace-backend 1.0.0[m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m>>> [0;32mspring-boot-maven-plugin:3.2.5:run[m [1m(default-cli)[0;1m > [0;1mtest-compile[m @ [36mmarketplace-backend[0;1m >>>[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-resources-plugin:3.3.1:resources[m [1m(default-resources)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] Copying 1 resource from src/main/resources to target/classes
+[[1;34mINFO[m] Copying 0 resource from src/main/resources to target/classes
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-compiler-plugin:3.11.0:compile[m [1m(default-compile)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] Nothing to compile - all classes are up to date
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-resources-plugin:3.3.1:testResources[m [1m(default-testResources)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] skip non existing resourceDirectory /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/test/resources
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-compiler-plugin:3.11.0:testCompile[m [1m(default-testCompile)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] No sources to compile
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m<<< [0;32mspring-boot-maven-plugin:3.2.5:run[m [1m(default-cli)[0;1m < [0;1mtest-compile[m @ [36mmarketplace-backend[0;1m <<<[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mspring-boot-maven-plugin:3.2.5:run[m [1m(default-cli)[m @ [36mmarketplace-backend[0;1m ---[m
+[[1;34mINFO[m] Attaching agents: []
+========================================
+RAILWAY DEPLOYMENT DEBUG
+PORT env variable: null
+server.port property: null
+========================================
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-09-10T19:11:03.910+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : Starting MarketplaceApplication using Java 17.0.20 with PID 187367 (/home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/target/classes started by yogesh in /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend)
+2026-09-10T19:11:03.912+05:30 DEBUG 187367 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-09-10T19:11:03.913+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-10T19:11:04.421+05:30  INFO 187367 --- [marketplace-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-09-10T19:11:04.484+05:30  INFO 187367 --- [marketplace-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 57 ms. Found 13 MongoDB repository interfaces.
+2026-09-10T19:11:05.112+05:30  INFO 187367 --- [marketplace-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-09-10T19:11:05.124+05:30  INFO 187367 --- [marketplace-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-10T19:11:05.124+05:30  INFO 187367 --- [marketplace-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-09-10T19:11:05.172+05:30  INFO 187367 --- [marketplace-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-10T19:11:05.173+05:30  INFO 187367 --- [marketplace-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1186 ms
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+2026-09-10T19:11:05.216+05:30 DEBUG 187367 --- [marketplace-backend] [           main] com.marketplace.config.JwtAuthFilter     : Filter 'jwtAuthFilter' configured for use
+2026-09-10T19:11:05.505+05:30  INFO 187367 --- [marketplace-backend] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "4.11.2"}, "os": {"type": "Linux", "name": "Linux", "architecture": "amd64", "version": "7.0.0-31-generic"}, "platform": "Java/Ubuntu/17.0.20+8-1-24.04-Ubuntu"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=majority, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='yogeshjat8965_db_user', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=null, streamFactoryFactory=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@7b1e5e55, com.mongodb.Jep395RecordCodecProvider@4c1d59cd, com.mongodb.KotlinCodecProvider@76cf841]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[127.0.0.1:27017], srvHost=vendorhub.whs5yyc.mongodb.net, srvServiceName=mongodb, mode=MULTIPLE, requiredClusterType=REPLICA_SET, requiredReplicaSetName='atlas-18ega7-shard-0', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=true, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null}
+2026-09-10T19:11:05.535+05:30  INFO 187367 --- [marketplace-backend] [yyc.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017 to client view of cluster
+2026-09-10T19:11:05.562+05:30  INFO 187367 --- [marketplace-backend] [yyc.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server ac-odflv1h-shard-00-00.whs5yyc.mongodb.net:27017 to client view of cluster
+2026-09-10T19:11:05.565+05:30  INFO 187367 --- [marketplace-backend] [yyc.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server ac-odflv1h-shard-00-02.whs5yyc.mongodb.net:27017 to client view of cluster
+2026-09-10T19:11:06.175+05:30  WARN 187367 --- [marketplace-backend] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: abbb974c-edf6-4fa4-ab33-3f55982a76eb
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-09-10T19:11:06.272+05:30  INFO 187367 --- [marketplace-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=ac-odflv1h-shard-00-02.whs5yyc.mongodb.net:27017, type=REPLICA_SET_SECONDARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=387375713, setName='atlas-18ega7-shard-0', canonicalAddress=ac-odflv1h-shard-00-02.whs5yyc.mongodb.net:27017, hosts=[ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017, ac-odflv1h-shard-00-02.whs5yyc.mongodb.net:27017, ac-odflv1h-shard-00-00.whs5yyc.mongodb.net:27017], passives=[], arbiters=[], primary='ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='aps1-az2'}, Tag{name='cacheState', value='READY'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='AP_SOUTH_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=null, setVersion=86, topologyVersion=TopologyVersion{processId=6a9f124ae46ec62a808915e0, counter=5}, lastWriteDate=Thu Sep 10 19:11:06 IST 2026, lastUpdateTimeNanos=46584011277942}
+2026-09-10T19:11:06.273+05:30  INFO 187367 --- [marketplace-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=ac-odflv1h-shard-00-00.whs5yyc.mongodb.net:27017, type=REPLICA_SET_SECONDARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=393135203, setName='atlas-18ega7-shard-0', canonicalAddress=ac-odflv1h-shard-00-00.whs5yyc.mongodb.net:27017, hosts=[ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017, ac-odflv1h-shard-00-02.whs5yyc.mongodb.net:27017, ac-odflv1h-shard-00-00.whs5yyc.mongodb.net:27017], passives=[], arbiters=[], primary='ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='aps1-az1'}, Tag{name='cacheState', value='READY'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='AP_SOUTH_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=null, setVersion=86, topologyVersion=TopologyVersion{processId=6a9f0c635aae3745175ef0da, counter=10}, lastWriteDate=Thu Sep 10 19:11:06 IST 2026, lastUpdateTimeNanos=46584016061957}
+2026-09-10T19:11:06.278+05:30  INFO 187367 --- [marketplace-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017, type=REPLICA_SET_PRIMARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=397361615, setName='atlas-18ega7-shard-0', canonicalAddress=ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017, hosts=[ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017, ac-odflv1h-shard-00-02.whs5yyc.mongodb.net:27017, ac-odflv1h-shard-00-00.whs5yyc.mongodb.net:27017], passives=[], arbiters=[], primary='ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='aps1-az3'}, Tag{name='cacheState', value='READY'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='AP_SOUTH_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=7fffffff00000000000000b0, setVersion=86, topologyVersion=TopologyVersion{processId=6a9f0f629ecf86a998d4d7e1, counter=10}, lastWriteDate=Thu Sep 10 19:11:06 IST 2026, lastUpdateTimeNanos=46584020357579}
+2026-09-10T19:11:06.280+05:30  INFO 187367 --- [marketplace-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Discovered replica set primary ac-odflv1h-shard-00-01.whs5yyc.mongodb.net:27017 with max election id 7fffffff00000000000000b0 and max set version 86
+2026-09-10T19:11:06.474+05:30  WARN 187367 --- [marketplace-backend] [           main] com.marketplace.config.SecurityConfig    : ==================================================
+2026-09-10T19:11:06.475+05:30  WARN 187367 --- [marketplace-backend] [           main] com.marketplace.config.SecurityConfig    : CORS CONFIGURATION
+2026-09-10T19:11:06.475+05:30  WARN 187367 --- [marketplace-backend] [           main] com.marketplace.config.SecurityConfig    : Raw ALLOWED_ORIGINS: [http://localhost:3000,http://localhost:8085]
+2026-09-10T19:11:06.477+05:30  WARN 187367 --- [marketplace-backend] [           main] com.marketplace.config.SecurityConfig    : Trimmed origins: [http://localhost:3000, http://localhost:8085]
+2026-09-10T19:11:06.477+05:30  WARN 187367 --- [marketplace-backend] [           main] com.marketplace.config.SecurityConfig    : ==================================================
+2026-09-10T19:11:06.499+05:30  INFO 187367 --- [marketplace-backend] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7e050be1, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@1b47b7f5, org.springframework.security.web.context.SecurityContextHolderFilter@3513d214, org.springframework.security.web.header.HeaderWriterFilter@3686389, org.springframework.web.filter.CorsFilter@506aa618, org.springframework.security.web.authentication.logout.LogoutFilter@2ef041bb, com.marketplace.config.JwtAuthFilter@e146f93, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@46b5f061, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3ba3f40d, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4b6b5352, org.springframework.security.web.session.SessionManagementFilter@37fef327, org.springframework.security.web.access.ExceptionTranslationFilter@2ae3235e, org.springframework.security.web.access.intercept.AuthorizationFilter@6d0114c0]
+2026-09-10T19:11:06.670+05:30  INFO 187367 --- [marketplace-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-09-10T19:11:06.671+05:30  INFO 187367 --- [marketplace-backend] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : Starting...
+2026-09-10T19:11:06.673+05:30  INFO 187367 --- [marketplace-backend] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=true, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4ad1a276]]
+2026-09-10T19:11:06.673+05:30  INFO 187367 --- [marketplace-backend] [           main] o.s.m.s.b.SimpleBrokerMessageHandler     : Started.
+2026-09-10T19:11:06.681+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.MarketplaceApplication   : Started MarketplaceApplication in 3.213 seconds (process running for 3.645)
+ℹ️  Admin user already exists: admin@vendorhub.com
+2026-09-10T19:11:07.331+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : Categories already exist. Skipping seeding. Count: 20
+2026-09-10T19:11:07.397+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : Quote requests already exist. Skipping seeding. Count: 16
+2026-09-10T19:11:07.455+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : Reviews already exist. Skipping seeding. Count: 5
+2026-09-10T19:11:07.513+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : Page views already exist. Skipping seeding. Count: 7
+2026-09-10T19:11:07.580+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : Notifications already exist. Skipping seeding. Count: 3
+2026-09-10T19:11:07.654+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : Subscriptions already exist. Skipping seeding. Count: 3
+2026-09-10T19:11:07.719+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : Collaborations already exist. Skipping seeding. Count: 2
+2026-09-10T19:11:07.720+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : ✅ Database seeding completed!
+2026-09-10T19:11:07.720+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        : 📊 Total Collections: 9
+2026-09-10T19:11:07.721+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - vendors: Check existing data
+2026-09-10T19:11:07.721+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - users: Check existing data
+2026-09-10T19:11:07.789+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - categories: 20
+2026-09-10T19:11:07.865+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - quote_requests: 16
+2026-09-10T19:11:07.935+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - reviews: 5
+2026-09-10T19:11:08.000+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - page_views: 7
+2026-09-10T19:11:08.070+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - notifications: 3
+2026-09-10T19:11:08.140+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - subscriptions: 3
+2026-09-10T19:11:08.211+05:30  INFO 187367 --- [marketplace-backend] [           main] com.marketplace.config.DataSeeder        :    - collaborations: 2
+2026-09-10T19:11:08.527+05:30  INFO 187367 --- [marketplace-backend] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-10T19:11:08.528+05:30  INFO 187367 --- [marketplace-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-10T19:11:08.530+05:30  INFO 187367 --- [marketplace-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-09-10T19:11:08.559+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api/categories
+2026-09-10T19:11:08.570+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-1] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-10T19:11:08.572+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /api/categories
+2026-09-10T19:11:13.965+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /api/explore
+2026-09-10T19:11:13.968+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-2] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-10T19:11:13.969+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /api/explore
+2026-09-10T19:11:18.774+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/explore/eletrician-cop-sd/stats
+2026-09-10T19:11:18.775+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-10T19:11:18.776+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /api/explore/eletrician-cop-sd/stats
+2026-09-10T19:11:52.575+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /api/explore/eletrician-cop-sd/profile
+2026-09-10T19:11:52.771+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /api/explore/eletrician-cop-sd/profile
+2026-09-10T19:11:53.119+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /api/catalogues/vendor/6a9fa1088f22f52edcfeb953
+2026-09-10T19:11:53.123+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /api/catalogues/vendor/6a9fa1088f22f52edcfeb953
+2026-09-10T19:11:53.566+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /api/reviews/eletrician-cop-sd
+2026-09-10T19:11:53.597+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /api/reviews/eletrician-cop-sd
+2026-09-10T19:11:53.854+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing GET /api/explore/eletrician-cop-sd/stats
+2026-09-10T19:11:53.865+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured GET /api/explore/eletrician-cop-sd/stats
+2026-09-10T19:12:06.668+05:30  INFO 187367 --- [marketplace-backend] [MessageBroker-1] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 0]
+2026-09-10T19:13:15.893+05:30 DEBUG 187367 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api/explore/eletrician-cop-sd/profile
+2026-09-10T19:13:15.899+05:30 DEBUG 187367 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api/explore/eletrician-cop-sd/profile
+2026-09-10T19:13:16.276+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing GET /api/catalogues/vendor/6a9fa1088f22f52edcfeb953
+2026-09-10T19:13:16.325+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Secured GET /api/catalogues/vendor/6a9fa1088f22f52edcfeb953
+2026-09-10T19:13:16.726+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /api/reviews/eletrician-cop-sd
+2026-09-10T19:13:16.747+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /api/reviews/eletrician-cop-sd
+2026-09-10T19:13:16.912+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/explore/eletrician-cop-sd/stats
+2026-09-10T19:13:16.919+05:30 DEBUG 187367 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /api/explore/eletrician-cop-sd/stats

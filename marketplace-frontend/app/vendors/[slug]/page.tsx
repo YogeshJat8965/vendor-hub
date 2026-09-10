@@ -18,7 +18,9 @@ import {
   Layers,
   Image as ImageIcon,
   IndianRupee,
-  ChevronRight
+  ChevronRight,
+  TrendingUp,
+  CheckCircle2
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -72,6 +74,33 @@ interface Review {
   createdAt: string;
 }
 
+interface VendorQuoteStats {
+  pendingQuotes: number;
+  activeQuotes: number;
+  completedQuotes: number;
+  totalQuotes: number;
+}
+
+function VendorStatTile({
+  icon: Icon,
+  label,
+  value,
+  iconClassName,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+  iconClassName: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-white/60 bg-gradient-to-br from-white to-[#FAF8F5] px-4 py-3 shadow-warm-sm min-w-[84px]">
+      <Icon className={`w-5 h-5 ${iconClassName}`} />
+      <span className="text-xl font-bold text-[#2C2621]">{value}</span>
+      <span className="text-xs text-[#8C837A] text-center leading-tight">{label}</span>
+    </div>
+  );
+}
+
 export default function VendorProfilePage() {
   const params = useParams();
   const slug = params?.slug as string;
@@ -79,6 +108,7 @@ export default function VendorProfilePage() {
   
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [quoteStats, setQuoteStats] = useState<VendorQuoteStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [catalogues, setCatalogues] = useState<any[]>([]);
   const [isLiked, setIsLiked] = useState(false);
@@ -165,6 +195,15 @@ export default function VendorProfilePage() {
       } catch (reviewError) {
         console.log('No reviews found:', reviewError);
         setReviews([]);
+      }
+
+      // Fetch quote activity stats (counts only — safe to show publicly)
+      try {
+        const statsResponse = await apiClient.get(`/explore/${slug}/stats`);
+        setQuoteStats(statsResponse.data);
+      } catch (statsError) {
+        console.log('No quote stats available:', statsError);
+        setQuoteStats(null);
       }
     } catch (error) {
       console.error('Failed to fetch vendor data:', error);
@@ -282,6 +321,34 @@ export default function VendorProfilePage() {
                           )}
                         </div>
                       </div>
+
+                      {quoteStats && (
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-[#8C837A] mb-2 text-center sm:text-left">
+                            Quote Activity
+                          </p>
+                          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                            <VendorStatTile
+                              icon={Clock}
+                              label="Pending"
+                              value={quoteStats.pendingQuotes}
+                              iconClassName="text-amber-600"
+                            />
+                            <VendorStatTile
+                              icon={TrendingUp}
+                              label="Active"
+                              value={quoteStats.activeQuotes}
+                              iconClassName="text-blue-600"
+                            />
+                            <VendorStatTile
+                              icon={CheckCircle2}
+                              label="Completed"
+                              value={quoteStats.completedQuotes}
+                              iconClassName="text-green-600"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Stats */}
