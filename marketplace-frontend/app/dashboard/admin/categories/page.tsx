@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, Trash2, Wrench, Paintbrush, Droplet, Zap, Home, Trees, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -182,13 +183,23 @@ export default function ManageCategoriesPage() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedCategory ? 'Edit Category' : 'Add Category'}</DialogTitle>
-            <DialogDescription>
-              {selectedCategory ? 'Update the category details' : 'Create a new service category'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="bg-[#FDFBF7] border-[#CDC0B0] sm:rounded-3xl p-0 overflow-hidden">
+          <AnimatePresence>
+            {dialogOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
+              >
+                <DialogHeader className="p-6 pb-2">
+                  <DialogTitle className="text-xl font-heading text-[#2C2621]">
+                    {selectedCategory ? 'Edit Category' : 'Add Category'}
+                  </DialogTitle>
+                  <DialogDescription className="font-body text-[#6B5E54]">
+                    {selectedCategory ? 'Update the category details' : 'Create a new service category'}
+                  </DialogDescription>
+                </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
               <Label htmlFor="name" className="mb-2">Category Name *</Label>
@@ -222,11 +233,11 @@ export default function ManageCategoriesPage() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isSubmitting}>
+          <DialogFooter className="p-6 pt-2 bg-gray-50/50">
+            <Button variant="outline" className="rounded-xl border-[#CDC0B0] text-[#6B5E54] hover:bg-[#EEDDCC]" onClick={() => setDialogOpen(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!formData.name.trim() || isSubmitting}>
+            <Button className="rounded-xl bg-[#C4975A] hover:bg-[#B3874B] text-white shadow-warm-sm" onClick={handleSave} disabled={!formData.name.trim() || isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -237,23 +248,36 @@ export default function ManageCategoriesPage() {
               )}
             </Button>
           </DialogFooter>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </DialogContent>
       </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialog} onOpenChange={setDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete "{selectedCategory?.name}"? This will affect {selectedCategory?.vendorCount} vendors.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialog(false)} disabled={isSubmitting}>
+        <DialogContent className="bg-[#FDFBF7] border-[#CDC0B0] sm:rounded-3xl p-0 overflow-hidden" showCloseButton={false}>
+          <AnimatePresence>
+            {deleteDialog && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
+                className="p-8 flex flex-col items-center text-center"
+              >
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
+                  <Trash2 className="w-10 h-10 text-red-600" />
+                </div>
+                <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621] mb-2">Delete Category</DialogTitle>
+                <DialogDescription className="font-body text-[#6B5E54] text-base mb-8">
+                  Are you sure you want to delete "{selectedCategory?.name}"? This will affect {selectedCategory?.vendorCount} vendors.
+                </DialogDescription>
+          <DialogFooter className="w-full flex sm:flex-row gap-3">
+            <Button variant="outline" className="flex-1 h-12 rounded-xl border-[#CDC0B0] text-[#6B5E54] hover:bg-[#EEDDCC]" onClick={() => setDeleteDialog(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={confirmDelete} className="bg-red-600 hover:bg-red-700" disabled={isSubmitting}>
+            <Button className="flex-1 h-12 rounded-xl bg-red-600 hover:bg-red-700 text-white" onClick={confirmDelete} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -264,6 +288,9 @@ export default function ManageCategoriesPage() {
               )}
             </Button>
           </DialogFooter>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </DialogContent>
       </Dialog>
     </div>

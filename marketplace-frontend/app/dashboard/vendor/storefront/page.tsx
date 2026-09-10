@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Camera, Upload, X, Save, Plus, Loader2, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, Upload, X, Save, Plus, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -815,35 +815,59 @@ export default function VendorStorefrontPage() {
 
       {/* Name Change Warning Dialog */}
       <Dialog open={showNameChangeAlert} onOpenChange={setShowNameChangeAlert}>
-        <DialogContent className="bg-[#FDFBF7] border-[#CDC0B0] rounded-3xl p-6 sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-heading text-[#2C2621]">Update Profile Link?</DialogTitle>
-            <DialogDescription className="font-body text-[#6B5E54] pt-3 text-base leading-relaxed">
-              Changing your Business Name will update your profile URL. Your old shareable link will no longer work, and you will need to share the new one. 
-              <br/><br/>
-              Do you want to proceed?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-3">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setShowNameChangeAlert(false)}
-              className="rounded-xl border-[#CDC0B0] text-[#6B5E54] hover:bg-[#EEDDCC] hover:text-[#2C2621] font-body flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="button"
-              onClick={() => {
-                setShowNameChangeAlert(false);
-                if (pendingFormData) processSubmit(pendingFormData);
-              }}
-              className="rounded-xl bg-[#C4975A] hover:bg-[#B3874B] text-white font-body flex-1"
-            >
-              Yes, Update Name
-            </Button>
-          </DialogFooter>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-[#FDFBF7] border-[#CDC0B0]/50 rounded-3xl" showCloseButton={false}>
+          <AnimatePresence>
+            {showNameChangeAlert && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
+                className="p-8 flex flex-col items-center text-center"
+              >
+                <div className="w-20 h-20 bg-[#FFF4E5] rounded-full flex items-center justify-center mb-6 relative">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', delay: 0.1, bounce: 0.5 }}
+                  >
+                    <AlertTriangle className="w-10 h-10 text-[#C4975A]" />
+                  </motion.div>
+                  <div className="absolute inset-0 rounded-full border-2 border-[#C4975A]/20 animate-ping opacity-20"></div>
+                </div>
+                
+                <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621] mb-2">
+                  Update Profile Link?
+                </DialogTitle>
+                <DialogDescription className="font-body text-[#6B5E54] text-base mb-8 px-4">
+                  Changing your Business Name will update your profile URL. Your old shareable link will no longer work, and you will need to share the new one.
+                  <br/><br/>
+                  Do you want to proceed?
+                </DialogDescription>
+
+                <div className="flex gap-4 w-full">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowNameChangeAlert(false)}
+                    className="flex-1 h-12 rounded-xl font-body border-[#CDC0B0] text-[#6B5E54] hover:bg-[#EEDDCC] hover:text-[#2C2621]"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="button"
+                    onClick={() => {
+                      setShowNameChangeAlert(false);
+                      if (pendingFormData) processSubmit(pendingFormData);
+                    }}
+                    className="flex-1 h-12 rounded-xl font-body bg-[#C4975A] hover:bg-[#B3874B] text-white shadow-warm-sm"
+                  >
+                    Yes, Update Name
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </DialogContent>
       </Dialog>
     </div>

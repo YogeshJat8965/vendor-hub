@@ -28,6 +28,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
+import { ShareDialog } from '@/components/dialogs/ShareDialog';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 
@@ -73,11 +75,10 @@ function Sidebar({ vendorData }: { vendorData: any }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) {
-      logout();
-    }
+    setShowLogoutDialog(true);
   };
 
   return (
@@ -153,6 +154,15 @@ function Sidebar({ vendorData }: { vendorData: any }) {
           Logout
         </Button>
       </div>
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout();
+        }}
+      />
     </div>
   );
 }
@@ -161,10 +171,11 @@ function MobileSidebar({ vendorData }: { vendorData: any }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { logout } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push('/login');
+    setShowLogoutDialog(true);
   };
 
   return (
@@ -257,6 +268,15 @@ function MobileSidebar({ vendorData }: { vendorData: any }) {
           </div>
         </div>
       </SheetContent>
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout();
+        }}
+      />
     </Sheet>
   );
 }
@@ -269,6 +289,7 @@ export default function VendorDashboardLayout({
   const pathname = usePathname();
   const { user } = useAuth();
   const [vendorData, setVendorData] = useState<any>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   useEffect(() => {
     const fetchVendor = () => {
@@ -358,9 +379,7 @@ export default function VendorDashboardLayout({
               className="text-[#6B5E54] hover:text-[#2C2621] hover:bg-[#EEDDCC] touch-target rounded-xl"
               onClick={() => {
                 if (vendorData?.slug) {
-                  const url = `${window.location.origin}/vendors/${vendorData.slug}`;
-                  navigator.clipboard.writeText(url);
-                  toast.success('Storefront link copied to clipboard!');
+                  setShowShareDialog(true);
                 } else {
                   toast.error('Storefront link not available yet.');
                 }
@@ -379,6 +398,13 @@ export default function VendorDashboardLayout({
           </div>
         </main>
       </div>
+
+      <ShareDialog
+        isOpen={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        url={vendorData?.slug ? `${typeof window !== 'undefined' ? window.location.origin : ''}/vendors/${vendorData.slug}` : ''}
+        title="Share Your Storefront"
+      />
     </div>
     </ProtectedRoute>
   );

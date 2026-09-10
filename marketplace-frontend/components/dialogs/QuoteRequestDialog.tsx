@@ -147,14 +147,22 @@ ${formData.timeline ? `\nTimeline: ${formData.timeline}` : ''}`;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-[#FDFBF7] border-[#CDC0B0] sm:rounded-3xl shadow-warm-xl p-0">
-        <DialogHeader className="p-6 pb-4 border-b border-[#CDC0B0]/50 sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-sm z-10">
-          <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621]">
-            Request a Quote
-          </DialogTitle>
-          <DialogDescription className="font-body text-[#6B5E54] mt-1">
-            Get a personalized quote from {vendorName}
-          </DialogDescription>
-        </DialogHeader>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
+            >
+              <DialogHeader className="p-6 pb-4 border-b border-[#CDC0B0]/50 sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-sm z-10">
+                <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621]">
+                  Request a Quote
+                </DialogTitle>
+                <DialogDescription className="font-body text-[#6B5E54] mt-1">
+                  Get a personalized quote from {vendorName}
+                </DialogDescription>
+              </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 p-6">
           {/* Service Type */}
@@ -294,6 +302,9 @@ ${formData.timeline ? `\nTimeline: ${formData.timeline}` : ''}`;
             </Button>
           </div>
         </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

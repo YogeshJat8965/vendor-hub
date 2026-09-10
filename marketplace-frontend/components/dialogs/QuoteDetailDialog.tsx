@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, DollarSign, MapPin, Clock, FileText, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -48,16 +49,24 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#FDFBF7] border-[#CDC0B0] sm:rounded-3xl shadow-warm-xl p-0">
-        <DialogHeader className="p-6 border-b border-[#CDC0B0]/50 sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-sm z-10">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621] mb-3">{quote.serviceRequested}</DialogTitle>
-              <Badge className={`${getStatusColor(quote.status)} border-0 font-body font-medium px-3 py-1`}>
-                {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
-              </Badge>
-            </div>
-          </div>
-        </DialogHeader>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
+            >
+              <DialogHeader className="p-6 border-b border-[#CDC0B0]/50 sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-sm z-10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <DialogTitle className="text-2xl font-heading font-bold text-[#2C2621] mb-3">{quote.serviceRequested}</DialogTitle>
+                    <Badge className={`${getStatusColor(quote.status)} border-0 font-body font-medium px-3 py-1`}>
+                      {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+              </DialogHeader>
 
         <div className="p-6 space-y-8">
           {/* Quote Description */}
@@ -187,6 +196,9 @@ export function QuoteDetailDialog({ quote, isOpen, onClose }: QuoteDetailDialogP
             )}
           </div>
         </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

@@ -34,6 +34,8 @@ import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { useParams } from 'next/navigation';
 import { QuoteRequestDialog } from '@/components/dialogs/QuoteRequestDialog';
+import { AuthRequiredDialog } from '@/components/dialogs/AuthRequiredDialog';
+import { ShareDialog } from '@/components/dialogs/ShareDialog';
 import { useAuth } from '@/lib/auth-context';
 import { CatalogueAnimatedCard } from '@/components/ui/catalogue-animated-card';
 
@@ -82,6 +84,12 @@ export default function VendorProfilePage() {
   const [isLiked, setIsLiked] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   
+  // Dialogs
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [authMessage, setAuthMessage] = useState('');
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  
+  // Catalogue Quote Context
   // Catalogue Quote Context
   const [selectedCatalogueId, setSelectedCatalogueId] = useState<string>();
   const [selectedCatalogueItemId, setSelectedCatalogueItemId] = useState<string>();
@@ -97,9 +105,23 @@ export default function VendorProfilePage() {
     }
   }, [slug]);
 
+  const handleQuoteRequest = (catalogueId?: string, itemId?: string, title?: string, desc?: string) => {
+    if (!user) {
+      setAuthMessage('Please log in to request a quote from this vendor.');
+      setShowAuthDialog(true);
+      return;
+    }
+    setSelectedCatalogueId(catalogueId);
+    setSelectedCatalogueItemId(itemId);
+    setQuoteServiceType(title);
+    setQuoteDescription(desc);
+    setShowQuoteDialog(true);
+  };
+
   const handleToggleFavorite = () => {
     if (!user) {
-      toast.error('Please log in to add to favorites');
+      setAuthMessage('Please log in to save this vendor to your favorites.');
+      setShowAuthDialog(true);
       return;
     }
 
@@ -217,15 +239,7 @@ export default function VendorProfilePage() {
             size="icon" 
             variant="secondary" 
             className="rounded-full touch-target shadow-md bg-white/80 hover:bg-white backdrop-blur-sm transition-all"
-            onClick={() => {
-              if (!user) {
-                toast.error('Please log in to share vendor profile');
-                return;
-              }
-              const url = `${window.location.origin}/vendors/${slug}`;
-              navigator.clipboard.writeText(url);
-              toast.success('Vendor profile link copied to clipboard!');
-            }}
+            onClick={() => setShowShareDialog(true)}
           >
             <Share2 className="w-5 h-5 text-gray-700" />
           </Button>
@@ -542,6 +556,14 @@ export default function VendorProfilePage() {
         catalogueItemId={selectedCatalogueItemId}
         initialServiceType={quoteServiceType}
         initialDescription={quoteDescription}
+      />
+
+      {/* Share Dialog */}
+      <ShareDialog
+        isOpen={showShareDialog}
+        onClose={() => setShowShareDialog(false)}
+        url={typeof window !== 'undefined' ? window.location.href : ''}
+        title={`Share ${displayName}`}
       />
 
       <Footer />

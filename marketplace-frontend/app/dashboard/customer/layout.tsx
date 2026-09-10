@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
 import { useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
 
@@ -57,6 +58,7 @@ function Sidebar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
     const fetchPhoto = () => {
@@ -72,9 +74,7 @@ function Sidebar() {
   }, [user]);
 
   const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) {
-      logout();
-    }
+    setShowLogoutDialog(true);
   };
 
   return (
@@ -145,6 +145,15 @@ function Sidebar() {
           Logout
         </Button>
       </div>
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout();
+        }}
+      />
     </div>
   );
 }
@@ -155,6 +164,7 @@ function MobileSidebar() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
     const fetchPhoto = () => {
@@ -170,7 +180,7 @@ function MobileSidebar() {
   }, [user, open]);
 
   const handleLogout = () => {
-    logout();
+    setShowLogoutDialog(true);
   };
 
   return (
@@ -258,6 +268,15 @@ function MobileSidebar() {
           </div>
         </div>
       </SheetContent>
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout();
+        }}
+      />
     </Sheet>
   );
 }

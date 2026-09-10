@@ -22,6 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
 
 const navItems = [
   {
@@ -68,11 +69,10 @@ const adminData = {
 function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) {
-      logout();
-    }
+    setShowLogoutDialog(true);
   };
 
   return (
@@ -152,6 +152,15 @@ function Sidebar() {
           Logout
         </Button>
       </div>
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout();
+        }}
+      />
     </div>
   );
 }
@@ -159,11 +168,11 @@ function Sidebar() {
 function MobileSidebar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { logout } = useAuth();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
-    console.log('Logout');
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+    setShowLogoutDialog(true);
   };
 
   return (
@@ -256,6 +265,15 @@ function MobileSidebar() {
           </div>
         </div>
       </SheetContent>
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout();
+        }}
+      />
     </Sheet>
   );
 }

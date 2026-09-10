@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
+import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,6 +16,7 @@ export function Header() {
   const { isAuthenticated, user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -90,7 +92,7 @@ export function Header() {
                 <Button 
                   variant="ghost" 
                   className="gap-2 text-[#B85C5C] hover:bg-[#B85C5C]/10 hover:text-[#B85C5C]"
-                  onClick={logout}
+                  onClick={() => setShowLogoutDialog(true)}
                 >
                   <LogOut className="h-4 w-4" />
                   Logout
@@ -167,8 +169,8 @@ export function Header() {
                           variant="ghost" 
                           className="w-full touch-target gap-2 justify-start text-[#B85C5C] hover:bg-[#B85C5C]/10" 
                           onClick={() => {
-                            logout();
                             setIsOpen(false);
+                            setShowLogoutDialog(true);
                           }}
                         >
                           <LogOut className="h-4 w-4" />
@@ -192,6 +194,15 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      <LogoutDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={() => {
+          setShowLogoutDialog(false);
+          logout();
+        }}
+      />
     </header>
   );
 }

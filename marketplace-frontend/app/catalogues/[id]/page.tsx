@@ -271,7 +271,7 @@ export default function CatalogueDetailsPage() {
           vendorSlug={vendor.slug}
           vendorName={vendor.businessName || vendor.ownerName || 'Vendor'}
           catalogueId={catalogue.id}
-          serviceType={quoteServiceType}
+          initialServiceType={quoteServiceType}
           initialDescription={quoteDescription}
         />
       )}
