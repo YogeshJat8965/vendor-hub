@@ -33,7 +33,14 @@ import { ShareDialog } from '@/components/dialogs/ShareDialog';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 
-const navItems = [
+interface NavItem {
+  title: string;
+  href: string;
+  icon: typeof LayoutDashboard;
+  badge?: string;
+}
+
+const navItems: NavItem[] = [
   {
     title: 'Dashboard',
     href: '/dashboard/vendor',

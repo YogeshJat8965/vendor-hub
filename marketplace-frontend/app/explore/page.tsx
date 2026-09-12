@@ -52,6 +52,8 @@ interface Vendor {
   reviewCount?: number;
   status: string;
   subscriptionPlan?: string;
+  logoUrl?: string;
+  bannerUrl?: string;
 }
 
 const categories = [

@@ -68,6 +68,8 @@ interface Vendor {
   yearsInBusiness?: number;
   services?: string[];
   gallery?: string[];
+  logoUrl?: string;
+  bannerUrl?: string;
 }
 
 interface Review {

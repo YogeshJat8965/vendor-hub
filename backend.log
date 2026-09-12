@@ -985,3 +985,12 @@ Caused by: java.net.SocketTimeoutException: Read timed out
 2026-09-12T10:48:23.834+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /api/reviews/vendor-profile
 2026-09-12T10:48:23.986+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /api/explore/vendor-profile/stats
 2026-09-12T10:48:24.005+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /api/explore/vendor-profile/stats
+2026-09-12T10:55:35.245+05:30 DEBUG 199376 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api/categories
+2026-09-12T10:55:35.259+05:30 DEBUG 199376 --- [marketplace-backend] [io-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T10:55:35.263+05:30 DEBUG 199376 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /api/categories
+2026-09-12T10:57:48.260+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /api/categories
+2026-09-12T10:57:48.262+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T10:57:48.262+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /api/categories
+2026-09-12T10:59:04.830+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /api/categories
+2026-09-12T10:59:04.831+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-9] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T10:59:04.831+05:30 DEBUG 199376 --- [marketplace-backend] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /api/categories
