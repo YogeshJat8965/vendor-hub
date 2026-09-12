@@ -43,6 +43,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/explore/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/vendors/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/catalogues/**").permitAll()
+                // Order matters here: the specific rules must come before the
+                // wildcard permitAll below, since Spring Security uses the
+                // first matching rule.
+                .requestMatchers(HttpMethod.GET, "/api/reviews/eligibility").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/reviews/vendor").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/reviews").hasRole("CUSTOMER")
+                .requestMatchers(HttpMethod.PUT, "/api/reviews/*/flag").hasRole("VENDOR")
                 .requestMatchers(HttpMethod.POST, "/api/quotes", "/api/quotes/request").permitAll()
                 .requestMatchers("/api/quotes/customer/**").authenticated()
                 .requestMatchers("/api/quotes/vendor/**").authenticated()

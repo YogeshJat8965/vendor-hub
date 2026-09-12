@@ -12,18 +12,38 @@ import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 
+// Matches the categories a vendor can pick when flagging a review
+// (components/dialogs/FlagReviewDialog.tsx) and the backend's Review.flagReason.
+type FlagReason = 'FAKE' | 'OFFENSIVE' | 'SPAM' | 'COMPETITOR' | 'OTHER';
+
+const REASON_LABELS: Record<FlagReason, string> = {
+  FAKE: 'Fake / not a real customer',
+  OFFENSIVE: 'Offensive language',
+  SPAM: 'Spam / irrelevant',
+  COMPETITOR: 'Suspected competitor',
+  OTHER: 'Other',
+};
+
+const REASON_BADGE_STYLES: Record<FlagReason, string> = {
+  FAKE: 'bg-red-100 text-red-700',
+  COMPETITOR: 'bg-red-100 text-red-700',
+  OFFENSIVE: 'bg-orange-100 text-orange-700',
+  SPAM: 'bg-yellow-100 text-yellow-700',
+  OTHER: 'bg-gray-100 text-gray-700',
+};
+
 interface FlaggedReview {
   id: string;
-  reviewId: string;
-  customerName: string;
+  vendorSlug: string;
   vendorName: string;
+  customerName: string;
+  customerEmail: string;
   rating: number;
   comment: string;
+  flagReason: FlagReason;
+  flagDetails?: string;
+  flaggedAt: string;
   createdAt: string;
-  flagReason: string;
-  severity: 'LOW' | 'MEDIUM' | 'HIGH';
-  reportedBy: string;
-  reportedDate: string;
 }
 
 export default function ModerateReviewsPage() {
@@ -31,7 +51,7 @@ export default function ModerateReviewsPage() {
   const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [severityFilter, setSeverityFilter] = useState('all');
+  const [reasonFilter, setReasonFilter] = useState('all');
   const [selectedReview, setSelectedReview] = useState<FlaggedReview | null>(null);
   const [actionDialog, setActionDialog] = useState<'approve' | 'delete' | 'view' | null>(null);
 
@@ -55,23 +75,25 @@ export default function ModerateReviewsPage() {
   };
 
   const filteredReviews = flaggedReviews.filter((review) => {
-    return severityFilter === 'all' || review.severity.toLowerCase() === severityFilter.toLowerCase();
+    return reasonFilter === 'all' || review.flagReason === reasonFilter;
   });
 
-  const severityCounts = {
+  const reasonCounts = {
     all: flaggedReviews.length,
-    high: flaggedReviews.filter((r) => r.severity === 'HIGH').length,
-    medium: flaggedReviews.filter((r) => r.severity === 'MEDIUM').length,
-    low: flaggedReviews.filter((r) => r.severity === 'LOW').length,
+    FAKE: flaggedReviews.filter((r) => r.flagReason === 'FAKE').length,
+    COMPETITOR: flaggedReviews.filter((r) => r.flagReason === 'COMPETITOR').length,
+    OFFENSIVE: flaggedReviews.filter((r) => r.flagReason === 'OFFENSIVE').length,
+    SPAM: flaggedReviews.filter((r) => r.flagReason === 'SPAM').length,
+    OTHER: flaggedReviews.filter((r) => r.flagReason === 'OTHER').length,
   };
 
   const handleApprove = async () => {
     if (!selectedReview) return;
-    
+
     setIsSubmitting(true);
     try {
       await apiClient.put(`/admin/reviews/${selectedReview.id}/unflag`);
-      toast.success('Review approved and unflagged');
+      toast.success('Review restored — it now counts toward the vendor’s rating again');
       await fetchFlaggedReviews();
       setActionDialog(null);
       setSelectedReview(null);
@@ -85,11 +107,11 @@ export default function ModerateReviewsPage() {
 
   const handleDelete = async () => {
     if (!selectedReview) return;
-    
+
     setIsSubmitting(true);
     try {
       await apiClient.delete(`/admin/reviews/${selectedReview.id}`);
-      toast.success('Review deleted successfully');
+      toast.success('Review deleted permanently');
       await fetchFlaggedReviews();
       setActionDialog(null);
       setSelectedReview(null);
@@ -102,16 +124,20 @@ export default function ModerateReviewsPage() {
   };
 
   const exportToCSV = () => {
+    if (filteredReviews.length === 0) {
+      toast.info('Nothing to export');
+      return;
+    }
+
     const csvData = filteredReviews.map((review) => ({
-      'Review ID': review.reviewId,
+      'Review ID': review.id,
       Customer: review.customerName,
       Vendor: review.vendorName,
       Rating: review.rating,
       Comment: review.comment.replace(/"/g, '""'),
-      'Flag Reason': review.flagReason.replace(/"/g, '""'),
-      Severity: review.severity,
-      'Reported By': review.reportedBy,
-      'Reported Date': new Date(review.reportedDate).toLocaleDateString(),
+      'Flag Reason': REASON_LABELS[review.flagReason] || review.flagReason,
+      'Flag Details': (review.flagDetails || '').replace(/"/g, '""'),
+      'Flagged Date': review.flaggedAt ? new Date(review.flaggedAt).toLocaleDateString() : '',
     }));
 
     const headers = Object.keys(csvData[0]);
@@ -130,14 +156,11 @@ export default function ModerateReviewsPage() {
     toast.success('Reviews data exported successfully');
   };
 
-  const getSeverityBadge = (severity: FlaggedReview['severity']) => {
-    const styles = {
-      HIGH: 'bg-red-100 text-red-700',
-      MEDIUM: 'bg-orange-100 text-orange-700',
-      LOW: 'bg-yellow-100 text-yellow-700',
-    };
-    return <Badge className={styles[severity]}>{severity}</Badge>;
-  };
+  const getReasonBadge = (reason: FlagReason) => (
+    <Badge className={REASON_BADGE_STYLES[reason] || REASON_BADGE_STYLES.OTHER}>
+      {REASON_LABELS[reason] || reason}
+    </Badge>
+  );
 
   const renderStars = (rating: number) => {
     return (
@@ -152,7 +175,8 @@ export default function ModerateReviewsPage() {
     );
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -160,13 +184,23 @@ export default function ModerateReviewsPage() {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-6xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">Moderate Flagged Reviews</h1>
-          <p className="text-gray-600">Review and moderate flagged content</p>
+          <p className="text-gray-600">
+            Reviews vendors have disputed — each is excluded from its vendor&apos;s public rating until you decide.
+          </p>
         </div>
         <Button onClick={exportToCSV} variant="outline">
           <Download className="w-4 h-4 mr-2" />
@@ -178,37 +212,41 @@ export default function ModerateReviewsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold">{severityCounts.all}</p>
+            <p className="text-3xl font-bold">{reasonCounts.all}</p>
             <p className="text-sm text-gray-600">Total Flagged</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-red-600">{severityCounts.high}</p>
-            <p className="text-sm text-gray-600">High Severity</p>
+            <p className="text-3xl font-bold text-red-600">{reasonCounts.FAKE}</p>
+            <p className="text-sm text-gray-600">Suspected Fake</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-orange-600">{severityCounts.medium}</p>
-            <p className="text-sm text-gray-600">Medium Severity</p>
+            <p className="text-3xl font-bold text-red-600">{reasonCounts.COMPETITOR}</p>
+            <p className="text-sm text-gray-600">Suspected Competitor</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{severityCounts.low}</p>
-            <p className="text-sm text-gray-600">Low Severity</p>
+            <p className="text-3xl font-bold text-orange-600">
+              {reasonCounts.OFFENSIVE + reasonCounts.SPAM + reasonCounts.OTHER}
+            </p>
+            <p className="text-sm text-gray-600">Offensive / Spam / Other</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Severity Filter */}
-      <Tabs value={severityFilter} onValueChange={setSeverityFilter}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">All ({severityCounts.all})</TabsTrigger>
-          <TabsTrigger value="high">High ({severityCounts.high})</TabsTrigger>
-          <TabsTrigger value="medium">Medium ({severityCounts.medium})</TabsTrigger>
-          <TabsTrigger value="low">Low ({severityCounts.low})</TabsTrigger>
+      {/* Reason Filter */}
+      <Tabs value={reasonFilter} onValueChange={setReasonFilter}>
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto">
+          <TabsTrigger value="all" className="py-2">All ({reasonCounts.all})</TabsTrigger>
+          <TabsTrigger value="FAKE" className="py-2">Fake ({reasonCounts.FAKE})</TabsTrigger>
+          <TabsTrigger value="COMPETITOR" className="py-2">Competitor ({reasonCounts.COMPETITOR})</TabsTrigger>
+          <TabsTrigger value="OFFENSIVE" className="py-2">Offensive ({reasonCounts.OFFENSIVE})</TabsTrigger>
+          <TabsTrigger value="SPAM" className="py-2">Spam ({reasonCounts.SPAM})</TabsTrigger>
+          <TabsTrigger value="OTHER" className="py-2">Other ({reasonCounts.OTHER})</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -246,7 +284,7 @@ export default function ModerateReviewsPage() {
                         </div>
                       </div>
                     </div>
-                    {getSeverityBadge(review.severity)}
+                    {getReasonBadge(review.flagReason)}
                   </div>
 
                   {/* Review Content */}
@@ -260,11 +298,14 @@ export default function ModerateReviewsPage() {
                       <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <p className="font-semibold text-sm">Flag Reason:</p>
-                        <p className="text-sm text-gray-700">{review.flagReason}</p>
+                        <p className="text-sm text-gray-700">{REASON_LABELS[review.flagReason] || review.flagReason}</p>
+                        {review.flagDetails && (
+                          <p className="text-sm text-gray-600 mt-1 italic">&ldquo;{review.flagDetails}&rdquo;</p>
+                        )}
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      Reported by {review.reportedBy} on {formatDate(review.reportedDate)}
+                      Flagged by {review.vendorName} on {formatDate(review.flaggedAt)}
                     </p>
                   </div>
 
@@ -292,7 +333,7 @@ export default function ModerateReviewsPage() {
                       }}
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
-                      Approve Review
+                      Dismiss Flag
                     </Button>
                     <Button
                       size="sm"
@@ -304,7 +345,7 @@ export default function ModerateReviewsPage() {
                       }}
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Review
+                      Uphold & Delete
                     </Button>
                   </div>
                 </div>
@@ -314,13 +355,59 @@ export default function ModerateReviewsPage() {
         )}
       </div>
 
+      {/* View Details Dialog */}
+      <Dialog open={actionDialog === 'view'} onOpenChange={() => setActionDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Review Details</DialogTitle>
+          </DialogHeader>
+          {selectedReview && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">{selectedReview.customerName}</p>
+                  <p className="text-sm text-gray-500">{selectedReview.customerEmail}</p>
+                </div>
+                {renderStars(selectedReview.rating)}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-1">Vendor</p>
+                <p className="text-sm text-gray-700">{selectedReview.vendorName}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-1">Review</p>
+                <p className="text-sm text-gray-700 whitespace-pre-line">{selectedReview.comment}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-1">Flag Reason</p>
+                <p className="text-sm text-gray-700">
+                  {REASON_LABELS[selectedReview.flagReason] || selectedReview.flagReason}
+                </p>
+                {selectedReview.flagDetails && (
+                  <p className="text-sm text-gray-600 mt-1 italic">&ldquo;{selectedReview.flagDetails}&rdquo;</p>
+                )}
+              </div>
+              <div className="text-xs text-gray-500">
+                Submitted {formatDate(selectedReview.createdAt)} &middot; Flagged {formatDate(selectedReview.flaggedAt)}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActionDialog(null)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Approve Dialog */}
       <Dialog open={actionDialog === 'approve'} onOpenChange={() => setActionDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Approve Review</DialogTitle>
+            <DialogTitle>Dismiss Flag</DialogTitle>
             <DialogDescription>
-              This review will be marked as safe and the flag will be removed. The review will remain visible.
+              This review will be marked as safe and the flag will be removed. It will remain visible and count
+              toward the vendor&apos;s rating again.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -331,10 +418,10 @@ export default function ModerateReviewsPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Approving...
+                  Dismissing...
                 </>
               ) : (
-                'Approve'
+                'Dismiss Flag'
               )}
             </Button>
           </DialogFooter>
@@ -345,7 +432,7 @@ export default function ModerateReviewsPage() {
       <Dialog open={actionDialog === 'delete'} onOpenChange={() => setActionDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Review</DialogTitle>
+            <DialogTitle>Uphold Flag & Delete Review</DialogTitle>
             <DialogDescription>
               This action cannot be undone. The review will be permanently removed from the platform.
             </DialogDescription>

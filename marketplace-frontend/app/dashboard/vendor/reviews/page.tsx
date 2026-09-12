@@ -2,21 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Search, Loader2, MessageSquare } from 'lucide-react';
+import { Star, Search, Loader2, MessageSquare, Flag, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { FlagReviewDialog } from '@/components/dialogs/FlagReviewDialog';
 
 interface Review {
   id: string;
   customerName: string;
   rating: number;
-  date: string;
+  createdAt: string;
   comment: string;
-  serviceType: string;
+  verifiedPurchase?: boolean;
+  flagged?: boolean;
+  flagReason?: string;
 }
 
 const containerVariants = {
@@ -43,6 +47,7 @@ export default function VendorReviewsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [ratingFilter, setRatingFilter] = useState('all');
+  const [flaggingReviewId, setFlaggingReviewId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -74,17 +79,16 @@ export default function VendorReviewsPage() {
   const filteredReviews = reviews
     .filter((review) => {
       const matchesSearch = review.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        review.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        review.serviceType.toLowerCase().includes(searchQuery.toLowerCase());
+        review.comment.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRating = ratingFilter === 'all' || review.rating === parseInt(ratingFilter);
       return matchesSearch && matchesRating;
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'oldest':
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         case 'highest':
           return b.rating - a.rating;
         case 'lowest':
@@ -265,17 +269,43 @@ export default function VendorReviewsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                           <div>
-                            <h3 className="font-heading font-bold text-[#2C2621] text-lg leading-tight">{review.customerName}</h3>
-                            <p className="text-sm font-body text-[#9C8E82]">{review.serviceType}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-heading font-bold text-[#2C2621] text-lg leading-tight">{review.customerName}</h3>
+                              {review.verifiedPurchase && (
+                                <span className="inline-flex items-center gap-1 text-xs font-medium text-[#8A9A5B] bg-[#8A9A5B]/10 px-2 py-0.5 rounded-full">
+                                  <ShieldCheck className="w-3 h-3" /> Verified
+                                </span>
+                              )}
+                              {review.flagged && (
+                                <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                                  <AlertTriangle className="w-3 h-3" /> Under review
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="bg-[#FDFBF7] px-2 py-1 rounded-lg border border-[#CDC0B0]/30">
                               {renderStars(review.rating)}
                             </div>
-                            <span className="text-sm font-body text-[#9C8E82] whitespace-nowrap">{formatDate(review.date)}</span>
+                            <span className="text-sm font-body text-[#9C8E82] whitespace-nowrap">{formatDate(review.createdAt)}</span>
                           </div>
                         </div>
-                        <p className="text-[#6B5E54] font-body leading-relaxed">{review.comment}</p>
+                        <p className="text-[#6B5E54] font-body leading-relaxed mb-3">{review.comment}</p>
+                        {review.flagged ? (
+                          <p className="text-xs font-body text-amber-700">
+                            Flagged{review.flagReason ? ` (${review.flagReason.replace('_', ' ').toLowerCase()})` : ''} — awaiting admin decision.
+                          </p>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setFlaggingReviewId(review.id)}
+                            className="border-[#CDC0B0] text-[#6B5E54] hover:bg-red-50 hover:text-red-700 hover:border-red-200 rounded-xl font-body"
+                          >
+                            <Flag className="w-3.5 h-3.5 mr-1.5" />
+                            Flag Review
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -285,6 +315,13 @@ export default function VendorReviewsPage() {
           </motion.div>
         )}
       </div>
+
+      <FlagReviewDialog
+        isOpen={!!flaggingReviewId}
+        onClose={() => setFlaggingReviewId(null)}
+        reviewId={flaggingReviewId}
+        onFlagged={fetchReviews}
+      />
     </div>
   );
 }

@@ -1,23 +1,29 @@
 package com.marketplace.controller.admin;
 
+import com.marketplace.dto.FlaggedReviewDto;
 import com.marketplace.model.Category;
+import com.marketplace.model.Review;
+import com.marketplace.model.vendor.Vendor;
 import com.marketplace.repository.CategoryRepository;
 import com.marketplace.repository.UserRepository;
 import com.marketplace.repository.VendorRepository;
 import com.marketplace.repository.ReviewRepository;
+import com.marketplace.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController {
-    
+
     private final UserRepository userRepository;
     private final VendorRepository vendorRepository;
     private final ReviewRepository reviewRepository;
+    private final ReviewService reviewService;
     private final CategoryRepository categoryRepository;
     
     @GetMapping("/dashboard")
@@ -56,25 +62,53 @@ public class AdminController {
     
     @GetMapping("/reviews/flagged")
     public ResponseEntity<?> getFlaggedReviews() {
-        return ResponseEntity.ok(reviewRepository.findByFlagged(true));
+        List<FlaggedReviewDto> result = reviewRepository.findByFlagged(true).stream()
+            .map(this::toFlaggedReviewDto)
+            .toList();
+        return ResponseEntity.ok(result);
     }
-    
+
+    private FlaggedReviewDto toFlaggedReviewDto(Review review) {
+        FlaggedReviewDto dto = new FlaggedReviewDto();
+        dto.setId(review.getId());
+        dto.setVendorSlug(review.getVendorSlug());
+        dto.setCustomerName(review.getCustomerName());
+        dto.setCustomerEmail(review.getCustomerEmail());
+        dto.setRating(review.getRating());
+        dto.setComment(review.getComment());
+        dto.setFlagReason(review.getFlagReason());
+        dto.setFlagDetails(review.getFlagDetails());
+        dto.setFlaggedAt(review.getFlaggedAt());
+        dto.setCreatedAt(review.getCreatedAt());
+
+        vendorRepository.findBySlug(review.getVendorSlug())
+            .map(Vendor::getBusinessName)
+            .ifPresent(dto::setVendorName);
+        if (dto.getVendorName() == null) {
+            dto.setVendorName(review.getVendorSlug());
+        }
+
+        return dto;
+    }
+
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable String reviewId) {
-        reviewRepository.deleteById(reviewId);
-        return ResponseEntity.ok(Map.of("message", "Review deleted"));
+        try {
+            reviewService.deleteReview(reviewId);
+            return ResponseEntity.ok(Map.of("message", "Review deleted"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
-    
+
     @PutMapping("/reviews/{reviewId}/unflag")
     public ResponseEntity<?> unflagReview(@PathVariable String reviewId) {
-        return reviewRepository.findById(reviewId)
-            .map(review -> {
-                review.setFlagged(false);
-                review.setFlagReason(null);
-                reviewRepository.save(review);
-                return ResponseEntity.ok(Map.of("message", "Review unflagged"));
-            })
-            .orElse(ResponseEntity.notFound().build());
+        try {
+            reviewService.unflagReview(reviewId);
+            return ResponseEntity.ok(Map.of("message", "Review unflagged"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
     
     @GetMapping("/users")

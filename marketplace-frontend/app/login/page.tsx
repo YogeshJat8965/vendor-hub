@@ -46,7 +46,8 @@ function LoginForm() {
   useEffect(() => {
     if (isAuthenticated && user) {
       const role = user.role?.toLowerCase();
-      if (role === 'customer') router.push('/dashboard/customer');
+      // Customers land on Explore so they can discover nearby vendors right away.
+      if (role === 'customer') router.push('/explore');
       else if (role === 'vendor') router.push('/dashboard/vendor');
       else if (role === 'admin') router.push('/dashboard/admin');
     }
@@ -69,9 +70,10 @@ function LoginForm() {
       const decoded = jwtDecode<any>(token);
       const userRole = decoded.role?.toLowerCase();
 
-      // Redirect based on role
+      // Redirect based on role — customers go to Explore so the location
+      // prompt can surface nearby vendors right after login.
       if (userRole === 'customer') {
-        router.push('/dashboard/customer');
+        router.push('/explore');
       } else if (userRole === 'vendor') {
         router.push('/dashboard/vendor');
       } else if (userRole === 'admin') {

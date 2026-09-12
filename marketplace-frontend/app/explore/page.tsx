@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Search, 
-  SlidersHorizontal, 
-  MapPin, 
+import {
+  Search,
+  SlidersHorizontal,
+  MapPin,
   X,
   Award,
   Shield,
   Clock,
   TrendingUp,
   Star,
-  CheckCircle
+  CheckCircle,
+  LocateFixed
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -22,6 +23,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { LocationPermissionDialog } from '@/components/dialogs/LocationPermissionDialog';
+import { detectUserCity, GeolocationDeniedError } from '@/lib/geolocation';
 import {
   Sheet,
   SheetContent,
@@ -107,6 +110,9 @@ const features = [
   },
 ];
 
+const LOCATION_PROMPTED_KEY = 'vh_location_prompted';
+const USER_CITY_KEY = 'vh_user_city';
+
 export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
@@ -116,16 +122,65 @@ export default function ExplorePage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [filteredVendors, setFilteredVendors] = useState<Vendor[]>([]);
 
+  // Nearby-first location detection
+  const [userCity, setUserCity] = useState<string | null>(null);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+
   // Fetch vendors from API & scroll to top instantly
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     fetchVendors();
   }, []);
 
-  // Apply filters when search/category changes
+  // On arrival: reuse a city already detected this session, or prompt once
+  // for location permission so nearby vendors can surface first.
+  useEffect(() => {
+    const storedCity = sessionStorage.getItem(USER_CITY_KEY);
+    if (storedCity) {
+      setUserCity(storedCity);
+      return;
+    }
+
+    const alreadyPrompted = sessionStorage.getItem(LOCATION_PROMPTED_KEY);
+    if (!alreadyPrompted && typeof navigator !== 'undefined' && navigator.geolocation) {
+      const timer = setTimeout(() => {
+        sessionStorage.setItem(LOCATION_PROMPTED_KEY, '1');
+        setShowLocationDialog(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleShareLocation = async () => {
+    setIsLocating(true);
+    try {
+      const { city } = await detectUserCity();
+      setUserCity(city);
+      sessionStorage.setItem(USER_CITY_KEY, city);
+      toast.success(`Showing vendors near ${city} first`);
+      setShowLocationDialog(false);
+    } catch (error) {
+      if (error instanceof GeolocationDeniedError) {
+        toast.info('Location access denied. Showing all vendors.');
+      } else {
+        toast.error('Could not detect your location. Showing all vendors.');
+      }
+      setShowLocationDialog(false);
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
+  const handleClearLocation = () => {
+    setUserCity(null);
+    sessionStorage.removeItem(USER_CITY_KEY);
+  };
+
+  // Apply filters when search/category/sort/location changes
   useEffect(() => {
     applyFilters();
-  }, [searchQuery, locationQuery, selectedCategory, vendors]);
+  }, [searchQuery, locationQuery, selectedCategory, selectedSort, vendors, userCity]);
 
   const fetchVendors = async () => {
     try {
@@ -173,6 +228,18 @@ export default function ExplorePage() {
       filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
     } else if (selectedSort === 'reviews') {
       filtered.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+    }
+
+    // Bring vendors in the customer's detected city to the front, in real
+    // time, while keeping the order established above within each group
+    // (Array.prototype.sort is a stable sort in all modern JS engines).
+    if (userCity) {
+      const city = userCity.toLowerCase();
+      filtered = [...filtered].sort((a, b) => {
+        const aNear = a.city?.toLowerCase() === city ? 0 : 1;
+        const bNear = b.city?.toLowerCase() === city ? 0 : 1;
+        return aNear - bNear;
+      });
     }
 
     setFilteredVendors(filtered);
@@ -341,6 +408,31 @@ export default function ExplorePage() {
                   </Select>
                 </div>
 
+                {/* Nearby-first location toggle */}
+                {userCity ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleClearLocation}
+                    className="bg-[#EEDDCC]/60 hover:bg-[#EEDDCC] text-[#2C2621] font-body rounded-xl touch-target"
+                  >
+                    <LocateFixed className="w-4 h-4 mr-1.5" />
+                    Near {userCity}
+                    <X className="w-3.5 h-3.5 ml-1.5" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleShareLocation}
+                    disabled={isLocating}
+                    className="border-[#CDC0B0] text-[#6B5E54] hover:bg-[#EEDDCC]/30 hover:text-[#2C2621] font-body rounded-xl touch-target disabled:opacity-70"
+                  >
+                    <LocateFixed className={`w-4 h-4 mr-1.5 ${isLocating ? 'animate-pulse' : ''}`} />
+                    {isLocating ? 'Locating...' : 'Use My Location'}
+                  </Button>
+                )}
+
                 {/* Active Filters */}
                 {(searchQuery || locationQuery || selectedCategory !== 'All Categories') && (
                   <Button
@@ -434,6 +526,13 @@ export default function ExplorePage() {
           </div>
         </section>
       </main>
+
+      <LocationPermissionDialog
+        isOpen={showLocationDialog}
+        isLocating={isLocating}
+        onShare={handleShareLocation}
+        onDismiss={() => setShowLocationDialog(false)}
+      />
 
       <Footer />
     </>

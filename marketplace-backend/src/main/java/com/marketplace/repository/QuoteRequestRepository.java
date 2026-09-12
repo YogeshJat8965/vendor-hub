@@ -8,4 +8,5 @@ public interface QuoteRequestRepository extends MongoRepository<QuoteRequest, St
     List<QuoteRequest> findByVendorSlug(String vendorSlug);
     List<QuoteRequest> findByCustomerEmail(String customerEmail);
     List<QuoteRequest> findByStatus(String status);
+    List<QuoteRequest> findByVendorSlugAndCustomerEmail(String vendorSlug, String customerEmail);
 }

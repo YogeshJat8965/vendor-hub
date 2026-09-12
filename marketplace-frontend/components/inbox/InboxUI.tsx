@@ -7,13 +7,35 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Image as ImageIcon, Loader2, MessageSquare } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
-import { Client } from '@stomp/stompjs';
+import { Client, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useAuth } from '@/lib/auth-context';
 
 interface InboxUIProps {
   userRole: 'CUSTOMER' | 'VENDOR';
   userId: string; // we'll use email for now, or fetch actual ID
+}
+
+interface PresenceInfo {
+  online: boolean;
+  lastSeenAt?: string | null;
+}
+
+// Identity (email) of the other party in a conversation, used to key presence.
+function getCounterpartId(conv: any, userRole: 'CUSTOMER' | 'VENDOR'): string | undefined {
+  return userRole === 'CUSTOMER' ? conv?.vendorId : conv?.customerId;
+}
+
+function formatLastSeen(iso?: string | null): string {
+  if (!iso) return 'Offline';
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Last seen just now';
+  if (diffMin < 60) return `Last seen ${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `Last seen ${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `Last seen ${diffDay}d ago`;
 }
 
 export function InboxUI({ userRole, userId }: InboxUIProps) {
@@ -23,12 +45,16 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
   const [messages, setMessages] = useState<any[]>([]);
   const [inputMsg, setInputMsg] = useState('');
   const [loading, setLoading] = useState(true);
-  
+  const [presenceMap, setPresenceMap] = useState<Record<string, PresenceInfo>>({});
+
   const stompClient = useRef<Client | null>(null);
+  const conversationSubRef = useRef<StompSubscription | null>(null);
+  const activeConvIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchConversations();
+    connectStomp();
     return () => {
       if (stompClient.current) {
         stompClient.current.deactivate();
@@ -55,6 +81,11 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
       
       const res = await apiClient.get(`/conversations/${rolePath}/${actualUserId}`);
       setConversations(res.data);
+
+      const counterpartIds = res.data
+        .map((conv: any) => getCounterpartId(conv, userRole))
+        .filter(Boolean);
+      fetchPresence(counterpartIds);
     } catch (err) {
       console.error('Failed to fetch conversations', err);
     } finally {
@@ -62,40 +93,72 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
     }
   };
 
+  const fetchPresence = async (ids: string[]) => {
+    const uniqueIds = Array.from(new Set(ids));
+    if (uniqueIds.length === 0) return;
+    try {
+      const res = await apiClient.get('/presence', { params: { userIds: uniqueIds.join(',') } });
+      setPresenceMap(prev => ({ ...prev, ...res.data }));
+    } catch (err) {
+      console.error('Failed to fetch presence', err);
+    }
+  };
+
   const handleSelectConv = async (conv: any) => {
     setActiveConv(conv);
+    activeConvIdRef.current = conv.id;
     try {
       const res = await apiClient.get(`/conversations/${conv.id}/messages`);
       setMessages(res.data);
-      
-      // Setup STOMP for this conversation
-      setupStompClient(conv.id);
+
+      // Live presence + new messages share one persistent WS connection;
+      // just point its conversation subscription at the newly opened chat.
+      if (stompClient.current?.connected) {
+        subscribeToConversation(conv.id);
+      }
     } catch (err) {
       console.error('Failed to fetch messages', err);
     }
   };
 
-  const setupStompClient = (conversationId: string) => {
-    if (stompClient.current) {
-      stompClient.current.deactivate();
-    }
-    
+  const subscribeToConversation = (conversationId: string) => {
+    conversationSubRef.current?.unsubscribe();
+    conversationSubRef.current = stompClient.current!.subscribe(`/topic/conversation/${conversationId}`, (msg) => {
+      if (msg.body) {
+        const newMsg = JSON.parse(msg.body);
+        setMessages(prev => [...prev, newMsg]);
+      }
+    });
+  };
+
+  // Establishes a single WebSocket connection for the lifetime of the inbox:
+  // it carries real-time messages for whichever conversation is open, and a
+  // standing subscription to /topic/presence for live online/offline status.
+  const connectStomp = () => {
     const token = localStorage.getItem('authToken');
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
     const wsUrl = apiUrl.replace('/api', '/ws');
-    
+
     const client = new Client({
       webSocketFactory: () => new SockJS(wsUrl),
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
       onConnect: () => {
-        client.subscribe(`/topic/conversation/${conversationId}`, (msg) => {
-          if (msg.body) {
-            const newMsg = JSON.parse(msg.body);
-            setMessages(prev => [...prev, newMsg]);
-          }
+        client.subscribe('/topic/presence', (msg) => {
+          if (!msg.body) return;
+          const update = JSON.parse(msg.body);
+          setPresenceMap(prev => ({
+            ...prev,
+            [update.userId]: { online: update.status === 'ONLINE', lastSeenAt: update.lastSeenAt }
+          }));
         });
+
+        // Reconnects (e.g. after a network blip) need their conversation
+        // subscription re-established too.
+        if (activeConvIdRef.current) {
+          subscribeToConversation(activeConvIdRef.current);
+        }
       },
       onStompError: (frame) => {
         console.error('Broker reported error: ' + frame.headers['message']);
@@ -147,22 +210,26 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
               <p>No conversations found.</p>
             </div>
           ) : (
-            conversations.map(conv => (
-              <div 
-                key={conv.id} 
-                onClick={() => handleSelectConv(conv)}
-                className={`p-4 border-b border-[#CDC0B0]/30 cursor-pointer transition-colors ${activeConv?.id === conv.id ? 'bg-[#EEDDCC] border-l-4 border-l-[#C4975A]' : 'hover:bg-[#EEDDCC]/40'}`}
-              >
-                <div className="font-heading font-semibold text-[#2C2621] mb-1">
-                  {userRole === 'CUSTOMER' 
-                    ? conv.vendorStoreName || conv.vendorName || conv.vendorId 
-                    : conv.customerName || conv.customerId}
+            conversations.map(conv => {
+              const isOnline = presenceMap[getCounterpartId(conv, userRole) || '']?.online;
+              return (
+                <div
+                  key={conv.id}
+                  onClick={() => handleSelectConv(conv)}
+                  className={`p-4 border-b border-[#CDC0B0]/30 cursor-pointer transition-colors ${activeConv?.id === conv.id ? 'bg-[#EEDDCC] border-l-4 border-l-[#C4975A]' : 'hover:bg-[#EEDDCC]/40'}`}
+                >
+                  <div className="font-heading font-semibold text-[#2C2621] mb-1 flex items-center gap-1.5">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOnline ? 'bg-[#8A9A5B]' : 'bg-[#CDC0B0]'}`} />
+                    {userRole === 'CUSTOMER'
+                      ? conv.vendorStoreName || conv.vendorName || conv.vendorId
+                      : conv.customerName || conv.customerId}
+                  </div>
+                  <div className="text-sm font-body text-[#6B5E54] line-clamp-1">
+                    {conv.lastMessage || 'No messages yet'}
+                  </div>
                 </div>
-                <div className="text-sm font-body text-[#6B5E54] line-clamp-1">
-                  {conv.lastMessage || 'No messages yet'}
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -185,9 +252,16 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
                     ? activeConv.vendorStoreName || activeConv.vendorName || activeConv.vendorId 
                     : activeConv.customerName || activeConv.customerId}
                 </div>
-                <div className="text-xs font-body text-[#8A9A5B] flex items-center gap-1 mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-[#8A9A5B]"></span> Online
-                </div>
+                {(() => {
+                  const presence = presenceMap[getCounterpartId(activeConv, userRole) || ''];
+                  const isOnline = !!presence?.online;
+                  return (
+                    <div className={`text-xs font-body flex items-center gap-1 mt-0.5 ${isOnline ? 'text-[#8A9A5B]' : 'text-[#9C8E82]'}`}>
+                      <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-[#8A9A5B]' : 'bg-[#CDC0B0]'}`}></span>
+                      {isOnline ? 'Online' : formatLastSeen(presence?.lastSeenAt)}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             

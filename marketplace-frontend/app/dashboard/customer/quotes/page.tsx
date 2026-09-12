@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Search, X, Loader2, FileText } from 'lucide-react';
+import { Filter, Search, X, Loader2, FileText, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { QuoteDetailDialog } from '@/components/dialogs/QuoteDetailDialog';
+import { WriteReviewDialog } from '@/components/dialogs/WriteReviewDialog';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
@@ -48,6 +49,8 @@ export default function CustomerQuotesPage() {
   const [selectedSort, setSelectedSort] = useState('newest');
   const [activeTab, setActiveTab] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [reviewingQuote, setReviewingQuote] = useState<Quote | null>(null);
+  const [reviewedVendorSlugs, setReviewedVendorSlugs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
@@ -252,7 +255,7 @@ export default function CustomerQuotesPage() {
                             <FileText className="w-4 h-4 mr-2" />
                             View Details
                           </Button>
-                          <Button 
+                          <Button
                             variant="outline"
                             className="border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
                             asChild
@@ -261,6 +264,17 @@ export default function CustomerQuotesPage() {
                               View Profile
                             </Link>
                           </Button>
+                          {quote.status.toLowerCase() === 'accepted' && (
+                            <Button
+                              variant="outline"
+                              disabled={reviewedVendorSlugs.has(quote.vendorSlug)}
+                              className="border-[#C4975A]/60 text-[#C4975A] hover:bg-[#C4975A]/10 rounded-xl font-body disabled:opacity-60"
+                              onClick={() => setReviewingQuote(quote)}
+                            >
+                              <Star className="w-4 h-4 mr-2" />
+                              {reviewedVendorSlugs.has(quote.vendorSlug) ? 'Reviewed' : 'Rate & Review'}
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -305,6 +319,19 @@ export default function CustomerQuotesPage() {
           isOpen={!!selectedQuote}
           onClose={() => setSelectedQuote(null)}
         />
+
+        {/* Rate & Review Dialog */}
+        {reviewingQuote && (
+          <WriteReviewDialog
+            isOpen={!!reviewingQuote}
+            onClose={() => setReviewingQuote(null)}
+            vendorSlug={reviewingQuote.vendorSlug}
+            vendorName={reviewingQuote.vendorSlug}
+            onSubmitted={() => {
+              setReviewedVendorSlugs(prev => new Set(prev).add(reviewingQuote.vendorSlug));
+            }}
+          />
+        )}
       </div>
     </div>
   );

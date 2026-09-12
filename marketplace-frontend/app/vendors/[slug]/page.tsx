@@ -20,7 +20,10 @@ import {
   IndianRupee,
   ChevronRight,
   TrendingUp,
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck,
+  AlertTriangle,
+  PenLine
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -38,6 +41,7 @@ import { useParams } from 'next/navigation';
 import { QuoteRequestDialog } from '@/components/dialogs/QuoteRequestDialog';
 import { AuthRequiredDialog } from '@/components/dialogs/AuthRequiredDialog';
 import { ShareDialog } from '@/components/dialogs/ShareDialog';
+import { WriteReviewDialog } from '@/components/dialogs/WriteReviewDialog';
 import { useAuth } from '@/lib/auth-context';
 import { CatalogueAnimatedCard } from '@/components/ui/catalogue-animated-card';
 
@@ -72,6 +76,8 @@ interface Review {
   rating: number;
   comment: string;
   createdAt: string;
+  verifiedPurchase?: boolean;
+  flagged?: boolean;
 }
 
 interface VendorQuoteStats {
@@ -118,6 +124,7 @@ export default function VendorProfilePage() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showWriteReviewDialog, setShowWriteReviewDialog] = useState(false);
   
   // Catalogue Quote Context
   // Catalogue Quote Context
@@ -170,6 +177,24 @@ export default function VendorProfilePage() {
     
     localStorage.setItem('favorites', slugs.join(','));
     setIsLiked(!isLiked);
+  };
+
+  const handleWriteReview = () => {
+    if (!user) {
+      setAuthMessage('Please log in as a customer to write a review for this vendor.');
+      setShowAuthDialog(true);
+      return;
+    }
+    setShowWriteReviewDialog(true);
+  };
+
+  const refetchReviews = async () => {
+    try {
+      const reviewsResponse = await apiClient.get(`/reviews/${slug}`);
+      setReviews(reviewsResponse.data || []);
+    } catch (e) {
+      console.log('Failed to refresh reviews:', e);
+    }
   };
 
   const fetchVendorData = async () => {
@@ -422,17 +447,17 @@ export default function VendorProfilePage() {
                 {/* About Tab */}
                 <TabsContent value="about" className="m-0 px-6 pb-6 pt-4 sm:px-10 sm:pb-10 sm:pt-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 min-w-0">
                       <div className="p-2">
                         <h2 className="text-2xl font-bold mb-6 font-heading text-[#2C2621]">About Us</h2>
-                        <div className="prose max-w-none text-[#5C5346] leading-relaxed">
+                        <div className="prose max-w-none text-[#5C5346] leading-relaxed break-words">
                           {vendor.description ? (
-                            <p className="whitespace-pre-line text-lg">{vendor.description}</p>
+                            <p className="whitespace-pre-line text-lg break-words">{vendor.description}</p>
                           ) : (
                             <p className="italic">No description available.</p>
                           )}
                           {vendor.longDescription && (
-                            <p className="whitespace-pre-line text-base mt-4">{vendor.longDescription}</p>
+                            <p className="whitespace-pre-line text-base mt-4 break-words">{vendor.longDescription}</p>
                           )}
                         </div>
 
@@ -552,15 +577,27 @@ export default function VendorProfilePage() {
                 {/* Reviews Tab */}
                 <TabsContent value="reviews" className="m-0 px-6 pb-6 pt-4 sm:px-10 sm:pb-10 sm:pt-6">
                   <div className="w-full">
-                      <div className="flex items-center justify-between mb-6">
+                      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                         <h2 className="text-2xl font-bold">Customer Reviews</h2>
-                        {vendor.rating && (
-                          <div className="flex items-center gap-2">
-                            <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
-                            <span className="text-2xl font-bold">{vendor.rating.toFixed(1)}</span>
-                            <span className="text-gray-600">({vendor.reviewCount || 0})</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-4">
+                          {vendor.rating && (
+                            <div className="flex items-center gap-2">
+                              <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
+                              <span className="text-2xl font-bold">{vendor.rating.toFixed(1)}</span>
+                              <span className="text-gray-600">({vendor.reviewCount || 0})</span>
+                            </div>
+                          )}
+                          {(!user || user.role?.toLowerCase() === 'customer') && (
+                            <Button
+                              onClick={handleWriteReview}
+                              variant="outline"
+                              className="rounded-xl border-[#CDC0B0] text-[#2C2621] hover:bg-[#EEDDCC]/40 font-body touch-target"
+                            >
+                              <PenLine className="w-4 h-4 mr-2" />
+                              Write a Review
+                            </Button>
+                          )}
+                        </div>
                       </div>
 
                       {reviews.length === 0 ? (
@@ -580,8 +617,20 @@ export default function VendorProfilePage() {
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-semibold">{review.customerName}</h4>
+                                  <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+                                    <div className="flex items-center gap-2">
+                                      <h4 className="font-semibold">{review.customerName}</h4>
+                                      {review.verifiedPurchase && (
+                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-[#8A9A5B] bg-[#8A9A5B]/10 px-2 py-0.5 rounded-full">
+                                          <ShieldCheck className="w-3 h-3" /> Verified
+                                        </span>
+                                      )}
+                                      {review.flagged && (
+                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                                          <AlertTriangle className="w-3 h-3" /> Under review
+                                        </span>
+                                      )}
+                                    </div>
                                     <span className="text-sm text-gray-500">
                                       {new Date(review.createdAt).toLocaleDateString()}
                                     </span>
@@ -631,6 +680,22 @@ export default function VendorProfilePage() {
         onClose={() => setShowShareDialog(false)}
         url={typeof window !== 'undefined' ? window.location.href : ''}
         title={`Share ${displayName}`}
+      />
+
+      {/* Auth Required Dialog (favorites, quote requests, reviews) */}
+      <AuthRequiredDialog
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+        message={authMessage}
+      />
+
+      {/* Write Review Dialog */}
+      <WriteReviewDialog
+        isOpen={showWriteReviewDialog}
+        onClose={() => setShowWriteReviewDialog(false)}
+        vendorSlug={vendor.slug}
+        vendorName={displayName}
+        onSubmitted={refetchReviews}
       />
 
       <Footer />
