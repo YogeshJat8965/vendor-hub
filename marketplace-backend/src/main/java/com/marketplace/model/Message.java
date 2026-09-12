@@ -18,9 +18,9 @@ public class Message {
     
     private String senderRole; // CUSTOMER or VENDOR
     
-    private String content; // Text or URL depending on type
-    
-    private String type; // TEXT, IMAGE, PDF
+    private String content; // Plain text, a Cloudinary URL, or a JSON card snapshot, depending on type
+
+    private String type; // TEXT, IMAGE, VIDEO, PDF, QUOTE_CARD
     
     private boolean read;
     

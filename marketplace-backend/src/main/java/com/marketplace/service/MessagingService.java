@@ -45,7 +45,7 @@ public class MessagingService {
 
         // Update conversation's last message
         conversationRepository.findById(message.getConversationId()).ifPresent(conv -> {
-            conv.setLastMessage(message.getType().equals("TEXT") ? message.getContent() : "Sent a file");
+            conv.setLastMessage(previewFor(message));
             conv.setLastMessageTime(message.getTimestamp());
             conv.setUpdatedAt(Instant.now());
             conversationRepository.save(conv);
@@ -53,7 +53,22 @@ public class MessagingService {
 
         return savedMessage;
     }
-    
+
+    /** A short, human-friendly line for the conversation list preview. */
+    private String previewFor(Message message) {
+        String type = message.getType();
+        if (type == null || type.equals("TEXT")) {
+            return message.getContent();
+        }
+        return switch (type) {
+            case "IMAGE" -> "📷 Photo";
+            case "VIDEO" -> "🎥 Video";
+            case "PDF" -> "📄 PDF Document";
+            case "QUOTE_CARD" -> "📋 New quote request";
+            default -> "Sent a file";
+        };
+    }
+
     private ConversationDTO mapToDTO(Conversation conv) {
         ConversationDTO dto = new ConversationDTO();
         dto.setId(conv.getId());

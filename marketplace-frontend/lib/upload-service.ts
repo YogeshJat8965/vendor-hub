@@ -59,6 +59,18 @@ export const uploadConfigs = {
     maxSizeMB: 20,
     allowedTypes: ['application/pdf'],
   },
+  inboxImage: {
+    maxSizeMB: 10,
+    allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  },
+  inboxVideo: {
+    maxSizeMB: 100,
+    allowedTypes: ['video/mp4', 'video/webm'],
+  },
+  inboxPdf: {
+    maxSizeMB: 20,
+    allowedTypes: ['application/pdf'],
+  },
 };
 
 export class UploadService {
@@ -369,6 +381,46 @@ export class UploadService {
     } catch (error) {
       console.error('Upload failed:', error);
       toast.error('Failed to upload PDF');
+      throw error;
+    }
+  }
+
+  /**
+   * Upload an inbox chat attachment (image, video, or PDF). Works for both
+   * customer and vendor senders — the backend resolves the sender from the
+   * auth token, so no email is needed here. Size limits are enforced both
+   * here and again server-side.
+   */
+  static async uploadInboxAttachment(
+    file: File,
+    attachmentType: 'IMAGE' | 'VIDEO' | 'PDF',
+    conversationId: string
+  ): Promise<string> {
+    const config =
+      attachmentType === 'IMAGE'
+        ? uploadConfigs.inboxImage
+        : attachmentType === 'VIDEO'
+        ? uploadConfigs.inboxVideo
+        : uploadConfigs.inboxPdf;
+
+    const error = this.validateFile(file, config);
+    if (error) {
+      toast.error(error);
+      throw new Error(error);
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', attachmentType);
+      formData.append('conversationId', conversationId);
+      const response = await apiClient.post('/conversations/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data.url;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload attachment');
       throw error;
     }
   }

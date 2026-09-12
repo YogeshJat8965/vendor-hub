@@ -172,10 +172,26 @@ public class UploadController {
             }
             
             // Note: In production, enforce size limits based on type and vendor plan.
-            
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", "auto"));
+
+            // PDFs must upload as "raw", not "auto" (which Cloudinary treats
+            // as "image" for PDFs): recent Cloudinary accounts block public
+            // delivery of non-image files served through the image endpoint
+            // by default, which makes the resulting URL 401. "raw" delivery
+            // isn't subject to that restriction.
+            //
+            // NOTE: passing format:"pdf" here (tried and reverted) makes
+            // Cloudinary recognize and block the file the same way, even as
+            // "raw" — the restriction is keyed on recognized format, not
+            // resource_type. So this stays plain "raw" with no format hint:
+            // it works, but Cloudinary always serves it as
+            // application/octet-stream with Content-Disposition: attachment
+            // and no file extension. The only way to get correct content-type
+            // and inline display is enabling "Allow delivery of PDF and ZIP
+            // files" in the Cloudinary console's Security settings.
+            String resourceType = ".pdf".equals(extension) ? "raw" : "auto";
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("resource_type", resourceType));
             String fileUrl = uploadResult.get("url").toString();
-            
+
             return ResponseEntity.ok(Map.of(
                 "message", "Catalogue file uploaded successfully",
                 "url", fileUrl

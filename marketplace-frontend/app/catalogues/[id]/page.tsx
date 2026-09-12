@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
-import { ArrowLeft, Play, FileText, ChevronLeft, ChevronRight, Calendar, Layers, DollarSign, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Play, FileText, ChevronLeft, ChevronRight, Calendar, Layers, DollarSign, MessageSquare, Wrench, Package, Boxes } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -82,6 +82,7 @@ export default function CatalogueDetailsPage() {
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [quoteServiceType, setQuoteServiceType] = useState('');
   const [quoteDescription, setQuoteDescription] = useState('');
+  const [quoteCatalogueItemId, setQuoteCatalogueItemId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (params.id) {
@@ -180,7 +181,18 @@ export default function CatalogueDetailsPage() {
               {catalogue.items?.map((item: any, index: number) => (
                 <div key={item.id || index} className="bg-white rounded-[2rem] p-8 lg:p-10 border border-[#CDC0B0]/40 shadow-warm-sm hover:shadow-warm-md transition-shadow">
                   <div className="mb-8">
-                    <h3 className="text-2xl md:text-3xl font-heading font-bold text-[#2C2621] mb-3">{item.title}</h3>
+                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                      <h3 className="text-2xl md:text-3xl font-heading font-bold text-[#2C2621]">{item.title}</h3>
+                      {item.itemType === 'PRODUCT' ? (
+                        <Badge className="bg-[#EEDDCC] text-[#8C6A3D] hover:bg-[#EEDDCC] font-body border border-[#C4975A]/20">
+                          <Package className="w-3.5 h-3.5 mr-1" /> Product
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-[#EEDDCC] text-[#8C6A3D] hover:bg-[#EEDDCC] font-body border border-[#C4975A]/20">
+                          <Wrench className="w-3.5 h-3.5 mr-1" /> Service
+                        </Badge>
+                      )}
+                    </div>
                     {item.description && (
                       <p className="text-[#6B5E54] font-body text-lg leading-relaxed">{item.description}</p>
                     )}
@@ -190,22 +202,41 @@ export default function CatalogueDetailsPage() {
                     {item.startingPrice > 0 && (
                       <div>
                         <div className="flex items-center gap-2 text-[#9C8E82] font-body text-sm mb-1">
-                          <DollarSign className="w-4 h-4" /> Starting Price
+                          <DollarSign className="w-4 h-4" /> {item.itemType === 'PRODUCT' ? 'Price' : 'Starting Price'}
                         </div>
                         <div className="font-heading font-bold text-xl text-[#2C2621]">₹{item.startingPrice.toLocaleString('en-IN')}</div>
                       </div>
                     )}
-                    
-                    {item.priceRange && (
+
+                    {item.itemType === 'PRODUCT' ? (
                       <div>
                         <div className="flex items-center gap-2 text-[#9C8E82] font-body text-sm mb-1">
-                          <DollarSign className="w-4 h-4" /> Price Range
+                          <Boxes className="w-4 h-4" /> Availability
                         </div>
-                        <div className="font-body font-medium text-[#2C2621]">{item.priceRange}</div>
+                        <div className={`font-body font-medium ${
+                          item.stockStatus === 'OUT_OF_STOCK' ? 'text-[#B85C5C]' : 'text-[#2C2621]'
+                        }`}>
+                          {item.stockStatus === 'OUT_OF_STOCK'
+                            ? 'Out of Stock'
+                            : item.stockStatus === 'MADE_TO_ORDER'
+                            ? 'Made to Order'
+                            : item.stockQuantity
+                            ? `In Stock (${item.stockQuantity} available)`
+                            : 'In Stock'}
+                        </div>
                       </div>
+                    ) : (
+                      item.priceRange && (
+                        <div>
+                          <div className="flex items-center gap-2 text-[#9C8E82] font-body text-sm mb-1">
+                            <DollarSign className="w-4 h-4" /> Price Range
+                          </div>
+                          <div className="font-body font-medium text-[#2C2621]">{item.priceRange}</div>
+                        </div>
+                      )
                     )}
 
-                    {item.materialsDetails && (
+                    {item.itemType !== 'PRODUCT' && item.materialsDetails && (
                       <div>
                         <div className="flex items-center gap-2 text-[#9C8E82] font-body text-sm mb-1">
                           <Layers className="w-4 h-4" /> Materials
@@ -214,7 +245,7 @@ export default function CatalogueDetailsPage() {
                       </div>
                     )}
 
-                    {item.projectTimeline && (
+                    {item.itemType !== 'PRODUCT' && item.projectTimeline && (
                       <div>
                         <div className="flex items-center gap-2 text-[#9C8E82] font-body text-sm mb-1">
                           <Calendar className="w-4 h-4" /> Timeline
@@ -242,17 +273,23 @@ export default function CatalogueDetailsPage() {
                       )}
                     </div>
 
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="w-full sm:w-auto rounded-xl font-body font-bold bg-[#C4975A] hover:bg-[#B38549] text-white shadow-warm-md hover:shadow-warm-lg transition-all"
                       onClick={() => {
-                        setQuoteServiceType(`Quote for: ${item.title} (${catalogue.name})`);
-                        setQuoteDescription(`I'm interested in the "${item.title}" design from your "${catalogue.name}" catalogue. Please provide more details and a quote.`);
+                        setQuoteCatalogueItemId(item.id);
+                        if (item.itemType === 'PRODUCT') {
+                          setQuoteServiceType(`Product Enquiry: ${item.title} (${catalogue.name})`);
+                          setQuoteDescription(`I'm interested in buying "${item.title}" from your "${catalogue.name}" catalogue. Please share more details.`);
+                        } else {
+                          setQuoteServiceType(`Quote for: ${item.title} (${catalogue.name})`);
+                          setQuoteDescription(`I'm interested in the "${item.title}" design from your "${catalogue.name}" catalogue. Please provide more details and a quote.`);
+                        }
                         setShowQuoteDialog(true);
                       }}
                     >
                       <MessageSquare className="w-5 h-5 mr-2" />
-                      Get Quote
+                      {item.itemType === 'PRODUCT' ? 'Enquire to Buy' : 'Get Quote'}
                     </Button>
                   </div>
                 </div>
@@ -271,6 +308,7 @@ export default function CatalogueDetailsPage() {
           vendorSlug={vendor.slug}
           vendorName={vendor.businessName || vendor.ownerName || 'Vendor'}
           catalogueId={catalogue.id}
+          catalogueItemId={quoteCatalogueItemId}
           initialServiceType={quoteServiceType}
           initialDescription={quoteDescription}
         />

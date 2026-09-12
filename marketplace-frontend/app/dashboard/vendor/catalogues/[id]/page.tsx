@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Video, FileText, Lock, Upload, Camera, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Video, FileText, Lock, Upload, Camera, Loader2, X, Wrench, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
@@ -127,7 +128,10 @@ export default function CatalogueBuilderPage() {
         {
           title: '',
           description: '',
+          itemType: 'SERVICE',
           startingPrice: '',
+          stockStatus: 'IN_STOCK',
+          stockQuantity: '',
           images: []
         }
       ]
@@ -335,12 +339,38 @@ export default function CatalogueBuilderPage() {
                     </Button>
                   </div>
                   <CardHeader className="bg-[#FDFBF7] border-b border-[#CDC0B0]/50 pb-4 pt-5 px-6">
-                    <div className="pr-12 space-y-1">
-                      <Input 
-                        list="item-titles"
-                        placeholder="Item Title (e.g. L-Shaped Modular Kitchen)"
-                        value={item.title} 
-                        onChange={e => updateItem(index, 'title', e.target.value)} 
+                    <div className="pr-12 space-y-3">
+                      {/* Service / Product toggle */}
+                      <div className="inline-flex rounded-xl border border-[#CDC0B0] bg-white p-1 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => updateItem(index, 'itemType', 'SERVICE')}
+                          className={`flex items-center gap-1.5 px-4 h-9 rounded-lg font-body text-sm font-medium transition-colors ${
+                            (item.itemType || 'SERVICE') === 'SERVICE'
+                              ? 'bg-[#2C2621] text-[#EEDDCC]'
+                              : 'text-[#6B5E54] hover:bg-[#EEDDCC]/40'
+                          }`}
+                        >
+                          <Wrench className="h-3.5 w-3.5" /> Service
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateItem(index, 'itemType', 'PRODUCT')}
+                          className={`flex items-center gap-1.5 px-4 h-9 rounded-lg font-body text-sm font-medium transition-colors ${
+                            item.itemType === 'PRODUCT'
+                              ? 'bg-[#2C2621] text-[#EEDDCC]'
+                              : 'text-[#6B5E54] hover:bg-[#EEDDCC]/40'
+                          }`}
+                        >
+                          <Package className="h-3.5 w-3.5" /> Product
+                        </button>
+                      </div>
+
+                      <Input
+                        list={item.itemType === 'PRODUCT' ? 'item-titles-product' : 'item-titles-service'}
+                        placeholder={item.itemType === 'PRODUCT' ? 'Product Title (e.g. Solid Teak Wood Dining Table)' : 'Item Title (e.g. L-Shaped Modular Kitchen)'}
+                        value={item.title}
+                        onChange={e => updateItem(index, 'title', e.target.value)}
                         className="font-heading font-bold text-lg bg-white border border-[#CDC0B0] hover:border-[#C4975A] focus:border-[#C4975A] transition-all px-4 h-12 rounded-xl focus-visible:ring-1 focus-visible:ring-[#CDB79E] text-[#2C2621] w-full"
                       />
                     </div>
@@ -348,50 +378,93 @@ export default function CatalogueBuilderPage() {
                   <CardContent className="p-6 space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label className="font-body text-[#2C2621] font-medium">Starting Price (₹)</Label>
-                        <Input 
-                          type="number" 
+                        <Label className="font-body text-[#2C2621] font-medium">
+                          {item.itemType === 'PRODUCT' ? 'Price (₹)' : 'Starting Price (₹)'}
+                        </Label>
+                        <Input
+                          type="number"
                           placeholder="e.g. 25000"
-                          value={item.startingPrice || ''} 
-                          onChange={e => updateItem(index, 'startingPrice', e.target.value === '' ? '' : Number(e.target.value))} 
+                          value={item.startingPrice || ''}
+                          onChange={e => updateItem(index, 'startingPrice', e.target.value === '' ? '' : Number(e.target.value))}
                           className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label className="font-body text-[#2C2621] font-medium">Price Range</Label>
-                        <Input 
-                          list="price-ranges"
-                          placeholder="e.g. ₹50,000 - ₹1,00,000" 
-                          value={item.priceRange || ''} 
-                          onChange={e => updateItem(index, 'priceRange', e.target.value)} 
-                          className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
-                        />
-                      </div>
+
+                      {item.itemType === 'PRODUCT' ? (
+                        <div className="space-y-2">
+                          <Label className="font-body text-[#2C2621] font-medium">Availability</Label>
+                          <Select
+                            value={item.stockStatus || 'IN_STOCK'}
+                            onValueChange={(value) => updateItem(index, 'stockStatus', value)}
+                          >
+                            <SelectTrigger className="rounded-xl border-[#CDC0B0] font-body h-12 w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white border-[#CDC0B0] rounded-xl">
+                              <SelectItem value="IN_STOCK" className="font-body">In Stock</SelectItem>
+                              <SelectItem value="MADE_TO_ORDER" className="font-body">Made to Order</SelectItem>
+                              <SelectItem value="OUT_OF_STOCK" className="font-body">Out of Stock</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Label className="font-body text-[#2C2621] font-medium">Price Range</Label>
+                          <Input
+                            list="price-ranges"
+                            placeholder="e.g. ₹50,000 - ₹1,00,000"
+                            value={item.priceRange || ''}
+                            onChange={e => updateItem(index, 'priceRange', e.target.value)}
+                            className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
+                          />
+                        </div>
+                      )}
                     </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="space-y-2">
-                        <Label className="font-body text-[#2C2621] font-medium">Materials Details</Label>
-                        <Input 
-                          list="materials"
-                          placeholder="e.g. Premium Plywood & Laminate" 
-                          value={item.materialsDetails || ''} 
-                          onChange={e => updateItem(index, 'materialsDetails', e.target.value)} 
-                          className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
-                        />
+
+                    {item.itemType === 'PRODUCT' ? (
+                      (item.stockStatus || 'IN_STOCK') === 'IN_STOCK' && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label className="font-body text-[#2C2621] font-medium">Quantity in Stock (optional)</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="e.g. 12"
+                              value={item.stockQuantity ?? ''}
+                              onChange={e => updateItem(index, 'stockQuantity', e.target.value === '' ? '' : Number(e.target.value))}
+                              className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <p className="text-xs font-body text-[#9C8E82]">
+                              Shown to customers if you&apos;d like — leave blank to just show &ldquo;In Stock&rdquo;.
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <Label className="font-body text-[#2C2621] font-medium">Materials Details</Label>
+                          <Input
+                            list="materials"
+                            placeholder="e.g. Premium Plywood & Laminate"
+                            value={item.materialsDetails || ''}
+                            onChange={e => updateItem(index, 'materialsDetails', e.target.value)}
+                            className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-body text-[#2C2621] font-medium">Project Timeline</Label>
+                          <Input
+                            list="timelines"
+                            placeholder="e.g. 3-4 Weeks"
+                            value={item.projectTimeline || ''}
+                            onChange={e => updateItem(index, 'projectTimeline', e.target.value)}
+                            className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="font-body text-[#2C2621] font-medium">Project Timeline</Label>
-                        <Input 
-                          list="timelines"
-                          placeholder="e.g. 3-4 Weeks" 
-                          value={item.projectTimeline || ''} 
-                          onChange={e => updateItem(index, 'projectTimeline', e.target.value)} 
-                          className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
-                        />
-                      </div>
-                    </div>
-                    
+                    )}
+
                     <div className="space-y-2">
                       <Label className="font-body text-[#2C2621] font-medium">Description</Label>
                       <Textarea 
@@ -522,24 +595,73 @@ export default function CatalogueBuilderPage() {
         <option value="Architectural Interior & Exterior Projects" />
       </datalist>
 
-      <datalist id="item-titles">
+      <datalist id="item-titles-service">
         <option value="L-Shaped Acrylic Modular Kitchen" />
         <option value="Full-Height Sliding Glass Wardrobe" />
-        <option value="Solid Teak Wood 6-Seater Dining Table" />
+        <option value="Solid Teak Wood 6-Seater Dining Table (Custom Build)" />
         <option value="Minimalist Wall-Mounted TV Unit" />
         <option value="Complete 3BHK Concealed Electrical Wiring" />
+        <option value="Home Electrical Safety Inspection & Rewiring" />
         <option value="Luxury Floating Bathroom Vanity with LED Mirror" />
         <option value="Gypsum False Ceiling with Integrated Strip Lights" />
         <option value="Custom Italian Leatherette Sofa Set" />
+        <option value="Bathroom & Kitchen Plumbing Installation" />
+        <option value="Water Tank & Overhead Pipeline Setup" />
+        <option value="Leak Detection & Pipe Repair" />
+        <option value="Full Home Interior & Exterior Painting" />
+        <option value="Textured Wall Finish & Waterproofing" />
+        <option value="Split AC Installation & Servicing" />
+        <option value="Central HVAC System Maintenance" />
+        <option value="Garden & Landscape Design" />
+        <option value="Lawn Maintenance & Irrigation Setup" />
+        <option value="Deep Home Cleaning (2/3/4 BHK)" />
+        <option value="Office & Commercial Space Cleaning" />
+        <option value="Termite & Pest Control Treatment" />
+        <option value="General Handyman & Repair Services" />
+        <option value="Wooden & Vinyl Flooring Installation" />
+        <option value="Local Packing & Moving Service" />
+        <option value="Emergency Lock Installation & Repair" />
+        <option value="Washing Machine & Refrigerator Repair" />
+        <option value="Window & Door Installation" />
+        <option value="Automatic Garage Door Setup" />
+        <option value="Swimming Pool Cleaning & Maintenance" />
+        <option value="Drywall Installation & Ceiling Repair" />
+        <option value="Boundary Wall & Masonry Work" />
+        <option value="Compound Fencing & Gate Installation" />
+      </datalist>
+
+      <datalist id="item-titles-product">
+        <option value="Solid Teak Wood Dining Table (6-Seater)" />
+        <option value="Modular Kitchen Cabinet Set" />
+        <option value="3-Door Sliding Wardrobe" />
+        <option value="Designer Wall-Mounted TV Unit" />
+        <option value="LED Ceiling Light Fixture" />
+        <option value="Modular Switches & Wiring Kit" />
+        <option value="Water Purifier / RO System" />
+        <option value="Bathroom Vanity with Mirror Cabinet" />
+        <option value="CP Fittings & Sanitary Ware Set" />
+        <option value="Interior Emulsion Paint (20L)" />
+        <option value="Textured Wallpaper Rolls" />
+        <option value="Split AC Unit (1.5 Ton)" />
+        <option value="Potted Plants & Landscaping Kit" />
+        <option value="Cleaning Supplies & Equipment Kit" />
+        <option value="Vinyl / Laminate Flooring (per sq.ft.)" />
+        <option value="Smart Door Lock" />
+        <option value="Home Appliance Spare Parts" />
+        <option value="uPVC Windows & Doors" />
+        <option value="Automatic Garage Door Motor Kit" />
+        <option value="Decorative Fencing Panels" />
       </datalist>
 
       <datalist id="price-ranges">
-        <option value="Under ₹50,000" />
+        <option value="Under ₹10,000" />
+        <option value="₹10,000 - ₹50,000" />
         <option value="₹50,000 - ₹1,00,000" />
         <option value="₹1,00,000 - ₹5,00,000" />
         <option value="₹5,00,000 - ₹10,00,000" />
         <option value="₹10,00,000+" />
         <option value="Custom Pricing Available" />
+        <option value="Free Site Visit & Estimate" />
       </datalist>
 
       <datalist id="materials">
@@ -548,9 +670,19 @@ export default function CatalogueBuilderPage() {
         <option value="MDF with Acrylic Finish" />
         <option value="HDF with PU Paint" />
         <option value="Veneer Finish with Polish" />
+        <option value="Marine Plywood (Waterproof)" />
+        <option value="Stainless Steel & Brass Fittings" />
+        <option value="PVC / uPVC Pipes & Fittings" />
+        <option value="Asian Paints / Berger Emulsion" />
+        <option value="Copper Wiring (ISI Certified)" />
+        <option value="Vitrified / Ceramic Tiles" />
+        <option value="Aluminium & Glass Panels" />
       </datalist>
 
       <datalist id="timelines">
+        <option value="Same Day" />
+        <option value="1-2 Days" />
+        <option value="3-5 Days" />
         <option value="1-2 Weeks" />
         <option value="3-4 Weeks" />
         <option value="1-2 Months" />

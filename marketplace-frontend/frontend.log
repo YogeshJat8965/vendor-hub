@@ -19,3 +19,62 @@
  GET / 200 in 96ms (compile: 9ms, render: 87ms)
  GET / 200 in 73ms (compile: 2ms, render: 70ms)
  GET / 200 in 66ms (compile: 2ms, render: 64ms)
+ GET /vendors/vendor-profile 200 in 3.5s (compile: 3.2s, render: 294ms)
+ GET /vendors/vendor-profile 200 in 140ms (compile: 52ms, render: 88ms)
+ GET /vendors/vendor-profile 200 in 199ms (compile: 72ms, render: 126ms)
+ GET / 200 in 146ms (compile: 34ms, render: 112ms)
+ GET /catalogues/6aa2817feedc776ec847bef3 200 in 2.9s (compile: 2.8s, render: 104ms)
+ GET /login 200 in 2.0s (compile: 1797ms, render: 226ms)
+ GET /dashboard/vendor 200 in 1297ms (compile: 1182ms, render: 115ms)
+ GET /dashboard/vendor 200 in 62ms (compile: 9ms, render: 54ms)
+ GET /dashboard/vendor/catalogues 200 in 1091ms (compile: 1028ms, render: 62ms)
+ GET /dashboard/vendor/catalogues/new 200 in 2.3s (compile: 2.3s, render: 38ms)
+ GET /dashboard/vendor/catalogues 200 in 75ms (compile: 16ms, render: 59ms)
+ GET /vendors/vendor-profile 200 in 265ms (compile: 119ms, render: 146ms)
+ GET /catalogues/6aa28905eedc776ec847bef8 200 in 158ms (compile: 123ms, render: 35ms)
+ GET /explore 200 in 385ms (compile: 148ms, render: 238ms)
+ GET /explore 200 in 1857ms (compile: 1627ms, render: 229ms)
+ GET /uploads/vendors/banners/9e4a26cd-afb0-4d99-8ce6-72b559aa0532_image.jpg 404 in 1182ms (compile: 975ms, render: 207ms)
+ GET /uploads/vendors/logos/ec3085bd-583b-4b82-a3f2-ac7e80b2ad26_image.jpg 404 in 1180ms (compile: 1088ms, render: 92ms)
+ GET /dashboard/vendor/reviews 200 in 998ms (compile: 943ms, render: 55ms)
+ GET /vendors/eletrician-cop-sd 200 in 158ms (compile: 127ms, render: 31ms)
+ GET /catalogues/6aa5010d2581a3325e1739c3 200 in 153ms (compile: 126ms, render: 27ms)
+ GET /login 200 in 53ms (compile: 12ms, render: 41ms)
+ GET /explore 200 in 32ms (compile: 8ms, render: 23ms)
+ GET /explore 200 in 47ms (compile: 11ms, render: 36ms)
+ GET /uploads/vendors/banners/9e4a26cd-afb0-4d99-8ce6-72b559aa0532_image.jpg 404 in 144ms (compile: 19ms, render: 125ms)
+ GET /uploads/vendors/logos/ec3085bd-583b-4b82-a3f2-ac7e80b2ad26_image.jpg 404 in 147ms (compile: 38ms, render: 109ms)
+ GET /vendors/eletrician-cop-sd 200 in 160ms (compile: 138ms, render: 22ms)
+ GET /vendors/eletrician-cop-sd 200 in 29ms (compile: 10ms, render: 19ms)
+ GET /catalogues/6aa5010d2581a3325e1739c3 200 in 188ms (compile: 139ms, render: 49ms)
+ GET /dashboard/customer/quotes 200 in 1394ms (compile: 1311ms, render: 83ms)
+ GET /dashboard/vendor/inbox 200 in 1492ms (compile: 1430ms, render: 62ms)
+ GET /dashboard/customer/inbox 200 in 1149ms (compile: 1075ms, render: 74ms)
+✓ Compiled in 528ms
+✓ Compiled in 126ms
+✓ Compiled in 171ms
+✓ Compiled in 139ms
+✓ Compiled in 133ms
+✓ Compiled in 235ms
+✓ Compiled in 622ms
+✓ Compiled in 635ms
+✓ Compiled in 197ms
+ GET / 200 in 315ms (compile: 66ms, render: 249ms)
+ GET /dashboard/customer 200 in 1620ms (compile: 1557ms, render: 63ms)
+ GET /dashboard/customer/favorites 200 in 1051ms (compile: 988ms, render: 62ms)
+ GET /vendors/eletrician-cop-sd 200 in 222ms (compile: 187ms, render: 35ms)
+ GET /catalogues/6aa5010d2581a3325e1739c3 200 in 267ms (compile: 218ms, render: 50ms)
+ GET /dashboard/customer/quotes 200 in 58ms (compile: 21ms, render: 37ms)
+ GET /dashboard/vendor 200 in 64ms (compile: 20ms, render: 44ms)
+ GET /dashboard/vendor/quotes 200 in 1317ms (compile: 1258ms, render: 59ms)
+ GET /dashboard/vendor/inbox 200 in 304ms (compile: 193ms, render: 111ms)
+ GET /dashboard/customer/inbox 200 in 257ms (compile: 163ms, render: 94ms)
+✓ Compiled in 1379ms
+✓ Compiled in 249ms
+✓ Compiled in 125ms
+✓ Compiled in 137ms
+✓ Compiled in 395ms
+ GET / 200 in 229ms (compile: 29ms, render: 200ms)
+ GET /dashboard/customer/inbox 200 in 781ms (compile: 187ms, render: 594ms)
+ GET /dashboard/vendor/inbox 200 in 535ms (compile: 162ms, render: 373ms)
+[?25h

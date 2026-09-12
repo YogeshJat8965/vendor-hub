@@ -5,11 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Image as ImageIcon, Loader2, MessageSquare } from 'lucide-react';
+import { Send, Image as ImageIcon, Loader2, MessageSquare, Paperclip, Video, FileText, Download, ClipboardList, IndianRupee, Package } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useAuth } from '@/lib/auth-context';
+import { UploadService } from '@/lib/upload-service';
+import { MediaViewerDialog } from '@/components/dialogs/MediaViewerDialog';
 
 interface InboxUIProps {
   userRole: 'CUSTOMER' | 'VENDOR';
@@ -38,6 +40,53 @@ function formatLastSeen(iso?: string | null): string {
   return `Last seen ${diffDay}d ago`;
 }
 
+/**
+ * A quote/enquiry request rendered as a card instead of a plain-text bubble.
+ * `content` is a JSON snapshot built server-side (QuoteService); older
+ * messages that predate this feature are plain sentences, so a JSON parse
+ * failure falls back to showing that text directly instead of breaking.
+ */
+function QuoteCardBubble({ content, time }: { content: string; time: string }) {
+  let title = 'New Request';
+  let description = '';
+  let budget: number | null = null;
+
+  try {
+    const parsed = JSON.parse(content);
+    title = parsed.title || title;
+    description = parsed.description || '';
+    budget = typeof parsed.budget === 'number' ? parsed.budget : null;
+  } catch {
+    description = content;
+  }
+
+  // Heuristic only (the customer can edit this text before submitting, so
+  // it's not guaranteed) — worst case a product enquiry shows the generic icon.
+  const isProduct = title.toLowerCase().startsWith('product enquiry');
+  const Icon = isProduct ? Package : ClipboardList;
+
+  return (
+    <div className="max-w-[85%] rounded-2xl border border-[#CDC0B0] bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-[#FDFBF7] border-b border-[#CDC0B0]/60">
+        <Icon className="w-4 h-4 text-[#C4975A]" />
+        <span className="font-heading font-bold text-sm text-[#2C2621]">
+          {isProduct ? 'Product Enquiry' : 'New Quote Request'}
+        </span>
+      </div>
+      <div className="px-4 py-3 space-y-1.5">
+        <p className="font-body font-semibold text-[#2C2621] text-[15px]">{title}</p>
+        {description && <p className="font-body text-sm text-[#6B5E54] leading-relaxed">{description}</p>}
+        {budget != null && (
+          <div className="flex items-center gap-1 text-sm font-body text-[#8A9A5B] font-medium pt-1">
+            <IndianRupee className="w-3.5 h-3.5" /> Budget: ₹{budget.toLocaleString('en-IN')}
+          </div>
+        )}
+      </div>
+      <div className="px-4 pb-2 text-[11px] text-[#9C8E82] text-right font-medium">{time}</div>
+    </div>
+  );
+}
+
 export function InboxUI({ userRole, userId }: InboxUIProps) {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<any[]>([]);
@@ -46,11 +95,17 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
   const [inputMsg, setInputMsg] = useState('');
   const [loading, setLoading] = useState(true);
   const [presenceMap, setPresenceMap] = useState<Record<string, PresenceInfo>>({});
+  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [viewerMedia, setViewerMedia] = useState<{ url: string; type: 'IMAGE' | 'VIDEO' | 'PDF' } | null>(null);
 
   const stompClient = useRef<Client | null>(null);
   const conversationSubRef = useRef<StompSubscription | null>(null);
   const activeConvIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchConversations();
@@ -169,23 +224,47 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
     stompClient.current = client;
   };
 
-  const sendMessage = () => {
-    if (!inputMsg.trim() || !activeConv || !stompClient.current?.connected) return;
-    
+  const publishMessage = (type: string, content: string) => {
+    if (!activeConv || !stompClient.current?.connected) return;
+
     const msgPayload = {
       conversationId: activeConv.id,
       senderId: user?.email, // Backend can resolve or we can pass actual ID
       senderRole: userRole,
-      content: inputMsg,
-      type: 'TEXT'
+      content,
+      type
     };
-    
+
     stompClient.current.publish({
       destination: '/app/chat.sendMessage',
       body: JSON.stringify(msgPayload)
     });
-    
+  };
+
+  const sendMessage = () => {
+    if (!inputMsg.trim() || !activeConv || !stompClient.current?.connected) return;
+    publishMessage('TEXT', inputMsg);
     setInputMsg('');
+  };
+
+  const handleAttachmentSelected = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    attachmentType: 'IMAGE' | 'VIDEO' | 'PDF'
+  ) => {
+    const file = e.target.files?.[0];
+    setShowAttachMenu(false);
+    if (!file || !activeConv) return;
+
+    setIsUploading(true);
+    try {
+      const url = await UploadService.uploadInboxAttachment(file, attachmentType, activeConv.id);
+      publishMessage(attachmentType, url);
+    } catch (err) {
+      // UploadService already surfaces a toast on failure
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
   };
 
   if (loading) {
@@ -268,12 +347,48 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
             <div className="flex-1 p-5 overflow-y-auto bg-[#FDFBF7] space-y-6">
               {messages.map((m, i) => {
                 const isMine = m.senderRole === userRole;
+                const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                if (m.type === 'QUOTE_CARD') {
+                  return (
+                    <div key={i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <QuoteCardBubble content={m.content} time={time} />
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[75%] rounded-2xl px-5 py-3 shadow-sm ${isMine ? 'bg-[#C4975A] text-white rounded-tr-sm' : 'bg-white border border-[#CDC0B0] text-[#2C2621] rounded-tl-sm'}`}>
-                      <div className="font-body text-[15px] leading-relaxed">{m.content}</div>
+                      {m.type === 'IMAGE' ? (
+                        <button type="button" onClick={() => setViewerMedia({ url: m.content, type: 'IMAGE' })} className="block">
+                          <img src={m.content} alt="Shared image" className="max-w-[240px] max-h-[240px] rounded-lg object-cover" />
+                        </button>
+                      ) : m.type === 'VIDEO' ? (
+                        <button
+                          type="button"
+                          onClick={() => setViewerMedia({ url: m.content, type: 'VIDEO' })}
+                          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors w-full text-left ${isMine ? 'bg-white/15 hover:bg-white/25' : 'bg-[#FDFBF7] border border-[#CDC0B0] hover:bg-[#EEDDCC]/40'}`}
+                        >
+                          <Video className="w-8 h-8 shrink-0" />
+                          <span className="font-body text-sm font-medium flex-1">Video</span>
+                          <Download className="w-4 h-4 shrink-0" />
+                        </button>
+                      ) : m.type === 'PDF' ? (
+                        <button
+                          type="button"
+                          onClick={() => setViewerMedia({ url: m.content, type: 'PDF' })}
+                          className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors w-full text-left ${isMine ? 'bg-white/15 hover:bg-white/25' : 'bg-[#FDFBF7] border border-[#CDC0B0] hover:bg-[#EEDDCC]/40'}`}
+                        >
+                          <FileText className="w-8 h-8 shrink-0" />
+                          <span className="font-body text-sm font-medium flex-1">PDF Document</span>
+                          <Download className="w-4 h-4 shrink-0" />
+                        </button>
+                      ) : (
+                        <div className="font-body text-[15px] leading-relaxed">{m.content}</div>
+                      )}
                       <div className={`text-[11px] mt-1 text-right font-medium ${isMine ? 'text-white/80' : 'text-[#9C8E82]'}`}>
-                        {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {time}
                       </div>
                     </div>
                   </div>
@@ -281,13 +396,50 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
               })}
               <div ref={messagesEndRef} />
             </div>
-            
-            <div className="p-4 bg-white border-t border-[#CDC0B0]/50 flex gap-3">
-              <Button variant="outline" size="icon" className="shrink-0 text-[#6B5E54] border-[#CDC0B0] hover:bg-[#FDFBF7] hover:text-[#C4975A] rounded-xl h-12 w-12">
-                <ImageIcon className="w-5 h-5" />
+
+            <div className="p-4 bg-white border-t border-[#CDC0B0]/50 flex gap-3 relative">
+              {showAttachMenu && (
+                <div className="absolute bottom-16 left-4 bg-white border border-[#CDC0B0] rounded-2xl shadow-warm-lg p-2 flex flex-col gap-1 z-20 min-w-[180px]">
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EEDDCC]/40 text-[#2C2621] font-body text-sm text-left"
+                  >
+                    <ImageIcon className="w-4 h-4 text-[#8A9A5B]" /> Photo <span className="text-[#9C8E82] text-xs ml-auto">10MB</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => videoInputRef.current?.click()}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EEDDCC]/40 text-[#2C2621] font-body text-sm text-left"
+                  >
+                    <Video className="w-4 h-4 text-[#5B8CC4]" /> Video <span className="text-[#9C8E82] text-xs ml-auto">100MB</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => pdfInputRef.current?.click()}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EEDDCC]/40 text-[#2C2621] font-body text-sm text-left"
+                  >
+                    <FileText className="w-4 h-4 text-[#C4975A]" /> PDF <span className="text-[#9C8E82] text-xs ml-auto">20MB</span>
+                  </button>
+                </div>
+              )}
+
+              <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleAttachmentSelected(e, 'IMAGE')} />
+              <input ref={videoInputRef} type="file" accept="video/mp4,video/webm" className="hidden" onChange={(e) => handleAttachmentSelected(e, 'VIDEO')} />
+              <input ref={pdfInputRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => handleAttachmentSelected(e, 'PDF')} />
+
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={isUploading}
+                onClick={() => setShowAttachMenu(prev => !prev)}
+                className="shrink-0 text-[#6B5E54] border-[#CDC0B0] hover:bg-[#FDFBF7] hover:text-[#C4975A] rounded-xl h-12 w-12"
+              >
+                {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
               </Button>
-              <Input 
-                placeholder="Type your message..." 
+              <Input
+                placeholder="Type your message..."
                 value={inputMsg}
                 onChange={e => setInputMsg(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
@@ -308,6 +460,13 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
           </div>
         )}
       </div>
+
+      <MediaViewerDialog
+        isOpen={!!viewerMedia}
+        onClose={() => setViewerMedia(null)}
+        url={viewerMedia?.url ?? null}
+        type={viewerMedia?.type ?? null}
+      />
     </div>
   );
 }

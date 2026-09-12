@@ -1,5 +1,6 @@
 com/marketplace/service/AuthService.class
 com/marketplace/model/Collaboration.class
+com/marketplace/controller/MediaProxyController.class
 com/marketplace/repository/NotificationRepository.class
 com/marketplace/config/JwtAuthFilter.class
 com/marketplace/repository/CategoryRepository.class

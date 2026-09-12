@@ -9,8 +9,12 @@ spring:
   
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      # Sized for the largest inbox attachment (100MB video) plus headroom.
+      # NOTE: this was previously 10MB, which silently rejected the existing
+      # catalogue video (50MB) and PDF (20MB) uploads before they ever reached
+      # application code — that pre-existing bug is fixed by this change too.
+      max-file-size: 110MB
+      max-request-size: 110MB
 
 server:
   port: ${PORT:8080}

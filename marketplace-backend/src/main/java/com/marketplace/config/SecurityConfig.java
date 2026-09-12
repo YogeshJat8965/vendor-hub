@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,13 +23,38 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final JwtAuthFilter jwtAuthFilter;
-    
+
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
-    
+
+    /**
+     * A separate, narrower filter chain just for /api/media/**, evaluated
+     * before the main one. It's loaded in an <iframe> (the PDF preview) and
+     * hit as a plain browser download link, so it needs Spring Security's
+     * default X-Frame-Options: DENY relaxed — otherwise the browser refuses
+     * to render it inside the dialog, even though the request itself
+     * succeeds (a direct download from the same link works fine, since
+     * X-Frame-Options only blocks framing, not navigation). Scoped to this
+     * one path so the rest of the app keeps the default clickjacking
+     * protection.
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain mediaProxySecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/api/media/**")
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())

@@ -50,6 +50,7 @@
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/controller/UploadController.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/repository/ReviewRepository.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/config/JwtAuthFilter.java
+/home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/controller/MediaProxyController.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/repository/ConversationRepository.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/service/ReviewService.java
 /home/yogesh/Desktop/vendor hub/vendor-hub/marketplace-backend/src/main/java/com/marketplace/controller/CategoryController.java

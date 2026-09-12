@@ -42,6 +42,7 @@ public class CatalogueService {
                 if (item.getId() == null) {
                     item.setId(UUID.randomUUID().toString());
                 }
+                normalizeItemType(item);
             }
         }
 
@@ -71,6 +72,7 @@ public class CatalogueService {
                 if (item.getId() == null) {
                     item.setId(UUID.randomUUID().toString());
                 }
+                normalizeItemType(item);
             }
             existing.setItems(updatedData.getItems());
         }
@@ -106,6 +108,33 @@ public class CatalogueService {
     public Catalogue getCatalogueById(String catalogueId) {
         return catalogueRepository.findById(catalogueId)
                 .orElseThrow(() -> new RuntimeException("Catalogue not found"));
+    }
+
+    /**
+     * Defaults missing itemType to SERVICE (keeps pre-existing catalogues,
+     * saved before this field existed, behaving exactly as before) and
+     * clears whichever type-specific fields don't apply, so switching an
+     * item between Service and Product doesn't leave stale data behind.
+     */
+    private void normalizeItemType(CatalogueItem item) {
+        String type = item.getItemType();
+        if (type == null || type.isBlank()) {
+            type = "SERVICE";
+        }
+        type = type.toUpperCase();
+        item.setItemType(type);
+
+        if ("PRODUCT".equals(type)) {
+            item.setPriceRange(null);
+            item.setMaterialsDetails(null);
+            item.setProjectTimeline(null);
+            if (item.getStockQuantity() != null && item.getStockQuantity() < 0) {
+                throw new RuntimeException("Stock quantity cannot be negative.");
+            }
+        } else {
+            item.setStockStatus(null);
+            item.setStockQuantity(null);
+        }
     }
 
     private void validateItems(List<CatalogueItem> items, String plan) {
