@@ -3,17 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  FolderTree, 
-  Flag, 
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  FolderTree,
+  Flag,
   Settings,
   Menu,
   X,
   LogOut,
-  Shield
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -23,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 const navItems = [
   {
@@ -51,6 +53,11 @@ const navItems = [
     href: '/dashboard/admin/reviews',
     icon: Flag,
     badge: 3,
+  },
+  {
+    name: 'Delivery Disputes',
+    href: '/dashboard/admin/disputes',
+    icon: AlertTriangle,
   },
   {
     name: 'Settings',
@@ -319,7 +326,7 @@ export default function AdminLayout({
           <header className="bg-white border-b border-[#CDC0B0]/50 px-4 sm:px-6 lg:px-8 py-4 shadow-[0_2px_10px_rgba(44,38,33,0.03)] z-10">
             <div className="flex items-center gap-4">
               <MobileSidebar />
-              
+
               {/* Breadcrumbs */}
               <nav className="flex items-center gap-2 text-sm font-body">
                 {breadcrumbs.map((crumb, index) => (
@@ -338,6 +345,10 @@ export default function AdminLayout({
                   </div>
                 ))}
               </nav>
+
+              <div className="ml-auto flex items-center">
+                <NotificationBell />
+              </div>
             </div>
           </header>
 

@@ -1,15 +1,17 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Image as ImageIcon, Loader2, MessageSquare, Paperclip, Video, FileText, Download, ClipboardList, IndianRupee, Package } from 'lucide-react';
+import { Send, Image as ImageIcon, Loader2, MessageSquare, Paperclip, Video, FileText, Download, ClipboardList, IndianRupee, Package, Clock3, BadgeCheck } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Client, StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useAuth } from '@/lib/auth-context';
+import { useNotifications } from '@/lib/notifications-context';
 import { UploadService } from '@/lib/upload-service';
 import { MediaViewerDialog } from '@/components/dialogs/MediaViewerDialog';
 
@@ -87,8 +89,57 @@ function QuoteCardBubble({ content, time }: { content: string; time: string }) {
   );
 }
 
+/**
+ * The vendor's quote response, rendered as a card in the chat thread instead
+ * of only ever appearing as a field on the Quotes page the customer had to
+ * go find separately. `content` is a JSON snapshot built server-side
+ * (QuoteService.postResponseCardToConversation).
+ */
+function QuoteResponseCardBubble({ content, time }: { content: string; time: string }) {
+  let estimatedCost: number | null = null;
+  let estimatedTime = '';
+  let response = '';
+
+  try {
+    const parsed = JSON.parse(content);
+    estimatedCost = typeof parsed.estimatedCost === 'number' ? parsed.estimatedCost : null;
+    estimatedTime = parsed.estimatedTime || '';
+    response = parsed.response || '';
+  } catch {
+    response = content;
+  }
+
+  return (
+    <div className="max-w-[85%] rounded-2xl border border-[#CDC0B0] bg-white shadow-sm overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-[#FDFBF7] border-b border-[#CDC0B0]/60">
+        <BadgeCheck className="w-4 h-4 text-[#8A9A5B]" />
+        <span className="font-heading font-bold text-sm text-[#2C2621]">Quote Response</span>
+      </div>
+      <div className="px-4 py-3 space-y-1.5">
+        {response && <p className="font-body text-sm text-[#6B5E54] leading-relaxed">{response}</p>}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+          {estimatedCost != null && (
+            <div className="flex items-center gap-1 text-sm font-body text-[#8A9A5B] font-medium">
+              <IndianRupee className="w-3.5 h-3.5" /> {estimatedCost.toLocaleString('en-IN')}
+            </div>
+          )}
+          {estimatedTime && (
+            <div className="flex items-center gap-1 text-sm font-body text-[#9C8E82] font-medium">
+              <Clock3 className="w-3.5 h-3.5" /> {estimatedTime}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="px-4 pb-2 text-[11px] text-[#9C8E82] text-right font-medium">{time}</div>
+    </div>
+  );
+}
+
 export function InboxUI({ userRole, userId }: InboxUIProps) {
   const { user } = useAuth();
+  const { notifications, decrementInboxCount, refreshInboxCount } = useNotifications();
+  const searchParams = useSearchParams();
+  const deepLinkQuoteId = searchParams.get('quoteId');
   const [conversations, setConversations] = useState<any[]>([]);
   const [activeConv, setActiveConv] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -106,16 +157,43 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
+  const lastNotifIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    fetchConversations();
+    (async () => {
+      const convs = await fetchConversations();
+      // Jumped here from a specific quote (e.g. the vendor/customer Quotes
+      // page's "Message" button) — open that exact conversation instead of
+      // leaving the user to hunt for it in the list.
+      if (deepLinkQuoteId) {
+        const match = convs.find((c: any) => c.quoteRequestId === deepLinkQuoteId);
+        if (match) {
+          handleSelectConv(match);
+        }
+      }
+    })();
     connectStomp();
     return () => {
       if (stompClient.current) {
         stompClient.current.deactivate();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // A new message anywhere in the inbox arrives as a MESSAGE-type
+  // notification on the shared real-time channel — refetch the list so its
+  // ordering, last-message preview, and unread badges update live instead of
+  // only on a manual page refresh. Silent: this must never re-trigger the
+  // full-page loading spinner while the user is actively chatting.
+  useEffect(() => {
+    const latest = notifications[0];
+    if (!latest || latest.id === lastNotifIdRef.current) return;
+    lastNotifIdRef.current = latest.id;
+    if (latest.type === 'MESSAGE') {
+      fetchConversations({ silent: true });
+    }
+  }, [notifications]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -125,15 +203,15 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
     scrollToBottom();
   }, [messages]);
 
-  const fetchConversations = async () => {
+  const fetchConversations = async (opts?: { silent?: boolean }) => {
     try {
-      setLoading(true);
+      if (!opts?.silent) setLoading(true);
       // Wait, we need actual DB userId for this endpoint, or we can use email if backend supports it.
       // Let's first try to get the real User object.
       // But we can get it from profile.
       const rolePath = userRole === 'CUSTOMER' ? 'customer' : 'vendor';
       const actualUserId = user?.email || userId;
-      
+
       const res = await apiClient.get(`/conversations/${rolePath}/${actualUserId}`);
       setConversations(res.data);
 
@@ -141,8 +219,10 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
         .map((conv: any) => getCounterpartId(conv, userRole))
         .filter(Boolean);
       fetchPresence(counterpartIds);
+      return res.data;
     } catch (err) {
       console.error('Failed to fetch conversations', err);
+      return [];
     } finally {
       setLoading(false);
     }
@@ -174,6 +254,17 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
     } catch (err) {
       console.error('Failed to fetch messages', err);
     }
+
+    // WhatsApp-style: opening a conversation marks its unread messages read,
+    // both locally (badge disappears immediately) and on the backend.
+    if (conv.unreadCount > 0) {
+      decrementInboxCount(conv.unreadCount);
+      setConversations(prev => prev.map(c => (c.id === conv.id ? { ...c, unreadCount: 0 } : c)));
+      if (user?.email) {
+        apiClient.put(`/conversations/${conv.id}/read`, null, { params: { viewerEmail: user.email } })
+          .catch(err => console.error('Failed to mark conversation read', err));
+      }
+    }
   };
 
   const subscribeToConversation = (conversationId: string) => {
@@ -182,6 +273,18 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
       if (msg.body) {
         const newMsg = JSON.parse(msg.body);
         setMessages(prev => [...prev, newMsg]);
+
+        // Already looking at this conversation when the message lands, so it
+        // counts as read immediately. The notification push for this same
+        // message (arriving over a separate channel, in no guaranteed order)
+        // optimistically bumps the Inbox badge by 1 regardless — refetching
+        // the authoritative count after marking read resolves that race
+        // instead of trying to net out two independent local updates.
+        if (newMsg.senderId !== user?.email) {
+          apiClient.put(`/conversations/${conversationId}/read`, null, { params: { viewerEmail: user?.email } })
+            .then(() => refreshInboxCount())
+            .catch(err => console.error('Failed to mark conversation read', err));
+        }
       }
     });
   };
@@ -291,21 +394,29 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
           ) : (
             conversations.map(conv => {
               const isOnline = presenceMap[getCounterpartId(conv, userRole) || '']?.online;
+              const unread = conv.unreadCount || 0;
               return (
                 <div
                   key={conv.id}
                   onClick={() => handleSelectConv(conv)}
-                  className={`p-4 border-b border-[#CDC0B0]/30 cursor-pointer transition-colors ${activeConv?.id === conv.id ? 'bg-[#EEDDCC] border-l-4 border-l-[#C4975A]' : 'hover:bg-[#EEDDCC]/40'}`}
+                  className={`p-4 border-b border-[#CDC0B0]/30 cursor-pointer transition-colors flex items-start gap-2 ${activeConv?.id === conv.id ? 'bg-[#EEDDCC] border-l-4 border-l-[#C4975A]' : 'hover:bg-[#EEDDCC]/40'}`}
                 >
-                  <div className="font-heading font-semibold text-[#2C2621] mb-1 flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOnline ? 'bg-[#8A9A5B]' : 'bg-[#CDC0B0]'}`} />
-                    {userRole === 'CUSTOMER'
-                      ? conv.vendorStoreName || conv.vendorName || conv.vendorId
-                      : conv.customerName || conv.customerId}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-heading font-semibold text-[#2C2621] mb-1 flex items-center gap-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOnline ? 'bg-[#8A9A5B]' : 'bg-[#CDC0B0]'}`} />
+                      {userRole === 'CUSTOMER'
+                        ? conv.vendorStoreName || conv.vendorName || conv.vendorId
+                        : conv.customerName || conv.customerId}
+                    </div>
+                    <div className={`text-sm font-body line-clamp-1 ${unread > 0 ? 'text-[#2C2621] font-semibold' : 'text-[#6B5E54]'}`}>
+                      {conv.lastMessage || 'No messages yet'}
+                    </div>
                   </div>
-                  <div className="text-sm font-body text-[#6B5E54] line-clamp-1">
-                    {conv.lastMessage || 'No messages yet'}
-                  </div>
+                  {unread > 0 && (
+                    <span className="shrink-0 mt-0.5 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#8A9A5B] text-white text-[11px] font-bold font-body">
+                      {unread > 99 ? '99+' : unread}
+                    </span>
+                  )}
                 </div>
               );
             })
@@ -353,6 +464,14 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
                   return (
                     <div key={i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                       <QuoteCardBubble content={m.content} time={time} />
+                    </div>
+                  );
+                }
+
+                if (m.type === 'QUOTE_RESPONSE_CARD') {
+                  return (
+                    <div key={i} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <QuoteResponseCardBubble content={m.content} time={time} />
                     </div>
                   );
                 }

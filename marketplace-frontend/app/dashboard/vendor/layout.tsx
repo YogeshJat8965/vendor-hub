@@ -30,6 +30,8 @@ import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
 import { ShareDialog } from '@/components/dialogs/ShareDialog';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { useNotifications } from '@/lib/notifications-context';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 
@@ -78,10 +80,18 @@ const navItems: NavItem[] = [
   },
 ];
 
+/** Live unread badge for a nav item — Quotes and Inbox each track their own count. */
+function navBadgeCount(href: string, quoteUnreadCount: number, inboxUnreadCount: number): number {
+  if (href.endsWith('/quotes')) return quoteUnreadCount;
+  if (href.endsWith('/inbox')) return inboxUnreadCount;
+  return 0;
+}
+
 function Sidebar({ vendorData }: { vendorData: any }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const { quoteUnreadCount, inboxUnreadCount } = useNotifications();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
@@ -123,7 +133,8 @@ function Sidebar({ vendorData }: { vendorData: any }) {
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
-          
+          const badgeCount = navBadgeCount(item.href, quoteUnreadCount, inboxUnreadCount);
+
           return (
             <Link key={item.href} href={item.href}>
               <motion.div
@@ -136,9 +147,9 @@ function Sidebar({ vendorData }: { vendorData: any }) {
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
                 <span className="flex-1">{item.title}</span>
-                {item.badge && !isActive && (
+                {badgeCount > 0 && !isActive && (
                   <Badge variant="warning" className="ml-auto">
-                    {item.badge}
+                    {badgeCount > 9 ? '9+' : badgeCount}
                   </Badge>
                 )}
                 {isActive && <ChevronRight className="w-4 h-4 ml-auto text-[#2C2621]" />}
@@ -179,6 +190,7 @@ function MobileSidebar({ vendorData }: { vendorData: any }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const { quoteUnreadCount, inboxUnreadCount } = useNotifications();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
@@ -235,7 +247,8 @@ function MobileSidebar({ vendorData }: { vendorData: any }) {
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
-              
+              const badgeCount = navBadgeCount(item.href, quoteUnreadCount, inboxUnreadCount);
+
               return (
                 <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
                   <motion.div
@@ -248,9 +261,9 @@ function MobileSidebar({ vendorData }: { vendorData: any }) {
                   >
                     <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
                     <span className="flex-1">{item.title}</span>
-                    {item.badge && !isActive && (
+                    {badgeCount > 0 && !isActive && (
                       <Badge variant="warning" className="ml-auto">
-                        {item.badge}
+                        {badgeCount > 9 ? '9+' : badgeCount}
                       </Badge>
                     )}
                     {isActive && <ChevronRight className="w-4 h-4 ml-auto text-[#2C2621]" />}
@@ -364,9 +377,9 @@ export default function VendorDashboardLayout({
           </nav>
           
           <div className="ml-auto flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="text-[#6B5E54] border-[#CDC0B0]/50 hover:text-[#2C2621] hover:bg-[#EEDDCC] touch-target rounded-xl"
               onClick={() => {
                 if (vendorData?.slug) {
@@ -380,9 +393,9 @@ export default function VendorDashboardLayout({
               <ExternalLink className="w-4 h-4 mr-2" />
               Public View
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="text-[#6B5E54] hover:text-[#2C2621] hover:bg-[#EEDDCC] touch-target rounded-xl"
               onClick={() => {
                 if (vendorData?.slug) {
@@ -395,6 +408,7 @@ export default function VendorDashboardLayout({
               <Share2 className="w-4 h-4 mr-2" />
               Share Profile
             </Button>
+            <NotificationBell />
           </div>
         </header>
 

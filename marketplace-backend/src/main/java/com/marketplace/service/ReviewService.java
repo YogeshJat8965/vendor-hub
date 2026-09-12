@@ -27,13 +27,25 @@ public class ReviewService {
     private final VendorRepository vendorRepository;
     private final QuoteRequestRepository quoteRequestRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * Can this customer review this vendor right now? Used by the frontend
      * to decide whether to show the review form, an "already reviewed"
      * state, or a "not eligible yet" explanation.
+     *
+     * Eligibility is per COMPLETED ENGAGEMENT (quote), not per vendor: a
+     * customer who has already reviewed one completed job with a vendor can
+     * still review a *different* completed job with that same vendor later
+     * — only re-reviewing the *same* delivered quote is blocked.
+     *
+     * @param quoteId the specific engagement to check, when known (the
+     *                customer's own Quotes page always knows this). Null
+     *                when checking generically from the vendor's public
+     *                profile, in which case the latest completed-but-not-yet
+     *                -reviewed quote with this vendor is used, if any.
      */
-    public Map<String, Object> checkEligibility(String customerUserId, String vendorSlug) {
+    public Map<String, Object> checkEligibility(String customerUserId, String vendorSlug, String quoteId) {
         // authentication.getName() is the JWT subject — the user's Mongo id,
         // not their email — so it must be resolved the same way createReview
         // resolves it, rather than used directly as an email to match against.
@@ -47,27 +59,59 @@ public class ReviewService {
         }
         String customerEmail = customer.getEmail();
 
-        boolean alreadyReviewed = reviewRepository.findByVendorSlugAndCustomerEmail(vendorSlug, customerEmail).isPresent();
-        boolean hasAcceptedQuote = findLatestAcceptedQuote(vendorSlug, customerEmail).isPresent();
+        Optional<QuoteRequest> targetOpt = resolveTargetQuote(vendorSlug, customerEmail, quoteId);
+
+        Map<String, Object> result = new HashMap<>();
+        if (targetOpt.isEmpty()) {
+            // Generic (no quoteId) case: distinguish "nothing completed yet"
+            // from "every completed job with this vendor is already
+            // reviewed" — both end up with no reviewable candidate, but the
+            // frontend shows a different message for each.
+            boolean allCompletedAlreadyReviewed = quoteId == null
+                    && quoteRequestRepository.findByVendorSlugAndCustomerEmail(vendorSlug, customerEmail).stream()
+                            .anyMatch(q -> "COMPLETED".equalsIgnoreCase(q.getStatus()));
+            result.put("eligible", false);
+            result.put("alreadyReviewed", allCompletedAlreadyReviewed);
+            result.put("reason", allCompletedAlreadyReviewed ? "ALREADY_REVIEWED" : "NO_COMPLETED_QUOTE");
+            return result;
+        }
+
+        QuoteRequest target = targetOpt.get();
+        boolean completed = "COMPLETED".equalsIgnoreCase(target.getStatus());
+        boolean alreadyReviewed = reviewRepository.findByQuoteRequestId(target.getId()).isPresent();
 
         String reason = null;
         if (alreadyReviewed) {
             reason = "ALREADY_REVIEWED";
-        } else if (!hasAcceptedQuote) {
-            reason = "NO_ACCEPTED_QUOTE";
+        } else if (!completed) {
+            reason = "NO_COMPLETED_QUOTE";
         }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("eligible", !alreadyReviewed && hasAcceptedQuote);
+        result.put("eligible", completed && !alreadyReviewed);
         result.put("alreadyReviewed", alreadyReviewed);
         result.put("reason", reason);
         return result;
     }
 
-    private Optional<QuoteRequest> findLatestAcceptedQuote(String vendorSlug, String customerEmail) {
+    /**
+     * Resolves which quote a review is "about". With an explicit quoteId
+     * (the customer's own Quotes page always supplies one), that exact
+     * quote is looked up and ownership-checked — its completion/review
+     * status is left for the caller to interpret. Without one (the generic
+     * "Write a Review" button on a vendor's public profile), the latest
+     * completed-and-not-yet-reviewed quote with this vendor is picked
+     * automatically.
+     */
+    private Optional<QuoteRequest> resolveTargetQuote(String vendorSlug, String customerEmail, String quoteId) {
+        if (quoteId != null && !quoteId.isBlank()) {
+            return quoteRequestRepository.findById(quoteId)
+                    .filter(q -> q.getCustomerEmail().equalsIgnoreCase(customerEmail))
+                    .filter(q -> q.getVendorSlug().equals(vendorSlug));
+        }
         return quoteRequestRepository.findByVendorSlugAndCustomerEmail(vendorSlug, customerEmail)
                 .stream()
-                .filter(q -> "ACCEPTED".equalsIgnoreCase(q.getStatus()))
+                .filter(q -> "COMPLETED".equalsIgnoreCase(q.getStatus()))
+                .filter(q -> reviewRepository.findByQuoteRequestId(q.getId()).isEmpty())
                 .max(Comparator.comparing(QuoteRequest::getUpdatedAt, Comparator.nullsFirst(Comparator.naturalOrder())));
     }
 
@@ -84,19 +128,22 @@ public class ReviewService {
         Vendor vendor = vendorRepository.findBySlug(dto.getVendorSlug())
                 .orElseThrow(() -> new RuntimeException("Vendor not found"));
 
-        if (reviewRepository.findByVendorSlugAndCustomerEmail(vendor.getSlug(), customer.getEmail()).isPresent()) {
-            throw new RuntimeException("You have already reviewed this vendor");
-        }
-
-        QuoteRequest acceptedQuote = findLatestAcceptedQuote(vendor.getSlug(), customer.getEmail())
+        QuoteRequest targetQuote = resolveTargetQuote(vendor.getSlug(), customer.getEmail(), dto.getQuoteId())
                 .orElseThrow(() -> new RuntimeException(
-                        "You can review a vendor only after they have accepted your quote request"));
+                        "You can review a vendor only after your project with them is completed"));
+
+        if (!"COMPLETED".equalsIgnoreCase(targetQuote.getStatus())) {
+            throw new RuntimeException("You can review a vendor only after your project with them is completed");
+        }
+        if (reviewRepository.findByQuoteRequestId(targetQuote.getId()).isPresent()) {
+            throw new RuntimeException("You have already reviewed this project");
+        }
 
         Review review = new Review();
         review.setVendorSlug(vendor.getSlug());
         review.setCustomerEmail(customer.getEmail());
         review.setCustomerName(customer.getName());
-        review.setQuoteRequestId(acceptedQuote.getId());
+        review.setQuoteRequestId(targetQuote.getId());
         review.setRating(dto.getRating());
         review.setComment(dto.getComment());
         review.setImages(dto.getImages());
@@ -106,6 +153,11 @@ public class ReviewService {
 
         Review saved = reviewRepository.save(review);
         recomputeVendorRating(vendor.getSlug());
+
+        notificationService.notify(vendor.getId(), "REVIEW", "New review",
+                customer.getName() + " left a " + dto.getRating() + "-star review",
+                "/dashboard/vendor/reviews");
+
         return saved;
     }
 
@@ -148,6 +200,11 @@ public class ReviewService {
         Review saved = reviewRepository.save(review);
 
         recomputeVendorRating(vendor.getSlug());
+
+        notificationService.notifyAdmins("REVIEW_FLAG", "Review flagged",
+                vendor.getStoreName() + " flagged a review for " + reasonCategory,
+                "/dashboard/admin/reviews");
+
         return saved;
     }
 

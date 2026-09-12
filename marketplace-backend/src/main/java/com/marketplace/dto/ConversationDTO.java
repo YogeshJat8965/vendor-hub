@@ -16,4 +16,5 @@ public class ConversationDTO {
     private Instant lastMessageTime;
     private Instant createdAt;
     private Instant updatedAt;
+    private long unreadCount;
 }

@@ -83,6 +83,22 @@ public class MessageController {
         }
     }
 
+    @PutMapping("/api/conversations/{conversationId}/read")
+    public ResponseEntity<?> markConversationRead(@PathVariable String conversationId, @RequestParam String viewerEmail) {
+        try {
+            messagingService.markConversationRead(conversationId, viewerEmail);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/api/conversations/unread-count")
+    public ResponseEntity<?> getTotalUnreadCount(@RequestParam String email, @RequestParam String role) {
+        long count = messagingService.getTotalUnreadCount(email, "VENDOR".equalsIgnoreCase(role));
+        return ResponseEntity.ok(Map.of("count", count));
+    }
+
     @PostMapping("/api/conversations/init")
     public ResponseEntity<?> initConversation(@RequestBody Map<String, String> payload) {
         try {

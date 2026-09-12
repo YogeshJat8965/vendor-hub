@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Star, Search, Loader2, MessageSquare, Flag, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,23 +21,6 @@ interface Review {
   flagged?: boolean;
   flagReason?: string;
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring', stiffness: 300, damping: 24 },
-  },
-};
 
 export default function VendorReviewsPage() {
   const { user } = useAuth();
@@ -80,7 +62,11 @@ export default function VendorReviewsPage() {
     .filter((review) => {
       const matchesSearch = review.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         review.comment.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesRating = ratingFilter === 'all' || review.rating === parseInt(ratingFilter);
+      // "X stars" means "X stars and up" (the standard review-site
+      // convention, e.g. Amazon/Google) — an exact-match filter would show
+      // nothing whenever a vendor happens to have no review at precisely
+      // that count, even if they have higher-rated ones.
+      const matchesRating = ratingFilter === 'all' || review.rating >= parseInt(ratingFilter);
       return matchesSearch && matchesRating;
     })
     .sort((a, b) => {
@@ -211,7 +197,8 @@ export default function VendorReviewsPage() {
                     onClick={() => setRatingFilter(rating.toString())}
                     className={`px-4 h-12 flex items-center justify-center gap-1 rounded-xl font-body transition-colors whitespace-nowrap ${ratingFilter === rating.toString() ? 'bg-[#2C2621] text-[#EEDDCC]' : 'bg-[#FDFBF7] text-[#6B5E54] hover:bg-[#EEDDCC] border border-[#CDC0B0]'}`}
                   >
-                    {rating} <Star className={`w-3.5 h-3.5 ${ratingFilter === rating.toString() ? 'fill-current' : 'fill-[#C4975A] text-[#C4975A]'}`} />
+                    {rating}<Star className={`w-3.5 h-3.5 ${ratingFilter === rating.toString() ? 'fill-current' : 'fill-[#C4975A] text-[#C4975A]'}`} />
+                    {rating < 5 && <span>&amp; Up</span>}
                   </button>
                 ))}
               </div>
@@ -247,14 +234,9 @@ export default function VendorReviewsPage() {
             </CardContent>
           </Card>
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-4"
-          >
+          <div className="space-y-4">
             {filteredReviews.map((review) => (
-              <motion.div key={review.id} variants={itemVariants}>
+              <div key={review.id}>
                 <Card className="hover:shadow-warm-lg transition-shadow border-[#CDC0B0] bg-white rounded-3xl overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
@@ -310,9 +292,9 @@ export default function VendorReviewsPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
         )}
       </div>
 

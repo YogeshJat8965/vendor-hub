@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Filter, Search, X, Loader2, FileText, Star } from 'lucide-react';
+import { Filter, Search, X, Loader2, FileText, Star, PackageCheck, AlertTriangle, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,8 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { QuoteDetailDialog } from '@/components/dialogs/QuoteDetailDialog';
 import { WriteReviewDialog } from '@/components/dialogs/WriteReviewDialog';
+import { ConfirmCompletionDialog } from '@/components/dialogs/ConfirmCompletionDialog';
+import { DisputeDeliveryDialog } from '@/components/dialogs/DisputeDeliveryDialog';
 import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/lib/auth-context';
+import { useNotifications } from '@/lib/notifications-context';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -43,6 +46,7 @@ const sortOptions = [
 
 export default function CustomerQuotesPage() {
   const { user } = useAuth();
+  const { markAllRead } = useNotifications();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,11 +54,18 @@ export default function CustomerQuotesPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [reviewingQuote, setReviewingQuote] = useState<Quote | null>(null);
-  const [reviewedVendorSlugs, setReviewedVendorSlugs] = useState<Set<string>>(new Set());
+  const [confirmingQuote, setConfirmingQuote] = useState<Quote | null>(null);
+  const [disputingQuote, setDisputingQuote] = useState<Quote | null>(null);
+  // Keyed by quote id, not vendor slug — a customer can review each
+  // separately completed engagement with a vendor, so having reviewed one
+  // job must not disable "Rate & Review" on a different completed quote
+  // with the same vendor.
+  const [reviewedQuoteIds, setReviewedQuoteIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
       fetchQuotes();
+      markAllRead('QUOTE');
     }
   }, [user]);
 
@@ -69,6 +80,36 @@ export default function CustomerQuotesPage() {
       setQuotes([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleConfirmCompletion = async () => {
+    if (!confirmingQuote) return;
+    const quote = confirmingQuote;
+    try {
+      await apiClient.put(`/quotes/${quote.id}/confirm-completion`);
+      toast.success('Marked as completed!');
+      setConfirmingQuote(null);
+      await fetchQuotes();
+      // Straight into the review prompt — the whole point of confirming
+      // completion is that the project is done and ready to be rated.
+      setReviewingQuote(quote);
+    } catch (error: any) {
+      console.error('Failed to confirm completion:', error);
+      toast.error(error?.response?.data?.error || 'Failed to confirm completion');
+    }
+  };
+
+  const handleDispute = async (reason: string) => {
+    if (!disputingQuote) return;
+    try {
+      await apiClient.put(`/quotes/${disputingQuote.id}/dispute`, { reason });
+      toast.success('Reported — an admin will review it and follow up');
+      setDisputingQuote(null);
+      await fetchQuotes();
+    } catch (error: any) {
+      console.error('Failed to raise dispute:', error);
+      toast.error(error?.response?.data?.error || 'Failed to submit report');
     }
   };
 
@@ -174,12 +215,12 @@ export default function CustomerQuotesPage() {
 
         {/* Status Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-[#EEDDCC] rounded-2xl p-1 h-auto">
-            {['all', 'pending', 'accepted', 'completed', 'rejected'].map(tab => (
-              <TabsTrigger 
-                key={tab} 
-                value={tab} 
-                className="rounded-xl font-body py-2.5 data-[state=active]:bg-[#2C2621] data-[state=active]:text-[#EEDDCC] text-[#6B5E54] hover:text-[#2C2621]"
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-7 bg-[#EEDDCC] rounded-2xl p-1 h-auto gap-1">
+            {['all', 'pending', 'accepted', 'delivered', 'disputed', 'completed', 'rejected'].map(tab => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="rounded-xl font-body py-2.5 text-xs sm:text-sm data-[state=active]:bg-[#2C2621] data-[state=active]:text-[#EEDDCC] text-[#6B5E54] hover:text-[#2C2621]"
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)} ({getStatusCount(tab)})
               </TabsTrigger>
@@ -246,10 +287,10 @@ export default function CustomerQuotesPage() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex gap-2 pt-6 mt-auto">
-                          <Button 
-                            variant="outline" 
-                            className="flex-1 border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
+                        <div className="flex flex-wrap gap-2 pt-6 mt-auto">
+                          <Button
+                            variant="outline"
+                            className="flex-1 min-w-[calc(50%-0.25rem)] border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
                             onClick={() => setSelectedQuote(quote)}
                           >
                             <FileText className="w-4 h-4 mr-2" />
@@ -257,22 +298,58 @@ export default function CustomerQuotesPage() {
                           </Button>
                           <Button
                             variant="outline"
-                            className="border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
+                            className="flex-1 min-w-[calc(50%-0.25rem)] border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
                             asChild
                           >
                             <Link href={`/vendors/${quote.vendorSlug}`}>
                               View Profile
                             </Link>
                           </Button>
-                          {quote.status.toLowerCase() === 'accepted' && (
+                          <Button
+                            variant="outline"
+                            className="flex-1 min-w-[calc(50%-0.25rem)] border-[#CDC0B0] hover:border-[#9C8E82] hover:bg-[#FDFBF7] text-[#2C2621] rounded-xl font-body"
+                            asChild
+                          >
+                            <Link href={`/dashboard/customer/inbox?quoteId=${quote.id}`}>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Message
+                            </Link>
+                          </Button>
+                          {quote.status.toLowerCase() === 'delivered' && (
+                            <>
+                              <Button
+                                className="flex-1 min-w-[calc(50%-0.25rem)] border-[#8A9A5B]/60 bg-[#8A9A5B]/10 text-[#8A9A5B] hover:bg-[#8A9A5B]/20 rounded-xl font-body"
+                                variant="outline"
+                                onClick={() => setConfirmingQuote(quote)}
+                              >
+                                <PackageCheck className="w-4 h-4 mr-2" />
+                                Confirm Completion
+                              </Button>
+                              <Button
+                                className="flex-1 min-w-[calc(50%-0.25rem)] border-[#B85C5C]/40 text-[#B85C5C] hover:bg-[#B85C5C]/10 rounded-xl font-body"
+                                variant="outline"
+                                onClick={() => setDisputingQuote(quote)}
+                              >
+                                <AlertTriangle className="w-4 h-4 mr-2" />
+                                Report an Issue
+                              </Button>
+                            </>
+                          )}
+                          {quote.status.toLowerCase() === 'disputed' && (
+                            <div className="flex-1 min-w-full flex items-center justify-center gap-2 text-sm font-body text-[#B85C5C] py-2">
+                              <AlertTriangle className="w-4 h-4" />
+                              Under admin review
+                            </div>
+                          )}
+                          {quote.status.toLowerCase() === 'completed' && (
                             <Button
                               variant="outline"
-                              disabled={reviewedVendorSlugs.has(quote.vendorSlug)}
-                              className="border-[#C4975A]/60 text-[#C4975A] hover:bg-[#C4975A]/10 rounded-xl font-body disabled:opacity-60"
+                              disabled={reviewedQuoteIds.has(quote.id)}
+                              className="flex-1 min-w-[calc(50%-0.25rem)] border-[#C4975A]/60 text-[#C4975A] hover:bg-[#C4975A]/10 rounded-xl font-body disabled:opacity-60"
                               onClick={() => setReviewingQuote(quote)}
                             >
                               <Star className="w-4 h-4 mr-2" />
-                              {reviewedVendorSlugs.has(quote.vendorSlug) ? 'Reviewed' : 'Rate & Review'}
+                              {reviewedQuoteIds.has(quote.id) ? 'Reviewed' : 'Rate & Review'}
                             </Button>
                           )}
                         </div>
@@ -327,9 +404,30 @@ export default function CustomerQuotesPage() {
             onClose={() => setReviewingQuote(null)}
             vendorSlug={reviewingQuote.vendorSlug}
             vendorName={reviewingQuote.vendorSlug}
+            quoteId={reviewingQuote.id}
             onSubmitted={() => {
-              setReviewedVendorSlugs(prev => new Set(prev).add(reviewingQuote.vendorSlug));
+              setReviewedQuoteIds(prev => new Set(prev).add(reviewingQuote.id));
             }}
+          />
+        )}
+
+        {/* Confirm Completion Dialog */}
+        {confirmingQuote && (
+          <ConfirmCompletionDialog
+            isOpen={!!confirmingQuote}
+            onClose={() => setConfirmingQuote(null)}
+            serviceRequested={confirmingQuote.serviceRequested}
+            onConfirm={handleConfirmCompletion}
+          />
+        )}
+
+        {/* Dispute Delivery Dialog */}
+        {disputingQuote && (
+          <DisputeDeliveryDialog
+            isOpen={!!disputingQuote}
+            onClose={() => setDisputingQuote(null)}
+            serviceRequested={disputingQuote.serviceRequested}
+            onSubmit={handleDispute}
           />
         )}
       </div>
@@ -341,6 +439,8 @@ function getStatusColor(status: string) {
   const colors: Record<string, string> = {
     pending: 'bg-[#EEDDCC] text-[#2C2621]',
     accepted: 'bg-[#5B8C5A]/20 text-[#5B8C5A]',
+    delivered: 'bg-[#5B8CC4]/20 text-[#5B8CC4]',
+    disputed: 'bg-[#B85C5C]/20 text-[#B85C5C]',
     completed: 'bg-[#CDB79E] text-[#2C2621]',
     rejected: 'bg-[#B85C5C]/20 text-[#B85C5C]',
   };

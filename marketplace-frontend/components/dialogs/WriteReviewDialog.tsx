@@ -14,18 +14,26 @@ interface WriteReviewDialogProps {
   onClose: () => void;
   vendorSlug: string;
   vendorName?: string;
+  // The specific completed engagement this review is for. Omit when writing
+  // generically from the vendor's public profile (no particular quote in
+  // context) — the backend then picks the latest completed-and-unreviewed
+  // quote with this vendor, if any. Passing it (as the customer's own Quotes
+  // page does) scopes eligibility to that one engagement, so having already
+  // reviewed a different completed job with the same vendor never blocks a
+  // new one.
+  quoteId?: string;
   onSubmitted?: () => void;
 }
 
 interface Eligibility {
   eligible: boolean;
   alreadyReviewed: boolean;
-  reason: 'ALREADY_REVIEWED' | 'NO_ACCEPTED_QUOTE' | null;
+  reason: 'ALREADY_REVIEWED' | 'NO_COMPLETED_QUOTE' | null;
 }
 
 const MIN_COMMENT_LENGTH = 10;
 
-export function WriteReviewDialog({ isOpen, onClose, vendorSlug, vendorName, onSubmitted }: WriteReviewDialogProps) {
+export function WriteReviewDialog({ isOpen, onClose, vendorSlug, vendorName, quoteId, onSubmitted }: WriteReviewDialogProps) {
   const [checking, setChecking] = useState(true);
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
   const [rating, setRating] = useState(0);
@@ -44,12 +52,12 @@ export function WriteReviewDialog({ isOpen, onClose, vendorSlug, vendorName, onS
     setComment('');
 
     apiClient
-      .get('/reviews/eligibility', { params: { vendorSlug } })
+      .get('/reviews/eligibility', { params: quoteId ? { vendorSlug, quoteId } : { vendorSlug } })
       .then((res) => {
         if (!cancelled) setEligibility(res.data);
       })
       .catch(() => {
-        if (!cancelled) setEligibility({ eligible: false, alreadyReviewed: false, reason: 'NO_ACCEPTED_QUOTE' });
+        if (!cancelled) setEligibility({ eligible: false, alreadyReviewed: false, reason: 'NO_COMPLETED_QUOTE' });
       })
       .finally(() => {
         if (!cancelled) setChecking(false);
@@ -58,7 +66,7 @@ export function WriteReviewDialog({ isOpen, onClose, vendorSlug, vendorName, onS
     return () => {
       cancelled = true;
     };
-  }, [isOpen, vendorSlug]);
+  }, [isOpen, vendorSlug, quoteId]);
 
   const handleSubmit = async () => {
     if (rating < 1) {
@@ -72,7 +80,7 @@ export function WriteReviewDialog({ isOpen, onClose, vendorSlug, vendorName, onS
 
     setSubmitting(true);
     try {
-      await apiClient.post('/reviews', { vendorSlug, rating, comment: comment.trim() });
+      await apiClient.post('/reviews', { vendorSlug, quoteId, rating, comment: comment.trim() });
       toast.success('Review submitted — thank you for your feedback!');
       onSubmitted?.();
       onClose();
@@ -104,6 +112,8 @@ export function WriteReviewDialog({ isOpen, onClose, vendorSlug, vendorName, onS
         <AnimatePresence mode="wait">
           {checking ? (
             <motion.div key="loading" className="p-12 flex flex-col items-center justify-center gap-4">
+              <DialogTitle className="sr-only">Write a Review</DialogTitle>
+              <DialogDescription className="sr-only">Checking your eligibility to review this vendor.</DialogDescription>
               <Loader2 className="w-8 h-8 text-[#C4975A] animate-spin" />
               <p className="font-body text-[#6B5E54] text-sm">Checking eligibility...</p>
             </motion.div>
@@ -120,7 +130,7 @@ export function WriteReviewDialog({ isOpen, onClose, vendorSlug, vendorName, onS
               {renderInfoState(
                 <Clock className="w-10 h-10 text-[#C4975A]" />,
                 'Not Eligible Yet',
-                `You can review ${vendorName || 'this vendor'} once they've accepted a quote request from you.`
+                `You can review ${vendorName || 'this vendor'} once a project with them is marked completed.`
               )}
             </motion.div>
           ) : (

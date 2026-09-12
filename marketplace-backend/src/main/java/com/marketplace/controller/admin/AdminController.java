@@ -2,12 +2,15 @@ package com.marketplace.controller.admin;
 
 import com.marketplace.dto.FlaggedReviewDto;
 import com.marketplace.model.Category;
+import com.marketplace.model.QuoteRequest;
 import com.marketplace.model.Review;
 import com.marketplace.model.vendor.Vendor;
 import com.marketplace.repository.CategoryRepository;
 import com.marketplace.repository.UserRepository;
 import com.marketplace.repository.VendorRepository;
 import com.marketplace.repository.ReviewRepository;
+import com.marketplace.service.NotificationService;
+import com.marketplace.service.QuoteService;
 import com.marketplace.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +28,8 @@ public class AdminController {
     private final ReviewRepository reviewRepository;
     private final ReviewService reviewService;
     private final CategoryRepository categoryRepository;
+    private final NotificationService notificationService;
+    private final QuoteService quoteService;
     
     @GetMapping("/dashboard")
     public ResponseEntity<?> getAdminDashboard() {
@@ -94,7 +99,13 @@ public class AdminController {
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable String reviewId) {
         try {
+            // Fetched before deletion — the review (and the vendor/customer
+            // to notify about the outcome) won't exist to look up afterwards.
+            Review review = reviewRepository.findById(reviewId).orElse(null);
             reviewService.deleteReview(reviewId);
+            notifyFlagResolved(review, "Review removed",
+                    "Your flag was upheld — the review was removed.",
+                    "A review you wrote was removed by an admin.");
             return ResponseEntity.ok(Map.of("message", "Review deleted"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -104,13 +115,52 @@ public class AdminController {
     @PutMapping("/reviews/{reviewId}/unflag")
     public ResponseEntity<?> unflagReview(@PathVariable String reviewId) {
         try {
+            Review review = reviewRepository.findById(reviewId).orElse(null);
             reviewService.unflagReview(reviewId);
+            notifyFlagResolved(review, "Flag dismissed",
+                    "Your flag was reviewed and dismissed — the review is back on your profile.",
+                    null);
             return ResponseEntity.ok(Map.of("message", "Review unflagged"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    /**
+     * Notifies the vendor who flagged the review of the outcome, and — only
+     * when the review was actually removed (customerMessage non-null) — the
+     * customer who wrote it, if they have an account.
+     */
+    private void notifyFlagResolved(Review review, String title, String vendorMessage, String customerMessage) {
+        if (review == null) {
+            return;
+        }
+        vendorRepository.findBySlug(review.getVendorSlug()).ifPresent(vendor ->
+                notificationService.notify(vendor.getId(), "REVIEW_FLAG", title, vendorMessage,
+                        "/dashboard/vendor/reviews"));
+
+        if (customerMessage != null) {
+            userRepository.findByEmail(review.getCustomerEmail()).ifPresent(customer ->
+                    notificationService.notify(customer.getId(), "REVIEW", "Review removed", customerMessage,
+                            "/dashboard/customer/quotes"));
+        }
+    }
     
+    @GetMapping("/quotes/disputed")
+    public ResponseEntity<?> getDisputedQuotes() {
+        return ResponseEntity.ok(quoteService.getDisputedQuotes());
+    }
+
+    @PutMapping("/quotes/{quoteId}/resolve-dispute")
+    public ResponseEntity<?> resolveDispute(@PathVariable String quoteId, @RequestBody Map<String, String> payload) {
+        try {
+            QuoteRequest updated = quoteService.resolveDispute(quoteId, payload.get("resolution"));
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userRepository.findAll());
@@ -144,28 +194,34 @@ public class AdminController {
             .map(vendor -> {
                 vendor.setStatus("ACTIVE");
                 vendorRepository.save(vendor);
+                notificationService.notify(vendor.getId(), "ACCOUNT", "Account approved",
+                        "Your vendor account has been approved. You're live on VendorHub.", "/dashboard/vendor");
                 return ResponseEntity.ok(Map.of("message", "Vendor approved"));
             })
             .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @PutMapping("/vendors/{vendorId}/reject")
     public ResponseEntity<?> rejectVendor(@PathVariable String vendorId, @RequestBody Map<String, String> payload) {
         return vendorRepository.findById(vendorId)
             .map(vendor -> {
                 vendor.setStatus("REJECTED");
                 vendorRepository.save(vendor);
+                notificationService.notify(vendor.getId(), "ACCOUNT", "Account rejected",
+                        "Your vendor account application was rejected.", "/dashboard/vendor");
                 return ResponseEntity.ok(Map.of("message", "Vendor rejected"));
             })
             .orElse(ResponseEntity.notFound().build());
     }
-    
+
     @PutMapping("/vendors/{vendorId}/suspend")
     public ResponseEntity<?> suspendVendor(@PathVariable String vendorId) {
         return vendorRepository.findById(vendorId)
             .map(vendor -> {
                 vendor.setStatus("SUSPENDED");
                 vendorRepository.save(vendor);
+                notificationService.notify(vendor.getId(), "ACCOUNT", "Account suspended",
+                        "Your vendor account has been suspended. Contact support for details.", "/dashboard/vendor");
                 return ResponseEntity.ok(Map.of("message", "Vendor suspended"));
             })
             .orElse(ResponseEntity.notFound().build());

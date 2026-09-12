@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, X, Filter, Loader2, FileText, CheckCircle, XCircle, Clock, Send } from 'lucide-react';
+import { Search, X, Filter, Loader2, FileText, CheckCircle, XCircle, Clock, Send, PackageCheck, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,6 +18,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/auth-context';
+import { useNotifications } from '@/lib/notifications-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -49,6 +50,7 @@ const sortOptions = [
 
 export default function VendorQuotesPage() {
   const { user } = useAuth();
+  const { markAllRead } = useNotifications();
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSort, setSelectedSort] = useState('newest');
@@ -63,6 +65,7 @@ export default function VendorQuotesPage() {
   useEffect(() => {
     if (user) {
       fetchQuotes();
+      markAllRead('QUOTE');
     }
   }, [user]);
 
@@ -134,6 +137,17 @@ export default function VendorQuotesPage() {
     }
   };
 
+  const handleMarkDelivered = async (quoteId: string) => {
+    try {
+      await apiClient.put(`/quotes/${quoteId}/deliver`);
+      toast.success('Marked as delivered — waiting on the customer to confirm');
+      fetchQuotes();
+    } catch (error: any) {
+      console.error('Failed to mark quote delivered:', error);
+      toast.error(error?.response?.data?.error || 'Failed to mark as delivered');
+    }
+  };
+
   const handleSubmitQuote = async () => {
     if (!selectedQuote) return;
     
@@ -173,6 +187,8 @@ export default function VendorQuotesPage() {
       pending: 'bg-[#EEDDCC] text-[#2C2621]',
       new: 'bg-[#EEDDCC] text-[#2C2621]',
       accepted: 'bg-[#5B8C5A]/20 text-[#5B8C5A]',
+      delivered: 'bg-[#5B8CC4]/20 text-[#5B8CC4]',
+      disputed: 'bg-[#B85C5C]/20 text-[#B85C5C]',
       completed: 'bg-[#CDB79E] text-[#2C2621]',
       rejected: 'bg-[#B85C5C]/20 text-[#B85C5C]',
     };
@@ -248,12 +264,12 @@ export default function VendorQuotesPage() {
 
       {/* Status Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-[#EEDDCC] rounded-2xl p-1 h-auto">
-          {['all', 'pending', 'accepted', 'completed', 'rejected'].map(tab => (
-            <TabsTrigger 
-              key={tab} 
-              value={tab} 
-              className="rounded-xl font-body py-2.5 data-[state=active]:bg-[#2C2621] data-[state=active]:text-[#EEDDCC] text-[#6B5E54] hover:text-[#2C2621]"
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-7 bg-[#EEDDCC] rounded-2xl p-1 h-auto gap-1">
+          {['all', 'pending', 'accepted', 'delivered', 'disputed', 'completed', 'rejected'].map(tab => (
+            <TabsTrigger
+              key={tab}
+              value={tab}
+              className="rounded-xl font-body py-2.5 text-xs sm:text-sm data-[state=active]:bg-[#2C2621] data-[state=active]:text-[#EEDDCC] text-[#6B5E54] hover:text-[#2C2621]"
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)} ({getStatusCount(tab)})
             </TabsTrigger>
@@ -321,8 +337,8 @@ export default function VendorQuotesPage() {
 
                       {/* Actions */}
                       {(quote.status?.toLowerCase() === 'new' || quote.status?.toLowerCase() === 'pending') && (
-                        <div className="flex gap-2 pt-6 mt-auto">
-                          <Button 
+                        <div className="flex flex-wrap gap-2 pt-6 mt-auto">
+                          <Button
                             variant="outline"
                             size="sm"
                             className="flex-1 bg-[#2C2621] hover:bg-[#3A332C] text-[#EEDDCC] hover:text-white border-none rounded-xl font-body"
@@ -331,7 +347,7 @@ export default function VendorQuotesPage() {
                             <Send className="w-4 h-4 mr-2" />
                             Respond
                           </Button>
-                          <Button 
+                          <Button
                             variant="outline"
                             size="sm"
                             className="flex-1 border-[#5B8C5A]/30 text-[#5B8C5A] hover:bg-[#5B8C5A]/10 rounded-xl font-body"
@@ -340,7 +356,7 @@ export default function VendorQuotesPage() {
                             <CheckCircle className="w-4 h-4 mr-2" />
                             Accept
                           </Button>
-                          <Button 
+                          <Button
                             variant="outline"
                             size="sm"
                             className="flex-1 border-[#B85C5C]/30 text-[#B85C5C] hover:bg-[#B85C5C]/10 rounded-xl font-body"
@@ -349,6 +365,103 @@ export default function VendorQuotesPage() {
                             <XCircle className="w-4 h-4 mr-2" />
                             Decline
                           </Button>
+                        </div>
+                      )}
+
+                      {quote.status?.toLowerCase() === 'quoted' && (
+                        <div className="flex flex-wrap gap-2 pt-6 mt-auto">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-[#CDC0B0] text-[#2C2621] hover:bg-[#EEDDCC] rounded-xl font-body"
+                            asChild
+                          >
+                            <Link href={`/dashboard/vendor/inbox?quoteId=${quote.id}`}>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Message
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-[#5B8C5A]/30 text-[#5B8C5A] hover:bg-[#5B8C5A]/10 rounded-xl font-body"
+                            onClick={() => handleAccept(quote.id)}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Accept
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-[#B85C5C]/30 text-[#B85C5C] hover:bg-[#B85C5C]/10 rounded-xl font-body"
+                            onClick={() => handleDecline(quote.id)}
+                          >
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Decline
+                          </Button>
+                        </div>
+                      )}
+
+                      {quote.status?.toLowerCase() === 'accepted' && (
+                        <div className="flex flex-wrap gap-2 pt-6 mt-auto">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-[#CDC0B0] text-[#2C2621] hover:bg-[#EEDDCC] rounded-xl font-body"
+                            asChild
+                          >
+                            <Link href={`/dashboard/vendor/inbox?quoteId=${quote.id}`}>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Message
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-[#5B8CC4]/30 text-[#5B8CC4] hover:bg-[#5B8CC4]/10 rounded-xl font-body"
+                            onClick={() => handleMarkDelivered(quote.id)}
+                          >
+                            <PackageCheck className="w-4 h-4 mr-2" />
+                            Mark as Delivered
+                          </Button>
+                        </div>
+                      )}
+
+                      {quote.status?.toLowerCase() === 'delivered' && (
+                        <div className="flex flex-wrap gap-2 pt-6 mt-auto items-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-[#CDC0B0] text-[#2C2621] hover:bg-[#EEDDCC] rounded-xl font-body"
+                            asChild
+                          >
+                            <Link href={`/dashboard/vendor/inbox?quoteId=${quote.id}`}>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Message
+                            </Link>
+                          </Button>
+                          <span className="flex-1 min-w-[calc(50%-0.25rem)] text-center text-sm font-body text-[#9C8E82]">
+                            Waiting on customer confirmation
+                          </span>
+                        </div>
+                      )}
+
+                      {quote.status?.toLowerCase() === 'disputed' && (
+                        <div className="flex flex-wrap gap-2 pt-6 mt-auto items-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 border-[#CDC0B0] text-[#2C2621] hover:bg-[#EEDDCC] rounded-xl font-body"
+                            asChild
+                          >
+                            <Link href={`/dashboard/vendor/inbox?quoteId=${quote.id}`}>
+                              <MessageSquare className="w-4 h-4 mr-2" />
+                              Message
+                            </Link>
+                          </Button>
+                          <span className="flex-1 min-w-[calc(50%-0.25rem)] text-center text-sm font-body text-[#B85C5C]">
+                            Disputed — admin is reviewing
+                          </span>
                         </div>
                       )}
                     </CardContent>
@@ -393,10 +506,12 @@ export default function VendorQuotesPage() {
               <Input
                 id="quote-amount"
                 type="number"
+                min="0"
+                max="10000000"
                 placeholder="Enter amount"
                 value={quoteAmount}
                 onChange={(e) => setQuoteAmount(e.target.value)}
-                className="h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body"
+                className="h-12 w-full max-w-full rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body"
               />
             </div>
 
@@ -408,6 +523,7 @@ export default function VendorQuotesPage() {
                 placeholder="Include details about services, timeline, materials, etc."
                 value={responseMessage}
                 onChange={(e) => setResponseMessage(e.target.value)}
+                maxLength={1000}
                 className="min-h-[120px] rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body"
               />
             </div>

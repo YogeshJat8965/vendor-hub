@@ -37,6 +37,7 @@ com/marketplace/repository/ConversationRepository.class
 com/marketplace/config/PresenceEventListener.class
 com/marketplace/repository/QuoteRequestRepository.class
 com/marketplace/model/Subscription.class
+com/marketplace/controller/NotificationController.class
 com/marketplace/model/User.class
 com/marketplace/model/Notification.class
 com/marketplace/controller/CatalogueController.class
@@ -58,6 +59,7 @@ com/marketplace/model/vendor/Vendor.class
 com/marketplace/service/JwtService.class
 com/marketplace/controller/vendor/VendorDashboardController.class
 com/marketplace/controller/vendor/VendorController.class
+com/marketplace/service/NotificationService.class
 com/marketplace/model/CustomerProfile.class
 com/marketplace/config/WebSocketConfig.class
 com/marketplace/repository/CatalogueRepository.class

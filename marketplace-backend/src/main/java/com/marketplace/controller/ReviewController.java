@@ -24,11 +24,14 @@ public class ReviewController {
      * (drives the "Write a Review" button's state on the frontend).
      */
     @GetMapping("/eligibility")
-    public ResponseEntity<?> checkEligibility(@RequestParam String vendorSlug, Authentication authentication) {
+    public ResponseEntity<?> checkEligibility(
+            @RequestParam String vendorSlug,
+            @RequestParam(required = false) String quoteId,
+            Authentication authentication) {
         try {
             // authentication.getName() is the JWT subject, i.e. the user's
             // Mongo id — resolved to an email inside the service, same as createReview.
-            return ResponseEntity.ok(reviewService.checkEligibility(authentication.getName(), vendorSlug));
+            return ResponseEntity.ok(reviewService.checkEligibility(authentication.getName(), vendorSlug, quoteId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

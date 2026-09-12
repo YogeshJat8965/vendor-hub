@@ -4,6 +4,7 @@ import com.marketplace.model.QuoteRequest;
 import com.marketplace.service.QuoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
@@ -78,6 +79,42 @@ public class QuoteController {
             String estimatedTime = (String) payload.get("estimatedTime");
             
             QuoteRequest updated = quoteService.respondToQuote(quoteId, response, estimatedCost, estimatedTime);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /** Vendor marks an accepted job as delivered — the customer still has to confirm before it's Completed. */
+    @PutMapping("/{quoteId}/deliver")
+    public ResponseEntity<?> markDelivered(@PathVariable String quoteId, Authentication authentication) {
+        try {
+            QuoteRequest updated = quoteService.markDelivered(quoteId, authentication.getName());
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /** Customer confirms delivery actually happened — this is what unlocks the review. */
+    @PutMapping("/{quoteId}/confirm-completion")
+    public ResponseEntity<?> confirmCompletion(@PathVariable String quoteId, Authentication authentication) {
+        try {
+            QuoteRequest updated = quoteService.confirmCompletion(quoteId, authentication.getName());
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /** Customer's alternative to confirming: the delivery wasn't right, so escalate to admin instead. */
+    @PutMapping("/{quoteId}/dispute")
+    public ResponseEntity<?> raiseDispute(
+            @PathVariable String quoteId,
+            @RequestBody Map<String, String> payload,
+            Authentication authentication) {
+        try {
+            QuoteRequest updated = quoteService.raiseDispute(quoteId, authentication.getName(), payload.get("reason"));
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

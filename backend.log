@@ -190,3 +190,71 @@ This generated password is for development use only. Your security configuration
 2026-09-12T14:06:43.306+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /api/conversations/6aa5017e2581a3325e1739c5/messages
 2026-09-12T14:06:45.036+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /api/conversations/6aa5060d8864145de588080a/messages
 2026-09-12T14:06:45.039+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /api/conversations/6aa5060d8864145de588080a/messages
+2026-09-12T14:28:25.710+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-1] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications/unread-count
+2026-09-12T14:28:25.716+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing GET /ws/info?t=1789203505699
+2026-09-12T14:28:25.716+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications
+2026-09-12T14:28:25.718+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-2] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.716+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications
+2026-09-12T14:28:25.719+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Secured GET /ws/info?t=1789203505699
+2026-09-12T14:28:25.716+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications/unread-count
+2026-09-12T14:28:25.730+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications
+2026-09-12T14:28:25.730+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications/unread-count
+2026-09-12T14:28:25.736+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing GET /ws/930/4s345yoh/websocket
+2026-09-12T14:28:25.737+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-9] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.738+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Secured GET /ws/930/4s345yoh/websocket
+2026-09-12T14:28:25.751+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.751+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.756+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:25.756+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:25.775+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:25.776+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:25.775+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:25.777+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:25.800+05:30 ERROR 249464 --- [marketplace-backend] [nio-8080-exec-8] c.m.config.WebSocketAuthInterceptor      : WebSocket auth error: JWT expired 1374799 milliseconds ago at 2026-09-12T08:35:31.000Z. Current time: 2026-09-12T08:58:25.799Z. Allowed clock skew: 0 milliseconds.
+2026-09-12T14:28:25.810+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.811+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.813+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications/unread-count
+2026-09-12T14:28:25.817+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications
+2026-09-12T14:28:25.821+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.823+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:25.822+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.824+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:25.826+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:25.826+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:25.829+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:25.831+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:25.831+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:25.834+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:26.813+05:30  INFO 249464 --- [marketplace-backend] [nio-8080-exec-5] c.m.config.PresenceEventListener         : User devendrapatidar@gmail.com is now offline
+2026-09-12T14:28:39.612+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-2] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications/unread-count
+2026-09-12T14:28:39.612+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications/unread-count
+2026-09-12T14:28:39.613+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-9] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications
+2026-09-12T14:28:39.614+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing OPTIONS /api/notifications
+2026-09-12T14:28:39.625+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications/unread-count
+2026-09-12T14:28:39.625+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications
+2026-09-12T14:28:39.627+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.627+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.628+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:39.628+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:39.629+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:39.629+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:39.629+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:39.629+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:39.631+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.634+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.636+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications
+2026-09-12T14:28:39.636+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /api/notifications/unread-count
+2026-09-12T14:28:39.638+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.639+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:39.639+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:39.640+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:39.640+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.641+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access
+2026-09-12T14:28:39.641+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing GET /error
+2026-09-12T14:28:39.642+05:30 DEBUG 249464 --- [marketplace-backend] [nio-8080-exec-3] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.642+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured GET /error
+2026-09-12T14:28:39.643+05:30 DEBUG 249464 --- [marketplace-backend] [io-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-09-12T14:28:39.694+05:30  INFO 249464 --- [marketplace-backend] [nio-8080-exec-6] c.m.config.PresenceEventListener         : User yjcustomer@gmail.com is now offline
+2026-09-12T14:29:14.768+05:30  INFO 249464 --- [marketplace-backend] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopping...
+2026-09-12T14:29:14.770+05:30  INFO 249464 --- [marketplace-backend] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@66b6873f]]
+2026-09-12T14:29:14.771+05:30  INFO 249464 --- [marketplace-backend] [ionShutdownHook] o.s.m.s.b.SimpleBrokerMessageHandler     : Stopped.

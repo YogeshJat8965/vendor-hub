@@ -9,5 +9,5 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     List<Review> findByVendorSlug(String vendorSlug);
     List<Review> findByFlagged(boolean flagged);
     long countByVendorSlug(String vendorSlug);
-    Optional<Review> findByVendorSlugAndCustomerEmail(String vendorSlug, String customerEmail);
+    Optional<Review> findByQuoteRequestId(String quoteRequestId);
 }

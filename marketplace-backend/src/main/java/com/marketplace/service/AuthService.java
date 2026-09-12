@@ -40,7 +40,7 @@ public class AuthService {
         User saved = userRepository.save(user);
         return jwtService.generateToken(saved.getId(), saved.getEmail(), saved.getRole(), saved.getName());
     }
-    
+
     public String vendorSignup(VendorRegistrationDto dto) {
         if (vendorRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Email already in use");

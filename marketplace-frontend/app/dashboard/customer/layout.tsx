@@ -17,13 +17,23 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { useNotifications } from '@/lib/notifications-context';
 import { useEffect } from 'react';
 import { apiClient } from '@/lib/api-client';
+
+/** Live unread badge for a nav item — Quotes and Inbox each track their own count. */
+function navBadgeCount(href: string, quoteUnreadCount: number, inboxUnreadCount: number): number {
+  if (href.endsWith('/quotes')) return quoteUnreadCount;
+  if (href.endsWith('/inbox')) return inboxUnreadCount;
+  return 0;
+}
 
 const navItems = [
   {
@@ -57,6 +67,7 @@ function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { quoteUnreadCount, inboxUnreadCount } = useNotifications();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
@@ -112,7 +123,8 @@ function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
-          
+          const badgeCount = navBadgeCount(item.href, quoteUnreadCount, inboxUnreadCount);
+
           return (
             <Link key={item.href} href={item.href}>
               <motion.div
@@ -125,6 +137,11 @@ function Sidebar() {
               >
                 <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
                 <span className="flex-1">{item.title}</span>
+                {badgeCount > 0 && !isActive && (
+                  <Badge variant="warning" className="ml-auto">
+                    {badgeCount > 9 ? '9+' : badgeCount}
+                  </Badge>
+                )}
                 {isActive && <ChevronRight className="w-4 h-4 ml-auto text-[#2C2621]" />}
               </motion.div>
             </Link>
@@ -163,6 +180,7 @@ function MobileSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { quoteUnreadCount, inboxUnreadCount } = useNotifications();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
@@ -233,7 +251,8 @@ function MobileSidebar() {
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               const Icon = item.icon;
-              
+              const badgeCount = navBadgeCount(item.href, quoteUnreadCount, inboxUnreadCount);
+
               return (
                 <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>
                   <motion.div
@@ -246,6 +265,11 @@ function MobileSidebar() {
                   >
                     <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
                     <span className="flex-1">{item.title}</span>
+                    {badgeCount > 0 && !isActive && (
+                      <Badge variant="warning" className="ml-auto">
+                        {badgeCount > 9 ? '9+' : badgeCount}
+                      </Badge>
+                    )}
                     {isActive && <ChevronRight className="w-4 h-4 ml-auto text-[#2C2621]" />}
                   </motion.div>
                 </Link>
@@ -339,6 +363,10 @@ export default function CustomerDashboardLayout({
               </div>
             ))}
           </nav>
+
+          <div className="ml-auto flex items-center">
+            <NotificationBell />
+          </div>
         </header>
 
         {/* Page Content */}

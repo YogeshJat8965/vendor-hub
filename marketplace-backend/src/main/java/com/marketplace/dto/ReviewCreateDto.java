@@ -14,6 +14,12 @@ public class ReviewCreateDto {
     @NotBlank
     private String vendorSlug;
 
+    // Optional: which specific completed engagement this review is for.
+    // Omitted when reviewing generically from the vendor's public profile
+    // (no particular quote in context) — the service then picks the latest
+    // completed quote with this vendor that doesn't already have a review.
+    private String quoteId;
+
     @NotNull
     @Min(1)
     @Max(5)
