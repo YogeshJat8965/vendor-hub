@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 import {
   LayoutDashboard,
   Users,
@@ -14,7 +15,10 @@ import {
   X,
   LogOut,
   Shield,
-  AlertTriangle
+  BarChart3,
+  Truck,
+  Layers,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -26,56 +30,134 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LogoutDialog } from '@/components/dialogs/LogoutDialog';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
-const navItems = [
+/**
+ * Grouped so the sidebar reads as a control panel rather than a flat list.
+ * Analytics is included here because the page has always existed at
+ * /dashboard/admin/analytics but was never linked from anywhere — it was
+ * reachable only by typing the URL.
+ */
+const navSections = [
   {
-    name: 'Dashboard',
-    href: '/dashboard/admin',
-    icon: LayoutDashboard,
+    label: 'Overview',
+    items: [
+      { name: 'Dashboard', href: '/dashboard/admin', icon: LayoutDashboard },
+      { name: 'Analytics', href: '/dashboard/admin/analytics', icon: BarChart3 },
+    ],
   },
   {
-    name: 'Vendors',
-    href: '/dashboard/admin/vendors',
-    icon: Building2,
-    badge: 8, // Pending approvals
+    label: 'People',
+    items: [
+      { name: 'Users', href: '/dashboard/admin/users', icon: Users },
+      { name: 'Vendors', href: '/dashboard/admin/vendors', icon: Building2 },
+      { name: 'Subscriptions', href: '/dashboard/admin/subscriptions', icon: CreditCard },
+    ],
   },
   {
-    name: 'Users',
-    href: '/dashboard/admin/users',
-    icon: Users,
+    label: 'Operations',
+    items: [
+      { name: 'Flagged Reviews', href: '/dashboard/admin/reviews', icon: Flag },
+      { name: 'Deliveries', href: '/dashboard/admin/deliveries', icon: Truck },
+    ],
   },
   {
-    name: 'Categories',
-    href: '/dashboard/admin/categories',
-    icon: FolderTree,
-  },
-  {
-    name: 'Flagged Reviews',
-    href: '/dashboard/admin/reviews',
-    icon: Flag,
-    badge: 3,
-  },
-  {
-    name: 'Delivery Disputes',
-    href: '/dashboard/admin/disputes',
-    icon: AlertTriangle,
-  },
-  {
-    name: 'Settings',
-    href: '/dashboard/admin/settings',
-    icon: Settings,
+    label: 'Configuration',
+    items: [
+      { name: 'Plans', href: '/dashboard/admin/plans', icon: Layers },
+      { name: 'Categories', href: '/dashboard/admin/categories', icon: FolderTree },
+      { name: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
+    ],
   },
 ];
 
-// Mock admin data
-const adminData = {
-  name: 'Admin User',
-  email: 'admin@marketplace.com',
-  role: 'Super Admin',
-};
+interface BadgeCounts {
+  vendorApprovals: number;
+  flaggedReviews: number;
+  disputes: number;
+}
+
+/** Live pending-vendor, flagged-review and dispute counts, replacing what used to be hardcoded sidebar badges. */
+function useAdminBadgeCounts(): BadgeCounts {
+  const [counts, setCounts] = useState<BadgeCounts>({
+    vendorApprovals: 0,
+    flaggedReviews: 0,
+    disputes: 0,
+  });
+
+  useEffect(() => {
+    apiClient
+      .get('/admin/pending-actions')
+      .then((res) => {
+        const actions: any[] = res.data || [];
+        setCounts({
+          vendorApprovals: actions.filter((a) => a.type === 'vendor_approval').length,
+          flaggedReviews: actions.filter((a) => a.type === 'flagged_review').length,
+          disputes: actions.filter((a) => a.type === 'dispute').length,
+        });
+      })
+      .catch((err) => console.error('Failed to fetch pending action counts', err));
+  }, []);
+
+  return counts;
+}
+
+function navBadge(href: string, counts: BadgeCounts): number {
+  if (href.endsWith('/vendors')) return counts.vendorApprovals;
+  if (href.endsWith('/reviews')) return counts.flaggedReviews;
+  if (href.endsWith('/deliveries')) return counts.disputes;
+  return 0;
+}
+
+/**
+ * The nav itself, shared by the desktop sidebar and the mobile sheet so the
+ * two can never drift apart.
+ */
+function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const badgeCounts = useAdminBadgeCounts();
+
+  return (
+    <nav className="space-y-5 py-4">
+      {navSections.map((section) => (
+        <div key={section.label}>
+          <p className="px-3 pb-1.5 font-body text-[11px] font-semibold uppercase tracking-wider text-[#9C8E82]">
+            {section.label}
+          </p>
+          <div className="space-y-1">
+            {section.items.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+              const badgeCount = navBadge(item.href, badgeCounts);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 font-body font-medium ${
+                    isActive
+                      ? 'bg-[#EEDDCC] text-[#2C2621] shadow-warm-sm'
+                      : 'text-[#6B5E54] hover:bg-[#E7DBCD]/50 hover:text-[#2C2621]'
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
+                  <span className="flex-1">{item.name}</span>
+                  {badgeCount > 0 && (
+                    <Badge variant="warning" className={`ml-auto ${isActive ? 'bg-white shadow-warm-sm' : ''}`}>
+                      {badgeCount}
+                    </Badge>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
+}
 
 function Sidebar() {
-  const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
@@ -102,11 +184,11 @@ function Sidebar() {
       <div className="p-4">
         <div className="flex items-center gap-3 p-3 bg-[#FDFBF7] rounded-xl border border-[#CDC0B0]/30">
           <div className="w-10 h-10 rounded-full bg-[#CDB79E] flex items-center justify-center text-[#2C2621] font-heading font-bold text-lg shadow-warm-sm">
-            {adminData.name.charAt(0)}
+            {(user?.name || 'A').charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-heading font-semibold text-sm text-[#2C2621] truncate">{adminData.name}</p>
-            <p className="text-xs text-[#6B5E54] font-body truncate">{adminData.role}</p>
+            <p className="font-heading font-semibold text-sm text-[#2C2621] truncate">{user?.name || 'Admin'}</p>
+            <p className="text-xs text-[#6B5E54] font-body truncate">{user?.email || 'Administrator'}</p>
           </div>
         </div>
       </div>
@@ -115,35 +197,7 @@ function Sidebar() {
 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3">
-        <nav className="space-y-1 py-4">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 font-body font-medium ${
-                  isActive
-                    ? 'bg-[#EEDDCC] text-[#2C2621] shadow-warm-sm'
-                    : 'text-[#6B5E54] hover:bg-[#E7DBCD]/50 hover:text-[#2C2621]'
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
-                <span className="flex-1">{item.name}</span>
-                {item.badge && (
-                  <Badge 
-                    variant="warning" 
-                    className={`ml-auto ${isActive ? 'bg-white shadow-warm-sm' : ''}`}
-                  >
-                    {item.badge}
-                  </Badge>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        <AdminNav />
       </ScrollArea>
 
       <Separator />
@@ -174,8 +228,7 @@ function Sidebar() {
 
 function MobileSidebar() {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const handleLogout = () => {
@@ -212,11 +265,11 @@ function MobileSidebar() {
           <div className="p-4">
             <div className="flex items-center gap-3 p-3 bg-[#FDFBF7] rounded-xl border border-[#CDC0B0]/30">
               <div className="w-10 h-10 rounded-full bg-[#CDB79E] flex items-center justify-center text-[#2C2621] font-heading font-bold text-lg shadow-warm-sm">
-                {adminData.name.charAt(0)}
+                {(user?.name || 'A').charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-heading font-semibold text-sm text-[#2C2621] truncate">{adminData.name}</p>
-                <p className="text-xs text-[#6B5E54] font-body truncate">{adminData.role}</p>
+                <p className="font-heading font-semibold text-sm text-[#2C2621] truncate">{user?.name || 'Admin'}</p>
+                <p className="text-xs text-[#6B5E54] font-body truncate">{user?.email || 'Administrator'}</p>
               </div>
             </div>
           </div>
@@ -225,36 +278,7 @@ function MobileSidebar() {
 
           {/* Navigation */}
           <ScrollArea className="flex-1 px-3">
-            <nav className="space-y-1 py-4">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                const Icon = item.icon;
-                
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 font-body font-medium ${
-                      isActive
-                        ? 'bg-[#EEDDCC] text-[#2C2621] shadow-warm-sm'
-                        : 'text-[#6B5E54] hover:bg-[#E7DBCD]/50 hover:text-[#2C2621]'
-                    }`}
-                  >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-[#2C2621]' : 'text-[#9C8E82]'}`} />
-                    <span className="flex-1">{item.name}</span>
-                    {item.badge && (
-                      <Badge 
-                        variant="warning" 
-                        className={`ml-auto ${isActive ? 'bg-white shadow-warm-sm' : ''}`}
-                      >
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+            <AdminNav onNavigate={() => setOpen(false)} />
           </ScrollArea>
 
           <Separator />
@@ -292,24 +316,25 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
 
-  // Generate breadcrumbs
-  const generateBreadcrumbs = () => {
-    const paths = pathname.split('/').filter(Boolean);
-    const breadcrumbs = paths.map((path, index) => {
-      let href = '/' + paths.slice(0, index + 1).join('/');
-      
-      // Fix: if the breadcrumb is just /dashboard, redirect to full dashboard path
-      if (href === '/dashboard') {
-        href = '/dashboard/admin';
-      }
-      
-      const label = path.charAt(0).toUpperCase() + path.slice(1);
-      return { href, label };
-    });
-    return breadcrumbs;
-  };
+  /**
+   * "Admin / Flagged Reviews" rather than "Dashboard / Admin / Reviews".
+   * The old version title-cased raw URL segments, so the current page was
+   * labelled by its folder name instead of the name shown in the sidebar.
+   */
+  const breadcrumbs = (() => {
+    const crumbs = [{ href: '/dashboard/admin', label: 'Admin' }];
+    if (pathname === '/dashboard/admin') return crumbs;
 
-  const breadcrumbs = generateBreadcrumbs();
+    const navName = navSections
+      .flatMap((section) => section.items)
+      .find((item) => item.href === pathname)?.name;
+
+    const segment = pathname.split('/').filter(Boolean).pop() ?? '';
+    const fallback = segment.charAt(0).toUpperCase() + segment.slice(1);
+
+    crumbs.push({ href: pathname, label: navName ?? fallback });
+    return crumbs;
+  })();
 
   return (
     <ProtectedRoute requiredRole="admin">

@@ -1,16 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle, Trash2, Eye, Star, Loader2, Download } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Trash2,
+  Eye,
+  Star,
+  Loader2,
+  Download,
+  Flag,
+  ShieldCheck,
+  ExternalLink,
+  Mail,
+  Calendar,
+  FileText,
+} from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import {
+  AdminPageHeader,
+  AdminStatCard,
+  AdminFilterBar,
+  AdminDataTable,
+  AdminStatusBadge,
+  AdminConfirmDialog,
+  exportToCsv,
+  type Column,
+  type FilterPill,
+} from '@/components/admin';
 
 // Matches the categories a vendor can pick when flagging a review
 // (components/dialogs/FlagReviewDialog.tsx) and the backend's Review.flagReason.
@@ -24,15 +56,7 @@ const REASON_LABELS: Record<FlagReason, string> = {
   OTHER: 'Other',
 };
 
-const REASON_BADGE_STYLES: Record<FlagReason, string> = {
-  FAKE: 'bg-red-100 text-red-700',
-  COMPETITOR: 'bg-red-100 text-red-700',
-  OFFENSIVE: 'bg-orange-100 text-orange-700',
-  SPAM: 'bg-yellow-100 text-yellow-700',
-  OTHER: 'bg-gray-100 text-gray-700',
-};
-
-interface FlaggedReview {
+interface AdminReview {
   id: string;
   vendorSlug: string;
   vendorName: string;
@@ -40,81 +64,143 @@ interface FlaggedReview {
   customerEmail: string;
   rating: number;
   comment: string;
-  flagReason: FlagReason;
+  images?: string[];
+  verifiedPurchase: boolean;
+  flagged: boolean;
+  flagReason?: FlagReason;
   flagDetails?: string;
-  flaggedAt: string;
+  flaggedAt?: string;
   createdAt: string;
+  quoteRequestId?: string;
+  linkedQuote?: { id: string; service: string; status: string } | null;
+}
+
+type PillValue = 'all' | 'flagged' | 'low';
+type DateRange = 'all' | '7' | '30' | '90';
+
+function renderStars(rating: number) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`w-3.5 h-3.5 ${star <= rating ? 'fill-[#C4975A] text-[#C4975A]' : 'text-[#CDC0B0]'}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function ModerateReviewsPage() {
   const { user } = useAuth();
-  const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
+  const [reviews, setReviews] = useState<AdminReview[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [reasonFilter, setReasonFilter] = useState('all');
-  const [selectedReview, setSelectedReview] = useState<FlaggedReview | null>(null);
-  const [actionDialog, setActionDialog] = useState<'approve' | 'delete' | 'view' | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      fetchFlaggedReviews();
-    }
-  }, [user]);
+  const [search, setSearch] = useState('');
+  const [pill, setPill] = useState<PillValue>('all');
+  const [vendorFilter, setVendorFilter] = useState('all');
+  const [ratingFilter, setRatingFilter] = useState('all');
+  const [dateRange, setDateRange] = useState<DateRange>('all');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
-  const fetchFlaggedReviews = async () => {
+  const [selected, setSelected] = useState<AdminReview | null>(null);
+  const [dialog, setDialog] = useState<'view' | 'dismiss' | 'delete' | null>(null);
+  const [reason, setReason] = useState('');
+
+  const fetchReviews = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await apiClient.get('/admin/reviews/flagged');
-      setFlaggedReviews(response.data || []);
+      const res = await apiClient.get('/admin/reviews');
+      setReviews(res.data || []);
     } catch (error) {
-      console.error('Failed to fetch flagged reviews:', error);
-      toast.error('Failed to load flagged reviews');
+      console.error('Failed to fetch reviews:', error);
+      toast.error('Failed to load reviews');
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (user) fetchReviews();
+  }, [user, fetchReviews]);
+
+  const counts = useMemo(() => ({
+    all: reviews.length,
+    flagged: reviews.filter((r) => r.flagged).length,
+    low: reviews.filter((r) => r.rating <= 2).length,
+  }), [reviews]);
+
+  const vendors = useMemo(
+    () => [...new Set(reviews.map((r) => r.vendorName))].sort(),
+    [reviews]
+  );
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const cutoff = dateRange === 'all' ? null : Date.now() - Number(dateRange) * 86400000;
+
+    return reviews.filter((r) => {
+      if (pill === 'flagged' && !r.flagged) return false;
+      if (pill === 'low' && r.rating > 2) return false;
+      if (vendorFilter !== 'all' && r.vendorName !== vendorFilter) return false;
+      if (ratingFilter !== 'all' && r.rating !== Number(ratingFilter)) return false;
+      if (verifiedOnly && !r.verifiedPurchase) return false;
+      if (cutoff !== null) {
+        const created = new Date(r.createdAt).getTime();
+        if (Number.isNaN(created) || created < cutoff) return false;
+      }
+      if (!query) return true;
+      return [r.customerName, r.customerEmail, r.vendorName, r.comment]
+        .some((f) => f?.toLowerCase().includes(query));
+    });
+  }, [reviews, pill, vendorFilter, ratingFilter, dateRange, verifiedOnly, search]);
+
+  const pills: FilterPill<PillValue>[] = [
+    { value: 'all', label: 'All', count: counts.all },
+    { value: 'flagged', label: 'Flagged', count: counts.flagged, tone: 'danger' },
+    { value: 'low', label: 'Low rated (≤2★)', count: counts.low, tone: 'warning' },
+  ];
+
+  const openDetail = (review: AdminReview) => {
+    setSelected(review);
+    setDialog('view');
   };
 
-  const filteredReviews = flaggedReviews.filter((review) => {
-    return reasonFilter === 'all' || review.flagReason === reasonFilter;
-  });
-
-  const reasonCounts = {
-    all: flaggedReviews.length,
-    FAKE: flaggedReviews.filter((r) => r.flagReason === 'FAKE').length,
-    COMPETITOR: flaggedReviews.filter((r) => r.flagReason === 'COMPETITOR').length,
-    OFFENSIVE: flaggedReviews.filter((r) => r.flagReason === 'OFFENSIVE').length,
-    SPAM: flaggedReviews.filter((r) => r.flagReason === 'SPAM').length,
-    OTHER: flaggedReviews.filter((r) => r.flagReason === 'OTHER').length,
-  };
-
-  const handleApprove = async () => {
-    if (!selectedReview) return;
-
+  const runDismiss = async () => {
+    if (!selected) return;
     setIsSubmitting(true);
     try {
-      await apiClient.put(`/admin/reviews/${selectedReview.id}/unflag`);
-      toast.success('Review restored — it now counts toward the vendor’s rating again');
-      await fetchFlaggedReviews();
-      setActionDialog(null);
-      setSelectedReview(null);
+      await apiClient.put(`/admin/reviews/${selected.id}/unflag`);
+      toast.success('Flag dismissed — the review counts toward the vendor’s rating again');
+      await fetchReviews();
+      setDialog(null);
+      setSelected(null);
     } catch (error) {
-      console.error('Failed to approve review:', error);
-      toast.error('Failed to approve review');
+      console.error('Failed to dismiss flag:', error);
+      toast.error('Failed to dismiss the flag');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedReview) return;
-
+  const runDelete = async () => {
+    if (!selected) return;
     setIsSubmitting(true);
     try {
-      await apiClient.delete(`/admin/reviews/${selectedReview.id}`);
+      await apiClient.delete(`/admin/reviews/${selected.id}`, { data: { reason } });
       toast.success('Review deleted permanently');
-      await fetchFlaggedReviews();
-      setActionDialog(null);
-      setSelectedReview(null);
+      await fetchReviews();
+      setDialog(null);
+      setSelected(null);
+      setReason('');
     } catch (error) {
       console.error('Failed to delete review:', error);
       toast.error('Failed to delete review');
@@ -123,337 +209,339 @@ export default function ModerateReviewsPage() {
     }
   };
 
-  const exportToCSV = () => {
-    if (filteredReviews.length === 0) {
-      toast.info('Nothing to export');
-      return;
-    }
-
-    const csvData = filteredReviews.map((review) => ({
-      'Review ID': review.id,
-      Customer: review.customerName,
-      Vendor: review.vendorName,
-      Rating: review.rating,
-      Comment: review.comment.replace(/"/g, '""'),
-      'Flag Reason': REASON_LABELS[review.flagReason] || review.flagReason,
-      'Flag Details': (review.flagDetails || '').replace(/"/g, '""'),
-      'Flagged Date': review.flaggedAt ? new Date(review.flaggedAt).toLocaleDateString() : '',
-    }));
-
-    const headers = Object.keys(csvData[0]);
-    const csv = [
-      headers.join(','),
-      ...csvData.map((row) => headers.map((header) => `"${row[header as keyof typeof row]}"`).join(',')),
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `flagged_reviews_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-    toast.success('Reviews data exported successfully');
+  const handleExport = () => {
+    const ok = exportToCsv(`vendorhub-reviews-${pill}`, filtered, [
+      { header: 'Customer', value: (r) => r.customerName },
+      { header: 'Email', value: (r) => r.customerEmail },
+      { header: 'Vendor', value: (r) => r.vendorName },
+      { header: 'Rating', value: (r) => r.rating },
+      { header: 'Comment', value: (r) => r.comment },
+      { header: 'Verified purchase', value: (r) => (r.verifiedPurchase ? 'Yes' : 'No') },
+      { header: 'Flagged', value: (r) => (r.flagged ? 'Yes' : 'No') },
+      { header: 'Flag reason', value: (r) => (r.flagReason ? REASON_LABELS[r.flagReason] : '') },
+      { header: 'Flag details', value: (r) => r.flagDetails ?? '' },
+      { header: 'Posted', value: (r) => formatDate(r.createdAt) },
+    ]);
+    if (ok) toast.success(`Exported ${filtered.length} review${filtered.length === 1 ? '' : 's'}`);
+    else toast.error('Nothing to export — no reviews match the current filters');
   };
 
-  const getReasonBadge = (reason: FlagReason) => (
-    <Badge className={REASON_BADGE_STYLES[reason] || REASON_BADGE_STYLES.OTHER}>
-      {REASON_LABELS[reason] || reason}
-    </Badge>
-  );
-
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`w-4 h-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-      </div>
-    );
-  }
+  const columns: Column<AdminReview>[] = [
+    {
+      key: 'reviewer',
+      header: 'Reviewer',
+      sortValue: (r) => r.customerName?.toLowerCase() ?? '',
+      cell: (r) => (
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-full bg-[#6B8CAE]/14 text-[#3F5A75] flex items-center justify-center shrink-0 font-heading font-bold text-sm">
+            {(r.customerName || '?').charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-[#2C2621] truncate">{r.customerName}</p>
+            <p className="text-xs text-[#9C8E82] truncate">{r.vendorName}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'rating',
+      header: 'Rating',
+      sortValue: (r) => r.rating,
+      cell: (r) => renderStars(r.rating),
+    },
+    {
+      key: 'comment',
+      header: 'Comment',
+      hideOnMobile: true,
+      cell: (r) => (
+        <p className="text-sm text-[#6B5E54] line-clamp-2 max-w-sm">{r.comment}</p>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      hideOnMobile: true,
+      cell: (r) => (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {r.flagged ? (
+            <Badge variant="destructive">
+              <Flag className="w-3 h-3" />
+              {r.flagReason ? REASON_LABELS[r.flagReason] : 'Flagged'}
+            </Badge>
+          ) : (
+            <Badge variant="success">Clean</Badge>
+          )}
+          {r.verifiedPurchase && (
+            <Badge variant="outline" className="text-[#5B8C5A] border-[#5B8C5A]/30">
+              <ShieldCheck className="w-3 h-3" />
+              Verified
+            </Badge>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'posted',
+      header: 'Posted',
+      sortValue: (r) => new Date(r.createdAt).getTime() || 0,
+      hideOnMobile: true,
+      cell: (r) => <span className="text-xs text-[#6B5E54]">{formatDate(r.createdAt)}</span>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      headerClassName: 'text-right',
+      className: 'text-right',
+      cell: (r) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openDetail(r); }} aria-label="View review">
+            <Eye className="w-4 h-4" />
+          </Button>
+          {r.flagged && (
+            <Button variant="ghost" size="sm" className="text-[#5B8C5A] hover:bg-[#5B8C5A] hover:text-white"
+              onClick={(e) => { e.stopPropagation(); setSelected(r); setDialog('dismiss'); }}>
+              <CheckCircle2 className="w-4 h-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" className="text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white"
+            onClick={(e) => { e.stopPropagation(); setSelected(r); setDialog('delete'); setReason(''); }}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Moderate Flagged Reviews</h1>
-          <p className="text-gray-600">
-            Reviews vendors have disputed — each is excluded from its vendor&apos;s public rating until you decide.
-          </p>
-        </div>
-        <Button onClick={exportToCSV} variant="outline">
-          <Download className="w-4 h-4 mr-2" />
-          Export CSV
-        </Button>
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Reviews"
+        description="Every review on the platform — flagged, low-rated, or clean"
+        actions={
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="w-4 h-4" />
+            Export CSV
+          </Button>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <AdminStatCard label="Total Reviews" value={counts.all} icon={Star} tone="accent" />
+        <AdminStatCard
+          label="Flagged"
+          value={counts.flagged}
+          icon={Flag}
+          tone={counts.flagged ? 'danger' : 'neutral'}
+        />
+        <AdminStatCard
+          label="Low Rated (≤2★)"
+          value={counts.low}
+          icon={AlertTriangle}
+          tone={counts.low ? 'warning' : 'neutral'}
+        />
+        <AdminStatCard
+          label="Verified Purchases"
+          value={reviews.filter((r) => r.verifiedPurchase).length}
+          icon={ShieldCheck}
+          tone="success"
+        />
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold">{reasonCounts.all}</p>
-            <p className="text-sm text-gray-600">Total Flagged</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-red-600">{reasonCounts.FAKE}</p>
-            <p className="text-sm text-gray-600">Suspected Fake</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-red-600">{reasonCounts.COMPETITOR}</p>
-            <p className="text-sm text-gray-600">Suspected Competitor</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-3xl font-bold text-orange-600">
-              {reasonCounts.OFFENSIVE + reasonCounts.SPAM + reasonCounts.OTHER}
-            </p>
-            <p className="text-sm text-gray-600">Offensive / Spam / Other</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Reason Filter */}
-      <Tabs value={reasonFilter} onValueChange={setReasonFilter}>
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto">
-          <TabsTrigger value="all" className="py-2">All ({reasonCounts.all})</TabsTrigger>
-          <TabsTrigger value="FAKE" className="py-2">Fake ({reasonCounts.FAKE})</TabsTrigger>
-          <TabsTrigger value="COMPETITOR" className="py-2">Competitor ({reasonCounts.COMPETITOR})</TabsTrigger>
-          <TabsTrigger value="OFFENSIVE" className="py-2">Offensive ({reasonCounts.OFFENSIVE})</TabsTrigger>
-          <TabsTrigger value="SPAM" className="py-2">Spam ({reasonCounts.SPAM})</TabsTrigger>
-          <TabsTrigger value="OTHER" className="py-2">Other ({reasonCounts.OTHER})</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {/* Flagged Reviews List */}
-      <div className="space-y-4">
-        {filteredReviews.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No flagged reviews</h3>
-              <p className="text-gray-600">All reviews have been moderated</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredReviews.map((review) => (
-            <Card key={review.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
-                      <Avatar className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500">
-                        <AvatarFallback className="bg-transparent text-white">
-                          {review.customerName.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold">{review.customerName}</h3>
-                        <p className="text-sm text-gray-600">
-                          Review for <span className="font-medium">{review.vendorName}</span>
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          {renderStars(review.rating)}
-                          <span className="text-sm text-gray-500">{formatDate(review.createdAt)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    {getReasonBadge(review.flagReason)}
-                  </div>
-
-                  {/* Review Content */}
-                  <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                    <p className="text-gray-700">{review.comment}</p>
-                  </div>
-
-                  {/* Flag Details */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start gap-2 mb-2">
-                      <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm">Flag Reason:</p>
-                        <p className="text-sm text-gray-700">{REASON_LABELS[review.flagReason] || review.flagReason}</p>
-                        {review.flagDetails && (
-                          <p className="text-sm text-gray-600 mt-1 italic">&ldquo;{review.flagDetails}&rdquo;</p>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Flagged by {review.vendorName} on {formatDate(review.flaggedAt)}
-                    </p>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedReview(review);
-                        setActionDialog('view');
-                      }}
-                      className="touch-target"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      View Details
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 touch-target"
-                      onClick={() => {
-                        setSelectedReview(review);
-                        setActionDialog('approve');
-                      }}
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Dismiss Flag
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 touch-target"
-                      onClick={() => {
-                        setSelectedReview(review);
-                        setActionDialog('delete');
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Uphold & Delete
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+      <AdminFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search by customer, vendor or comment…"
+        pills={pills}
+        activePill={pill}
+        onPillChange={(value) => setPill(value)}
+      >
+        {vendors.length > 0 && (
+          <Select value={vendorFilter} onValueChange={setVendorFilter}>
+            <SelectTrigger className="w-44 h-11">
+              <SelectValue placeholder="All vendors" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All vendors</SelectItem>
+              {vendors.map((v) => (
+                <SelectItem key={v} value={v}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         )}
-      </div>
+        <Select value={ratingFilter} onValueChange={setRatingFilter}>
+          <SelectTrigger className="w-36 h-11">
+            <SelectValue placeholder="All ratings" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All ratings</SelectItem>
+            {[5, 4, 3, 2, 1].map((n) => (
+              <SelectItem key={n} value={String(n)}>{n} star{n === 1 ? '' : 's'}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
+          <SelectTrigger className="w-36 h-11">
+            <SelectValue placeholder="All time" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All time</SelectItem>
+            <SelectItem value="7">Last 7 days</SelectItem>
+            <SelectItem value="30">Last 30 days</SelectItem>
+            <SelectItem value="90">Last 90 days</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          variant={verifiedOnly ? 'default' : 'outline'}
+          size="sm"
+          className="h-11"
+          onClick={() => setVerifiedOnly((v) => !v)}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          Verified only
+        </Button>
+      </AdminFilterBar>
 
-      {/* View Details Dialog */}
-      <Dialog open={actionDialog === 'view'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
+      <AdminDataTable
+        rows={filtered}
+        columns={columns}
+        rowKey={(r) => r.id}
+        isLoading={isLoading}
+        onRowClick={openDetail}
+        pageSize={15}
+        emptyTitle="No reviews match these filters"
+        emptyDescription="Try a different tab or clear the search."
+      />
+
+      {/* Detail */}
+      <Dialog open={dialog === 'view'} onOpenChange={(open) => !open && setDialog(null)}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Review Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              {selected?.customerName}
+              {selected?.flagged && <Badge variant="destructive">Flagged</Badge>}
+              {selected?.verifiedPurchase && (
+                <Badge variant="outline" className="text-[#5B8C5A] border-[#5B8C5A]/30">Verified</Badge>
+              )}
+            </DialogTitle>
+            <DialogDescription>Review for {selected?.vendorName}</DialogDescription>
           </DialogHeader>
-          {selectedReview && (
+
+          {selected && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold">{selectedReview.customerName}</p>
-                  <p className="text-sm text-gray-500">{selectedReview.customerEmail}</p>
+                {renderStars(selected.rating)}
+                <span className="text-xs text-[#9C8E82]">{formatDate(selected.createdAt)}</span>
+              </div>
+
+              <div className="rounded-xl bg-[#FDFBF7] border border-[#CDC0B0]/40 p-3">
+                <p className="text-sm text-[#2C2621] whitespace-pre-line break-words">{selected.comment}</p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex items-start gap-2">
+                  <Mail className="w-4 h-4 text-[#9C8E82] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#9C8E82]">Customer email</p>
+                    <p className="text-sm text-[#2C2621] break-words">{selected.customerEmail}</p>
+                  </div>
                 </div>
-                {renderStars(selectedReview.rating)}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-1">Vendor</p>
-                <p className="text-sm text-gray-700">{selectedReview.vendorName}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-1">Review</p>
-                <p className="text-sm text-gray-700 whitespace-pre-line">{selectedReview.comment}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-1">Flag Reason</p>
-                <p className="text-sm text-gray-700">
-                  {REASON_LABELS[selectedReview.flagReason] || selectedReview.flagReason}
-                </p>
-                {selectedReview.flagDetails && (
-                  <p className="text-sm text-gray-600 mt-1 italic">&ldquo;{selectedReview.flagDetails}&rdquo;</p>
+                {selected.linkedQuote && (
+                  <div className="flex items-start gap-2">
+                    <FileText className="w-4 h-4 text-[#9C8E82] mt-0.5 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs text-[#9C8E82]">Linked quote</p>
+                      <p className="text-sm text-[#2C2621] break-words">
+                        {selected.linkedQuote.service}{' '}
+                        <AdminStatusBadge status={selected.linkedQuote.status} className="ml-1" />
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="text-xs text-gray-500">
-                Submitted {formatDate(selectedReview.createdAt)} &middot; Flagged {formatDate(selectedReview.flaggedAt)}
+
+              {selected.flagged && (
+                <div className="rounded-xl border border-[#B85C5C]/30 bg-[#B85C5C]/8 p-3">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-[#8E4343] mb-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Flagged by {selected.vendorName}
+                    {selected.flaggedAt ? ` on ${formatDate(selected.flaggedAt)}` : ''}
+                  </p>
+                  <p className="text-sm text-[#6B5E54]">
+                    {selected.flagReason ? REASON_LABELS[selected.flagReason] : 'No reason given'}
+                  </p>
+                  {selected.flagDetails && (
+                    <p className="text-sm text-[#6B5E54] mt-1 italic">&ldquo;{selected.flagDetails}&rdquo;</p>
+                  )}
+                </div>
+              )}
+
+              <Link
+                href={`/vendors/${selected.vendorSlug}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 text-sm text-[#C4975A] hover:underline"
+              >
+                View vendor storefront
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Link>
+
+              <div className="flex gap-2 pt-2">
+                {selected.flagged && (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setDialog('dismiss')}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    Dismiss flag
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  className="flex-1 text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white border-[#B85C5C]/30"
+                  onClick={() => { setDialog('delete'); setReason(''); }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete review
+                </Button>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)}>
-              Close
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Approve Dialog */}
-      <Dialog open={actionDialog === 'approve'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Dismiss Flag</DialogTitle>
-            <DialogDescription>
-              This review will be marked as safe and the flag will be removed. It will remain visible and count
-              toward the vendor&apos;s rating again.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Dismissing...
-                </>
-              ) : (
-                'Dismiss Flag'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Dismiss flag */}
+      <AdminConfirmDialog
+        open={dialog === 'dismiss'}
+        onOpenChange={(open) => !open && setDialog(null)}
+        title="Dismiss this flag?"
+        description="The review is restored and counts toward the vendor's public rating again. The vendor who flagged it is notified."
+        confirmLabel="Dismiss flag"
+        isSubmitting={isSubmitting}
+        onConfirm={runDismiss}
+      />
 
-      {/* Delete Dialog */}
-      <Dialog open={actionDialog === 'delete'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Uphold Flag & Delete Review</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. The review will be permanently removed from the platform.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button onClick={handleDelete} className="bg-red-600 hover:bg-red-700" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete Permanently'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete */}
+      <AdminConfirmDialog
+        open={dialog === 'delete'}
+        onOpenChange={(open) => !open && setDialog(null)}
+        title="Delete this review?"
+        description="This cannot be undone. The review is removed permanently and both the vendor and the customer are notified."
+        confirmLabel="Delete permanently"
+        destructive
+        isSubmitting={isSubmitting}
+        onConfirm={runDelete}
+      >
+        <div>
+          <Label htmlFor="delete-reason" className="mb-2">Reason (optional, shown to both parties)</Label>
+          <Textarea
+            id="delete-reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Why this review is being removed"
+            className="min-h-20"
+          />
+        </div>
+      </AdminConfirmDialog>
     </div>
   );
 }

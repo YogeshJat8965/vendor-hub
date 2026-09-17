@@ -24,9 +24,32 @@ export default function CatalogueBuilderPage() {
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(!isNew);
-  const [vendorPlan, setVendorPlan] = useState('BASIC');
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingItemMedia, setUploadingItemMedia] = useState<Record<string, boolean>>({});
+
+  /**
+   * The server-side source for every limit and feature flag on this page.
+   * Previously the editor hardcoded `maxAllowed = 5` images while the backend
+   * enforced 3 or 7 depending on plan — a vendor could add five and only find
+   * out the mismatch when saving failed. There is now exactly one number.
+   */
+  const [entitlements, setEntitlements] = useState<{
+    plan: { code: string; name: string };
+    limits: {
+      maxItemsPerCatalogue: number;
+      maxImagesPerItem: number;
+      maxCoverImages: number;
+      maxDescriptionChars: number;
+    };
+    features: {
+      allowsPriceRange: boolean;
+      allowsMaterialsDetails: boolean;
+      allowsProjectTimeline: boolean;
+      allowsBeforeAfterImages: boolean;
+      allowsVideo: boolean;
+      allowsPdfBrochure: boolean;
+    };
+  } | null>(null);
 
   const [catalogue, setCatalogue] = useState({
     name: '',
@@ -36,23 +59,23 @@ export default function CatalogueBuilderPage() {
   });
 
   useEffect(() => {
-    // Fetch vendor details to know plan limits
-    const fetchVendorDetails = async () => {
+    // Fetch the plan's real limits and feature flags — never guessed
+    // client-side, so this can never drift from what the backend enforces.
+    const fetchEntitlements = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
         const token = localStorage.getItem('authToken');
-        const res = await fetch(`${apiUrl}/api/vendor/profile?email=${user?.email}`, {
+        const res = await fetch(`${apiUrl}/api/vendor/plan`, {
           headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
         });
         if (res.ok) {
-          const data = await res.json();
-          setVendorPlan(data.subscriptionPlan || 'BASIC');
+          setEntitlements(await res.json());
         }
       } catch (err) {}
     };
 
     if (user?.email) {
-      fetchVendorDetails();
+      fetchEntitlements();
       if (!isNew) fetchCatalogue();
     }
   }, [user, id]);
@@ -117,9 +140,14 @@ export default function CatalogueBuilderPage() {
   };
 
   const addItem = () => {
-    const maxItems = 3;
-    if (catalogue.items.length >= maxItems) {
-      return toast.error(`Maximum 3 items allowed per catalogue.`);
+    // Every plan used to be capped at 3 items regardless of tier — the
+    // "Services per Catalogue: Limited vs More" row of the plan matrix was
+    // never actually implemented. This now reads the real per-plan limit.
+    const maxItems = entitlements?.limits.maxItemsPerCatalogue ?? 2;
+    if (maxItems !== -1 && catalogue.items.length >= maxItems) {
+      return toast.error(
+        `Maximum ${maxItems} item${maxItems === 1 ? '' : 's'} allowed per catalogue on the ${entitlements?.plan.name ?? 'current'} plan.`
+      );
     }
     setCatalogue({
       ...catalogue,
@@ -175,10 +203,17 @@ export default function CatalogueBuilderPage() {
     if (!files || files.length === 0 || !user?.email) return;
     
     const currentImages = catalogue.items[index].images || [];
-    const maxAllowed = 5;
-    
-    if (currentImages.length + files.length > maxAllowed) {
-      return toast.error(`Maximum ${maxAllowed} images allowed for your plan.`);
+    // The real limit from the vendor's plan — this used to be a hardcoded 5
+    // regardless of tier, while the backend actually enforced 3 or 7, so a
+    // Basic vendor could add five here and only discover the mismatch when
+    // the save was rejected.
+    const maxAllowed = entitlements?.limits.maxImagesPerItem ?? 3;
+    const unlimited = maxAllowed === -1;
+
+    if (!unlimited && currentImages.length + files.length > maxAllowed) {
+      return toast.error(
+        `Maximum ${maxAllowed} image${maxAllowed === 1 ? '' : 's'} allowed on the ${entitlements?.plan.name ?? 'current'} plan.`
+      );
     }
 
     setItemUploading(index, 'images', true);
@@ -243,7 +278,16 @@ export default function CatalogueBuilderPage() {
     </div>
   );
 
-  const isPremium = vendorPlan === 'PREMIUM';
+  // Each flag resolved individually from the server — a plan is not simply
+  // "Premium or not", an admin can turn any one of these on or off for any tier.
+  const allowsVideo = entitlements?.features.allowsVideo ?? false;
+  const allowsPdfBrochure = entitlements?.features.allowsPdfBrochure ?? false;
+  const allowsBeforeAfterImages = entitlements?.features.allowsBeforeAfterImages ?? false;
+  const allowsPriceRange = entitlements?.features.allowsPriceRange ?? false;
+  const allowsMaterialsDetails = entitlements?.features.allowsMaterialsDetails ?? false;
+  const allowsProjectTimeline = entitlements?.features.allowsProjectTimeline ?? false;
+  const maxDescriptionChars = entitlements?.limits.maxDescriptionChars ?? 150;
+  const maxItemsPerCatalogue = entitlements?.limits.maxItemsPerCatalogue ?? 2;
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] rounded-3xl p-4 sm:p-8 space-y-8 pb-20">
@@ -292,12 +336,18 @@ export default function CatalogueBuilderPage() {
               </div>
               <div className="space-y-2">
                 <Label className="font-body text-[#2C2621] font-medium">Description</Label>
-                <Textarea 
-                  placeholder="Briefly describe this catalogue..." 
+                <Textarea
+                  placeholder="Briefly describe this catalogue..."
                   className="resize-none h-28 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body"
                   value={catalogue.description}
+                  maxLength={maxDescriptionChars === -1 ? undefined : maxDescriptionChars}
                   onChange={e => setCatalogue({...catalogue, description: e.target.value})}
                 />
+                {maxDescriptionChars !== -1 && (
+                  <p className="text-xs font-body text-[#9C8E82] text-right">
+                    {catalogue.description.length} / {maxDescriptionChars}
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -306,13 +356,15 @@ export default function CatalogueBuilderPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-[#CDC0B0] shadow-warm-sm">
             <h2 className="text-xl font-heading font-bold text-[#2C2621] flex items-center gap-3">
-              Catalogue Items 
-              <Badge className="bg-[#EEDDCC] text-[#2C2621] hover:bg-[#EEDDCC] font-body font-medium">{catalogue.items.length} / 3 Max</Badge>
+              Catalogue Items
+              <Badge className="bg-[#EEDDCC] text-[#2C2621] hover:bg-[#EEDDCC] font-body font-medium">
+                {catalogue.items.length} / {maxItemsPerCatalogue === -1 ? '∞' : `${maxItemsPerCatalogue} Max`}
+              </Badge>
             </h2>
-            <Button 
-              variant="outline" 
-              onClick={addItem} 
-              disabled={catalogue.items.length >= 3}
+            <Button
+              variant="outline"
+              onClick={addItem}
+              disabled={maxItemsPerCatalogue !== -1 && catalogue.items.length >= maxItemsPerCatalogue}
               className="border-[#C4975A] text-[#C4975A] hover:bg-[#C4975A]/10 hover:text-[#C4975A] rounded-xl font-body disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="h-4 w-4 mr-2" /> Add Item
@@ -408,15 +460,23 @@ export default function CatalogueBuilderPage() {
                           </Select>
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          <Label className="font-body text-[#2C2621] font-medium">Price Range</Label>
+                        <div className={`space-y-2 ${!allowsPriceRange ? 'opacity-60 grayscale-[30%] pointer-events-none' : ''}`}>
+                          <Label className="font-body text-[#2C2621] font-medium flex items-center gap-1">
+                            Price Range {!allowsPriceRange && <Lock className="h-3 w-3 text-[#C4975A]" />}
+                          </Label>
                           <Input
                             list="price-ranges"
+                            disabled={!allowsPriceRange}
                             placeholder="e.g. ₹50,000 - ₹1,00,000"
                             value={item.priceRange || ''}
                             onChange={e => updateItem(index, 'priceRange', e.target.value)}
                             className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
                           />
+                          {!allowsPriceRange && (
+                            <p className="text-xs font-body text-[#C4975A]">
+                              <Link href="/pricing" className="underline">Upgrade</Link> to show a detailed price range instead of just a starting price.
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -442,20 +502,26 @@ export default function CatalogueBuilderPage() {
                       )
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label className="font-body text-[#2C2621] font-medium">Materials Details</Label>
+                        <div className={`space-y-2 ${!allowsMaterialsDetails ? 'opacity-60 grayscale-[30%] pointer-events-none' : ''}`}>
+                          <Label className="font-body text-[#2C2621] font-medium flex items-center gap-1">
+                            Materials Details {!allowsMaterialsDetails && <Lock className="h-3 w-3 text-[#C4975A]" />}
+                          </Label>
                           <Input
                             list="materials"
+                            disabled={!allowsMaterialsDetails}
                             placeholder="e.g. Premium Plywood & Laminate"
                             value={item.materialsDetails || ''}
                             onChange={e => updateItem(index, 'materialsDetails', e.target.value)}
                             className="rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body h-12"
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label className="font-body text-[#2C2621] font-medium">Project Timeline</Label>
+                        <div className={`space-y-2 ${!allowsProjectTimeline ? 'opacity-60 grayscale-[30%] pointer-events-none' : ''}`}>
+                          <Label className="font-body text-[#2C2621] font-medium flex items-center gap-1">
+                            Project Timeline {!allowsProjectTimeline && <Lock className="h-3 w-3 text-[#C4975A]" />}
+                          </Label>
                           <Input
                             list="timelines"
+                            disabled={!allowsProjectTimeline}
                             placeholder="e.g. 3-4 Weeks"
                             value={item.projectTimeline || ''}
                             onChange={e => updateItem(index, 'projectTimeline', e.target.value)}
@@ -464,14 +530,25 @@ export default function CatalogueBuilderPage() {
                         </div>
                       </div>
                     )}
+                    {!allowsMaterialsDetails && item.itemType !== 'PRODUCT' && (
+                      <p className="text-xs font-body text-[#C4975A] -mt-3">
+                        <Link href="/pricing" className="underline">Upgrade</Link> to add materials and a project timeline.
+                      </p>
+                    )}
 
                     <div className="space-y-2">
                       <Label className="font-body text-[#2C2621] font-medium">Description</Label>
-                      <Textarea 
-                        value={item.description} 
-                        onChange={e => updateItem(index, 'description', e.target.value)} 
+                      <Textarea
+                        value={item.description}
+                        onChange={e => updateItem(index, 'description', e.target.value)}
+                        maxLength={maxDescriptionChars === -1 ? undefined : maxDescriptionChars}
                         className="h-24 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body resize-none"
                       />
+                      {maxDescriptionChars !== -1 && (
+                        <p className="text-xs font-body text-[#9C8E82] text-right">
+                          {(item.description || '').length} / {maxDescriptionChars}
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-5 pt-6 border-t border-[#CDC0B0]/50">
@@ -522,9 +599,9 @@ export default function CatalogueBuilderPage() {
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4">
-                        <div className={`space-y-2 ${!isPremium ? 'opacity-60 grayscale-[30%] pointer-events-none' : ''}`}>
+                        <div className={`space-y-2 ${!allowsVideo ? 'opacity-60 grayscale-[30%] pointer-events-none' : ''}`}>
                           <Label className="flex items-center gap-2 font-body text-[#2C2621] font-medium">
-                            <Video className="h-4 w-4 text-[#9C8E82]" /> Item Video {!isPremium && <Lock className="h-3 w-3 text-[#C4975A] ml-1" />}
+                            <Video className="h-4 w-4 text-[#9C8E82]" /> Item Video {!allowsVideo && <Lock className="h-3 w-3 text-[#C4975A] ml-1" />}
                           </Label>
                           {item.videoUrl ? (
                             <div className="flex items-center justify-between p-3 border border-[#CDC0B0] rounded-xl bg-[#FDFBF7]">
@@ -544,9 +621,9 @@ export default function CatalogueBuilderPage() {
                             </div>
                           )}
                         </div>
-                        <div className={`space-y-2 ${!isPremium ? 'opacity-60 grayscale-[30%] pointer-events-none' : ''}`}>
+                        <div className={`space-y-2 ${!allowsPdfBrochure ? 'opacity-60 grayscale-[30%] pointer-events-none' : ''}`}>
                           <Label className="flex items-center gap-2 font-body text-[#2C2621] font-medium">
-                            <FileText className="h-4 w-4 text-[#9C8E82]" /> PDF Brochure {!isPremium && <Lock className="h-3 w-3 text-[#C4975A] ml-1" />}
+                            <FileText className="h-4 w-4 text-[#9C8E82]" /> PDF Brochure {!allowsPdfBrochure && <Lock className="h-3 w-3 text-[#C4975A] ml-1" />}
                           </Label>
                           {item.pdfBrochureUrl ? (
                             <div className="flex items-center justify-between p-3 border border-[#CDC0B0] rounded-xl bg-[#FDFBF7]">
@@ -568,10 +645,13 @@ export default function CatalogueBuilderPage() {
                         </div>
                       </div>
                       
-                      {!isPremium && (
+                      {(!allowsVideo || !allowsPdfBrochure) && (
                         <div className="bg-[#FFF8E7] border border-[#C4975A]/30 text-[#8C6A3D] text-sm p-3 rounded-xl flex items-center gap-2 font-body mt-2">
-                          <Lock className="h-4 w-4 shrink-0" /> 
-                          <span>Upgrade to <strong className="font-heading font-bold">Premium</strong> to add Videos and PDF Brochures to your items.</span>
+                          <Lock className="h-4 w-4 shrink-0" />
+                          <span>
+                            <Link href="/pricing" className="underline font-heading font-bold">Upgrade</Link> to add
+                            {!allowsVideo && !allowsPdfBrochure ? ' videos and PDF brochures' : !allowsVideo ? ' videos' : ' PDF brochures'} to your items.
+                          </span>
                         </div>
                       )}
                     </div>

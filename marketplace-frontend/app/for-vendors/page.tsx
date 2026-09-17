@@ -102,6 +102,12 @@ export default function ForVendorsPage() {
                   >
                     Learn More
                   </a>
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center gap-2 text-[#C4975A] hover:text-[#B38549] transition-all px-2 py-3.5 font-medium text-sm underline underline-offset-4"
+                  >
+                    View Pricing
+                  </Link>
                 </div>
               </motion.div>
 

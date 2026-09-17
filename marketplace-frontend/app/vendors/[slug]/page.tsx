@@ -23,7 +23,9 @@ import {
   CheckCircle2,
   ShieldCheck,
   AlertTriangle,
-  PenLine
+  PenLine,
+  MessageCircle,
+  ExternalLink
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -70,6 +72,13 @@ interface Vendor {
   gallery?: string[];
   logoUrl?: string;
   bannerUrl?: string;
+  /** Set server-side from the vendor's resolved plan — see VendorService.applyPlanPresentation.
+   *  whatsappNumber/callNumber/customCtaLabel/customCtaUrl arrive null unless the plan includes them. */
+  featuredBadge?: boolean;
+  whatsappNumber?: string;
+  callNumber?: string;
+  customCtaLabel?: string;
+  customCtaUrl?: string;
 }
 
 interface Review {
@@ -387,14 +396,16 @@ export default function VendorProfilePage() {
                           <span className="text-gray-600">({vendor.reviewCount || 0} reviews)</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2">
-                        <Award className="w-5 h-5 text-green-600" />
-                        <span className="text-gray-900">{vendor.subscriptionPlan || 'BASIC'} Plan</span>
-                      </div>
+                      {vendor.featuredBadge && (
+                        <div className="flex items-center gap-2">
+                          <Award className="w-5 h-5 text-[#C4975A]" />
+                          <span className="text-[#2C2621] font-medium">Featured Vendor</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* CTA Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3 mt-2">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 mt-2">
                       <Button
                         size="lg"
                         onClick={() => {
@@ -409,6 +420,51 @@ export default function VendorProfilePage() {
                         <MessageSquare className="w-5 h-5 mr-2" />
                         Request Quote
                       </Button>
+                      {/* Priority contact options — present only when the vendor's plan
+                          currently includes them (VendorService strips them otherwise). */}
+                      {vendor.whatsappNumber && (
+                        <Button
+                          asChild
+                          size="lg"
+                          variant="outline"
+                          className="border-[#5B8C5A] text-[#5B8C5A] hover:bg-[#5B8C5A] hover:text-white rounded-xl h-12 px-8 touch-target"
+                        >
+                          <a
+                            href={`https://wa.me/${vendor.whatsappNumber.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <MessageCircle className="w-5 h-5 mr-2" />
+                            WhatsApp
+                          </a>
+                        </Button>
+                      )}
+                      {vendor.callNumber && (
+                        <Button
+                          asChild
+                          size="lg"
+                          variant="outline"
+                          className="border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] rounded-xl h-12 px-8 touch-target"
+                        >
+                          <a href={`tel:${vendor.callNumber}`}>
+                            <Phone className="w-5 h-5 mr-2" />
+                            Call
+                          </a>
+                        </Button>
+                      )}
+                      {vendor.customCtaLabel && vendor.customCtaUrl && (
+                        <Button
+                          asChild
+                          size="lg"
+                          variant="outline"
+                          className="border-[#CDC0B0] text-[#2C2621] hover:bg-[#FDFBF7] rounded-xl h-12 px-8 touch-target"
+                        >
+                          <a href={vendor.customCtaUrl} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-5 h-5 mr-2" />
+                            {vendor.customCtaLabel}
+                          </a>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

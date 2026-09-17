@@ -54,6 +54,8 @@ interface Vendor {
   subscriptionPlan?: string;
   logoUrl?: string;
   bannerUrl?: string;
+  /** Set server-side from the vendor's resolved plan — see VendorService.applyPlanPresentation. */
+  featuredBadge?: boolean;
 }
 
 const categories = [
@@ -490,8 +492,9 @@ export default function ExplorePage() {
                       rating: vendor.rating || 4.9,
                       reviewCount: vendor.reviewCount || 124,
                       isCertified: true,
+                      isPromoted: vendor.featuredBadge || false,
                       yearsInBusiness: 5,
-                    }} 
+                    }}
                     index={index} 
                   />
                 ))}

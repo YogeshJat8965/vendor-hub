@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Upload, X, Save, Plus, Loader2, Trash2, AlertTriangle } from 'lucide-react';
+import { Camera, Upload, X, Save, Plus, Loader2, Trash2, AlertTriangle, Lock } from 'lucide-react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,14 @@ export default function VendorStorefrontPage() {
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [showNameChangeAlert, setShowNameChangeAlert] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<StorefrontFormData | null>(null);
+  const [allowsExtraCta, setAllowsExtraCta] = useState(false);
+  const [savingCta, setSavingCta] = useState(false);
+  const [ctaFields, setCtaFields] = useState({
+    whatsappNumber: '',
+    callNumber: '',
+    customCtaLabel: '',
+    customCtaUrl: '',
+  });
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -78,6 +87,7 @@ export default function VendorStorefrontPage() {
   useEffect(() => {
     if (user) {
       fetchVendorProfile();
+      fetchEntitlements();
     }
   }, [user]);
 
@@ -106,11 +116,45 @@ export default function VendorStorefrontPage() {
       setInitialBusinessName(profileData.businessName || '');
       setLogoUrl(profileData.logoUrl || null);
       setBannerUrl(profileData.bannerUrl || null);
+      setCtaFields({
+        whatsappNumber: profileData.whatsappNumber || '',
+        callNumber: profileData.callNumber || '',
+        customCtaLabel: profileData.customCtaLabel || '',
+        customCtaUrl: profileData.customCtaUrl || '',
+      });
     } catch (error) {
       console.error('Failed to fetch vendor profile:', error);
       toast.error('Failed to load profile data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchEntitlements = async () => {
+    try {
+      const res = await apiClient.get('/vendor/plan');
+      setAllowsExtraCta(Boolean(res.data?.features?.allowsExtraCta));
+    } catch (error) {
+      console.error('Failed to fetch entitlements:', error);
+    }
+  };
+
+  const saveCtaFields = async () => {
+    setSavingCta(true);
+    try {
+      await apiClient.put('/vendor/profile', {
+        email: user?.email,
+        whatsappNumber: ctaFields.whatsappNumber,
+        callNumber: ctaFields.callNumber,
+        customCtaLabel: ctaFields.customCtaLabel,
+        customCtaUrl: ctaFields.customCtaUrl,
+      });
+      toast.success('Contact options saved');
+    } catch (error: any) {
+      console.error('Failed to save contact options:', error);
+      toast.error(error?.response?.data?.error || 'Failed to save contact options');
+    } finally {
+      setSavingCta(false);
     }
   };
 
@@ -632,6 +676,88 @@ export default function VendorStorefrontPage() {
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Priority Contact Options — Premium only */}
+        <Card className={`border-[#CDC0B0] bg-white rounded-3xl shadow-warm-sm overflow-hidden ${!allowsExtraCta ? 'opacity-70' : ''}`}>
+          <CardHeader className="bg-[#FDFBF7] border-b border-[#CDC0B0]/50 pb-4 pt-5 px-6">
+            <CardTitle className="font-heading text-xl text-[#2C2621] flex items-center gap-2">
+              Priority Contact Options
+              {!allowsExtraCta && <Lock className="w-4 h-4 text-[#C4975A]" />}
+            </CardTitle>
+            <p className="font-body text-sm text-[#6B5E54] mt-1">
+              {allowsExtraCta
+                ? 'Give customers a faster way to reach you than Get Quote alone.'
+                : `Available on a plan with priority contact options. `}
+              {!allowsExtraCta && (
+                <Link href="/pricing" className="text-[#C4975A] underline">Upgrade to unlock</Link>
+              )}
+            </p>
+          </CardHeader>
+          <CardContent className={`space-y-6 pt-6 ${!allowsExtraCta ? 'pointer-events-none grayscale-[30%]' : ''}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="whatsappNumber" className="mb-2 font-body text-[#2C2621] font-medium">WhatsApp Number</Label>
+                <Input
+                  id="whatsappNumber"
+                  type="tel"
+                  disabled={!allowsExtraCta}
+                  placeholder="e.g. +91 98765 43210"
+                  value={ctaFields.whatsappNumber}
+                  onChange={(e) => setCtaFields({ ...ctaFields, whatsappNumber: e.target.value })}
+                  className="h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                />
+              </div>
+              <div>
+                <Label htmlFor="callNumber" className="mb-2 font-body text-[#2C2621] font-medium">Call Number</Label>
+                <Input
+                  id="callNumber"
+                  type="tel"
+                  disabled={!allowsExtraCta}
+                  placeholder="e.g. +91 98765 43210"
+                  value={ctaFields.callNumber}
+                  onChange={(e) => setCtaFields({ ...ctaFields, callNumber: e.target.value })}
+                  className="h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <Label htmlFor="customCtaLabel" className="mb-2 font-body text-[#2C2621] font-medium">Custom Button Label</Label>
+                <Input
+                  id="customCtaLabel"
+                  disabled={!allowsExtraCta}
+                  placeholder="e.g. Book a Site Visit"
+                  value={ctaFields.customCtaLabel}
+                  onChange={(e) => setCtaFields({ ...ctaFields, customCtaLabel: e.target.value })}
+                  className="h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                />
+              </div>
+              <div>
+                <Label htmlFor="customCtaUrl" className="mb-2 font-body text-[#2C2621] font-medium">Custom Button Link</Label>
+                <Input
+                  id="customCtaUrl"
+                  type="url"
+                  disabled={!allowsExtraCta}
+                  placeholder="https://calendly.com/you"
+                  value={ctaFields.customCtaUrl}
+                  onChange={(e) => setCtaFields({ ...ctaFields, customCtaUrl: e.target.value })}
+                  className="h-12 rounded-xl border-[#CDC0B0] focus-visible:ring-[#CDB79E] font-body text-[#2C2621]"
+                />
+              </div>
+            </div>
+            {allowsExtraCta && (
+              <Button
+                type="button"
+                onClick={saveCtaFields}
+                disabled={savingCta}
+                className="rounded-xl bg-[#2C2621] hover:bg-[#2C2621]/90 text-white"
+              >
+                {savingCta ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Save contact options
+              </Button>
+            )}
           </CardContent>
         </Card>
 

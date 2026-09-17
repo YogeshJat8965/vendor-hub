@@ -31,6 +31,7 @@ export function Header() {
     { label: 'Explore', href: '/explore' },
     { label: 'How It Works', href: '/how-it-works' },
     { label: 'For Vendors', href: '/for-vendors' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'About', href: '/about' },
   ];
 

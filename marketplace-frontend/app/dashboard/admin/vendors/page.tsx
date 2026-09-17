@@ -1,470 +1,775 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter, CheckCircle, XCircle, Eye, MoreVertical, Mail, Phone, MapPin, Calendar, Loader2, Download } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  CheckCircle2,
+  XCircle,
+  Eye,
+  Loader2,
+  Download,
+  Building2,
+  Clock,
+  PauseCircle,
+  Undo2,
+  Star,
+  FileText,
+  MessageSquare,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Package,
+  ExternalLink,
+  AlertTriangle,
+} from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/auth-context';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
+import {
+  AdminPageHeader,
+  AdminStatCard,
+  AdminFilterBar,
+  AdminPlanBadge,
+  AdminDataTable,
+  AdminStatusBadge,
+  AdminSectionCard,
+  AdminConfirmDialog,
+  exportToCsv,
+  type Column,
+  type FilterPill,
+} from '@/components/admin';
 
 interface Vendor {
   id: string;
-  businessName: string;
-  ownerName: string;
+  slug: string;
+  displayName: string;
+  storeName?: string;
+  businessName?: string;
+  ownerName?: string;
   email: string;
-  phone: string;
-  vendorType: string;
-  city: string;
-  state: string;
-  createdAt: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
-  isPremium: boolean;
-  averageRating?: number;
-  totalReviews?: number;
+  phone?: string;
+  mobile?: string;
+  vendorType?: string;
+  city?: string;
+  state?: string;
+  /** Real backend values only — there is no "APPROVED" in this data. */
+  status: 'PENDING' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED';
+  subscriptionPlan?: string;
+  rating?: number | null;
+  reviewCount?: number | null;
+  certified?: boolean;
+  rejectionReason?: string;
+  createdAt: string | null;
+}
+
+interface VendorDetail {
+  profile: Vendor;
+  stats: Record<string, any>;
+  quotes: any[];
+  reviews: any[];
+}
+
+type StatusPill = 'all' | 'PENDING' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED';
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export default function ManageVendorsPage() {
   const { user } = useAuth();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
-  const [actionDialog, setActionDialog] = useState<'approve' | 'reject' | 'suspend' | 'view' | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [autoApprove, setAutoApprove] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      fetchVendors();
-    }
-  }, [user]);
+  const [search, setSearch] = useState('');
+  const [pill, setPill] = useState<StatusPill>('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [planFilter, setPlanFilter] = useState('all');
+  const [plans, setPlans] = useState<{ code: string; name: string; badgeColor?: string }[]>([]);
 
-  const fetchVendors = async () => {
+  const [selected, setSelected] = useState<Vendor | null>(null);
+  const [action, setAction] = useState<'approve' | 'reject' | 'suspend' | 'reinstate' | null>(null);
+  const [reason, setReason] = useState('');
+
+  // Bulk selection, scoped to the approval queue where it is actually useful.
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<'approve' | 'reject' | null>(null);
+
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detail, setDetail] = useState<VendorDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const fetchVendors = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await apiClient.get('/admin/vendors');
-      setVendors(response.data || []);
+      const [vendorsRes, settingsRes, plansRes] = await Promise.all([
+        apiClient.get('/admin/vendors'),
+        // Surfaced on this page because it explains an empty approval queue.
+        apiClient.get('/admin/settings').catch(() => null),
+        apiClient.get('/admin/plans'),
+      ]);
+      setVendors(vendorsRes.data || []);
+      if (settingsRes) setAutoApprove(settingsRes.data?.autoApproveVendors ?? null);
+      setPlans((plansRes.data || []).map((r: any) => r.plan));
     } catch (error) {
       console.error('Failed to fetch vendors:', error);
       toast.error('Failed to load vendors');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const filteredVendors = vendors.filter((vendor) => {
-    const matchesSearch =
-      vendor.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vendor.ownerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      vendor.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || vendor.status.toLowerCase() === statusFilter.toLowerCase();
-    const matchesCategory = categoryFilter === 'all' || vendor.vendorType === categoryFilter;
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+  useEffect(() => {
+    if (user) fetchVendors();
+  }, [user, fetchVendors]);
 
-  const statusCounts = {
+  const counts = useMemo(() => ({
     all: vendors.length,
-    pending: vendors.filter((v) => v.status === 'PENDING').length,
-    approved: vendors.filter((v) => v.status === 'APPROVED').length,
-    rejected: vendors.filter((v) => v.status === 'REJECTED').length,
-    suspended: vendors.filter((v) => v.status === 'SUSPENDED').length,
-  };
+    PENDING: vendors.filter((v) => v.status === 'PENDING').length,
+    ACTIVE: vendors.filter((v) => v.status === 'ACTIVE').length,
+    SUSPENDED: vendors.filter((v) => v.status === 'SUSPENDED').length,
+    REJECTED: vendors.filter((v) => v.status === 'REJECTED').length,
+  }), [vendors]);
 
-  const handleApprove = async () => {
-    if (!selectedVendor) return;
-    
-    setIsSubmitting(true);
+  const vendorTypes = useMemo(
+    () => [...new Set(vendors.map((v) => v.vendorType).filter(Boolean))].sort() as string[],
+    [vendors]
+  );
+
+  const pendingQueue = useMemo(() => vendors.filter((v) => v.status === 'PENDING'), [vendors]);
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return vendors.filter((v) => {
+      if (pill !== 'all' && v.status !== pill) return false;
+      if (typeFilter !== 'all' && v.vendorType !== typeFilter) return false;
+      if (planFilter !== 'all' && v.subscriptionPlan !== planFilter) return false;
+      if (!query) return true;
+      return [v.displayName, v.storeName, v.businessName, v.ownerName, v.email, v.city, v.vendorType, v.slug]
+        .some((field) => field?.toLowerCase().includes(query));
+    });
+  }, [vendors, pill, typeFilter, planFilter, search]);
+
+  const pills: FilterPill<StatusPill>[] = [
+    { value: 'all', label: 'All', count: counts.all },
+    { value: 'PENDING', label: 'Pending', count: counts.PENDING, tone: 'warning' },
+    { value: 'ACTIVE', label: 'Active', count: counts.ACTIVE },
+    { value: 'SUSPENDED', label: 'Suspended', count: counts.SUSPENDED, tone: 'danger' },
+    { value: 'REJECTED', label: 'Rejected', count: counts.REJECTED, tone: 'danger' },
+  ];
+
+  const openDetail = async (vendor: Vendor) => {
+    setSelected(vendor);
+    setDetail(null);
+    setDetailOpen(true);
+    setDetailLoading(true);
     try {
-      await apiClient.put(`/admin/vendors/${selectedVendor.id}/approve`);
-      toast.success(`${selectedVendor.businessName} approved successfully`);
-      await fetchVendors();
-      setActionDialog(null);
-      setSelectedVendor(null);
+      const res = await apiClient.get(`/admin/vendors/${vendor.id}/detail`);
+      setDetail(res.data);
     } catch (error) {
-      console.error('Failed to approve vendor:', error);
-      toast.error('Failed to approve vendor');
+      console.error('Failed to load vendor detail:', error);
+      toast.error('Failed to load vendor details');
     } finally {
-      setIsSubmitting(false);
+      setDetailLoading(false);
     }
   };
 
-  const handleReject = async () => {
-    if (!selectedVendor) return;
-    
-    if (!rejectionReason.trim()) {
-      toast.error('Please provide a rejection reason');
+  const runAction = async () => {
+    if (!selected || !action) return;
+    if (action === 'reject' && !reason.trim()) {
+      toast.error('Please give a reason — it is sent to the vendor');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await apiClient.put(`/admin/vendors/${selectedVendor.id}/reject`, {
-        reason: rejectionReason,
-      });
-      toast.success(`${selectedVendor.businessName} rejected`);
+      const body = action === 'reject' || action === 'suspend' ? { reason } : undefined;
+      await apiClient.put(`/admin/vendors/${selected.id}/${action}`, body);
+      toast.success(`${selected.displayName} updated`);
       await fetchVendors();
-      setActionDialog(null);
-      setSelectedVendor(null);
-      setRejectionReason('');
-    } catch (error) {
-      console.error('Failed to reject vendor:', error);
-      toast.error('Failed to reject vendor');
+      setAction(null);
+      setSelected(null);
+      setReason('');
+    } catch (error: any) {
+      console.error('Vendor action failed:', error);
+      toast.error(error?.response?.data?.error || 'Action failed');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSuspend = async () => {
-    if (!selectedVendor) return;
-    
+  const runBulk = async () => {
+    if (!bulkAction || selectedIds.length === 0) return;
+    if (bulkAction === 'reject' && !reason.trim()) {
+      toast.error('Please give a reason — it is sent to every vendor rejected');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await apiClient.put(`/admin/vendors/${selectedVendor.id}/suspend`);
-      toast.success(`${selectedVendor.businessName} suspended`);
+      const res = await apiClient.put('/admin/vendors/bulk', {
+        vendorIds: selectedIds,
+        action: bulkAction,
+        reason: bulkAction === 'reject' ? reason : undefined,
+      });
+      const { succeeded, failed } = res.data;
+      if (failed > 0) toast.warning(`${succeeded} updated, ${failed} could not be found`);
+      else toast.success(`${succeeded} vendor${succeeded === 1 ? '' : 's'} updated`);
+
       await fetchVendors();
-      setActionDialog(null);
-      setSelectedVendor(null);
-    } catch (error) {
-      console.error('Failed to suspend vendor:', error);
-      toast.error('Failed to suspend vendor');
+      setSelectedIds([]);
+      setBulkAction(null);
+      setReason('');
+    } catch (error: any) {
+      console.error('Bulk action failed:', error);
+      toast.error(error?.response?.data?.error || 'Bulk action failed');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const exportToCSV = () => {
-    const csvData = filteredVendors.map((vendor) => ({
-      'Business Name': vendor.businessName,
-      'Owner Name': vendor.ownerName,
-      Email: vendor.email,
-      Phone: vendor.phone,
-      Type: vendor.vendorType,
-      City: vendor.city,
-      State: vendor.state,
-      Status: vendor.status,
-      'Premium': vendor.isPremium ? 'Yes' : 'No',
-      'Average Rating': vendor.averageRating || 'N/A',
-      'Total Reviews': vendor.totalReviews || 0,
-      'Registered': new Date(vendor.createdAt).toLocaleDateString(),
-    }));
-
-    const headers = Object.keys(csvData[0]);
-    const csv = [
-      headers.join(','),
-      ...csvData.map((row) => headers.map((header) => `"${row[header as keyof typeof row]}"`).join(',')),
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `vendors_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-    toast.success('Vendors data exported successfully');
+  const handleExport = () => {
+    const ok = exportToCsv(`vendorhub-vendors-${pill.toLowerCase()}`, filtered, [
+      { header: 'Name', value: (v) => v.displayName },
+      { header: 'Slug', value: (v) => v.slug },
+      { header: 'Email', value: (v) => v.email },
+      { header: 'Phone', value: (v) => v.phone || v.mobile || '' },
+      { header: 'Type', value: (v) => v.vendorType ?? '' },
+      { header: 'City', value: (v) => v.city ?? '' },
+      { header: 'Status', value: (v) => v.status },
+      { header: 'Plan', value: (v) => v.subscriptionPlan ?? '' },
+      { header: 'Rating', value: (v) => v.rating ?? '' },
+      { header: 'Reviews', value: (v) => v.reviewCount ?? '' },
+      { header: 'Joined', value: (v) => formatDate(v.createdAt) },
+    ]);
+    if (ok) toast.success(`Exported ${filtered.length} vendor${filtered.length === 1 ? '' : 's'}`);
+    else toast.error('Nothing to export — no vendors match the current filters');
   };
 
-  const getStatusBadge = (status: Vendor['status']) => {
-    const styles = {
-      PENDING: 'bg-orange-100 text-orange-700',
-      APPROVED: 'bg-green-100 text-green-700',
-      REJECTED: 'bg-red-100 text-red-700',
-      SUSPENDED: 'bg-gray-100 text-gray-700',
-    };
-    return <Badge className={styles[status]}>{status.charAt(0) + status.slice(1).toLowerCase()}</Badge>;
+  const toggleQueueSelection = (id: string) => {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((x) => x !== id) : [...current, id]
+    );
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
-        <div className="max-w-7xl mx-auto py-8">
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  const columns: Column<Vendor>[] = [
+    {
+      key: 'vendor',
+      header: 'Vendor',
+      sortValue: (v) => v.displayName?.toLowerCase() ?? '',
+      cell: (v) => (
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-[#8A7BA8]/14 text-[#5B4F73] flex items-center justify-center shrink-0 font-heading font-bold text-sm">
+            {(v.displayName || '?').charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-[#2C2621] truncate">{v.displayName}</p>
+            <p className="text-xs text-[#9C8E82] truncate">{v.email}</p>
           </div>
         </div>
-      </div>
-    );
-  }
+      ),
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      sortValue: (v) => v.vendorType ?? '',
+      hideOnMobile: true,
+      cell: (v) => (
+        <div className="text-xs text-[#6B5E54]">
+          <p>{v.vendorType || 'Unspecified'}</p>
+          {v.city && <p className="text-[#9C8E82]">{v.city}</p>}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortValue: (v) => v.status,
+      cell: (v) => <AdminStatusBadge status={v.status} />,
+    },
+    {
+      key: 'rating',
+      header: 'Rating',
+      sortValue: (v) => v.rating ?? 0,
+      hideOnMobile: true,
+      cell: (v) =>
+        v.rating ? (
+          <span className="inline-flex items-center gap-1 text-sm text-[#2C2621]">
+            <Star className="w-3.5 h-3.5 fill-[#C4975A] text-[#C4975A]" />
+            {v.rating.toFixed(1)}
+            <span className="text-xs text-[#9C8E82]">({v.reviewCount ?? 0})</span>
+          </span>
+        ) : (
+          <span className="text-xs text-[#9C8E82]">No reviews</span>
+        ),
+    },
+    {
+      key: 'plan',
+      header: 'Plan',
+      sortValue: (v) => v.subscriptionPlan ?? '',
+      hideOnMobile: true,
+      // Reads the admin's own chosen colour per tier (set on the Plans page)
+      // rather than a hardcoded "PREMIUM = gold" check, so a renamed or
+      // recoloured tier is reflected here automatically.
+      cell: (v) => <AdminPlanBadge planCode={v.subscriptionPlan} plans={plans} />,
+    },
+    {
+      key: 'actions',
+      header: '',
+      headerClassName: 'text-right',
+      className: 'text-right',
+      cell: (v) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openDetail(v); }} aria-label={`View ${v.displayName}`}>
+            <Eye className="w-4 h-4" />
+          </Button>
+          {v.status === 'PENDING' && (
+            <>
+              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setSelected(v); setAction('approve'); }}>
+                <CheckCircle2 className="w-4 h-4" />
+                Approve
+              </Button>
+              <Button variant="ghost" size="sm" className="text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white"
+                onClick={(e) => { e.stopPropagation(); setSelected(v); setAction('reject'); setReason(''); }}>
+                <XCircle className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+          {v.status === 'ACTIVE' && (
+            <Button variant="ghost" size="sm" className="text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white"
+              onClick={(e) => { e.stopPropagation(); setSelected(v); setAction('suspend'); setReason(''); }}>
+              <PauseCircle className="w-4 h-4" />
+              Suspend
+            </Button>
+          )}
+          {(v.status === 'SUSPENDED' || v.status === 'REJECTED') && (
+            <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setSelected(v); setAction('reinstate'); }}>
+              <Undo2 className="w-4 h-4" />
+              Reinstate
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const actionCopy: Record<string, { title: string; description: string; confirm: string; destructive: boolean }> = {
+    approve: {
+      title: `Approve ${selected?.displayName}?`,
+      description: 'Their storefront goes live on VendorHub and they are notified.',
+      confirm: 'Approve', destructive: false,
+    },
+    reject: {
+      title: `Reject ${selected?.displayName}?`,
+      description: 'The reason below is saved on their record and sent to them.',
+      confirm: 'Reject', destructive: true,
+    },
+    suspend: {
+      title: `Suspend ${selected?.displayName}?`,
+      description: 'Their storefront is taken offline immediately. A reason is optional but is sent if given.',
+      confirm: 'Suspend', destructive: true,
+    },
+    reinstate: {
+      title: `Reinstate ${selected?.displayName}?`,
+      description: 'Their account returns to active and they are notified.',
+      confirm: 'Reinstate', destructive: false,
+    },
+  };
+
+  const copy = action ? actionCopy[action] : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 pt-20 px-4">
-      <div className="max-w-7xl mx-auto py-8 space-y-6">\n      {/* Header */}\n      <div className="flex items-center justify-between">\n        <div>\n          <h1 className="text-3xl font-bold mb-2">Manage Vendors</h1>\n          <p className="text-gray-600">Review and manage vendor registrations</p>\n        </div>\n        <Button onClick={exportToCSV} variant="outline">\n          <Download className="w-4 h-4 mr-2" />\n          Export CSV\n        </Button>\n      </div>
+    <div className="space-y-6">
+      <AdminPageHeader
+        title="Vendors"
+        description="Approvals, lifecycle and vendor quality"
+        actions={
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="w-4 h-4" />
+            Export CSV
+          </Button>
+        }
+      />
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Search vendors..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 touch-target"
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <AdminStatCard label="Total Vendors" value={counts.all} icon={Building2} tone="accent" />
+        <AdminStatCard
+          label="Pending Approval"
+          value={counts.PENDING}
+          icon={Clock}
+          tone={counts.PENDING ? 'warning' : 'neutral'}
+        />
+        <AdminStatCard label="Active" value={counts.ACTIVE} icon={CheckCircle2} tone="success" />
+        <AdminStatCard
+          label="Suspended / Rejected"
+          value={counts.SUSPENDED + counts.REJECTED}
+          icon={PauseCircle}
+          tone={counts.SUSPENDED + counts.REJECTED ? 'danger' : 'neutral'}
+        />
+      </div>
+
+      {/* Approval queue — the reason this page exists */}
+      <AdminSectionCard
+        title="Approval Queue"
+        icon={Clock}
+        contentClassName="p-0"
+        action={
+          selectedIds.length > 0 ? (
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <span className="font-body text-xs text-[#6B5E54]">{selectedIds.length} selected</span>
+              <Button size="sm" variant="outline" onClick={() => setBulkAction('approve')}>
+                <CheckCircle2 className="w-4 h-4" />
+                Approve all
+              </Button>
+              <Button size="sm" variant="ghost" className="text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white"
+                onClick={() => { setBulkAction('reject'); setReason(''); }}>
+                <XCircle className="w-4 h-4" />
+                Reject all
+              </Button>
+            </div>
+          ) : (
+            <Badge variant={pendingQueue.length ? 'warning' : 'success'}>{pendingQueue.length}</Badge>
+          )
+        }
+      >
+        {pendingQueue.length === 0 ? (
+          <div className="px-5 py-8 text-center">
+            <CheckCircle2 className="w-10 h-10 text-[#5B8C5A]/50 mx-auto mb-2" />
+            <p className="font-body text-sm text-[#6B5E54]">No vendors awaiting approval.</p>
+            {autoApprove === true && (
+              // Without this note an empty queue looks broken rather than
+              // configured — new vendors are going straight to ACTIVE.
+              <p className="mt-2 font-body text-xs text-[#9C8E82] max-w-lg mx-auto">
+                Auto-approval is <strong>on</strong>, so new vendor signups become active immediately and never
+                reach this queue. Turn it off in Settings to review each signup manually.
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="divide-y divide-[#CDC0B0]/40">
+            <div className="flex items-center gap-2 px-5 py-2.5 bg-[#FDFBF7]">
+              <input
+                type="checkbox"
+                id="select-all-pending"
+                checked={selectedIds.length === pendingQueue.length && pendingQueue.length > 0}
+                onChange={(e) => setSelectedIds(e.target.checked ? pendingQueue.map((v) => v.id) : [])}
+                className="w-4 h-4 accent-[#2C2621] cursor-pointer"
+              />
+              <Label htmlFor="select-all-pending" className="text-xs text-[#6B5E54] cursor-pointer">
+                Select all {pendingQueue.length}
+              </Label>
+            </div>
+            {pendingQueue.map((vendor) => (
+              <div key={vendor.id} className="flex items-start gap-3 px-5 py-4 hover:bg-[#FDFBF7] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(vendor.id)}
+                  onChange={() => toggleQueueSelection(vendor.id)}
+                  aria-label={`Select ${vendor.displayName}`}
+                  className="w-4 h-4 mt-1 accent-[#2C2621] cursor-pointer shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-heading font-semibold text-sm text-[#2C2621] truncate">{vendor.displayName}</p>
+                  <p className="font-body text-xs text-[#6B5E54] truncate">
+                    {vendor.email}
+                    {vendor.vendorType ? ` · ${vendor.vendorType}` : ''}
+                    {vendor.city ? ` · ${vendor.city}` : ''}
+                  </p>
+                  <p className="font-body text-xs text-[#9C8E82] mt-0.5">
+                    Registered {formatDate(vendor.createdAt)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button variant="ghost" size="sm" onClick={() => openDetail(vendor)}>
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { setSelected(vendor); setAction('approve'); }}>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Approve
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white"
+                    onClick={() => { setSelected(vendor); setAction('reject'); setReason(''); }}>
+                    <XCircle className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </AdminSectionCard>
+
+      {/* Full directory */}
+      <AdminFilterBar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search by name, email, city, type or slug…"
+        pills={pills}
+        activePill={pill}
+        onPillChange={(value) => setPill(value)}
+      >
+        {vendorTypes.length > 0 && (
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-48 h-11">
+              <SelectValue placeholder="All types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              {vendorTypes.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        {plans.length > 0 && (
+          <Select value={planFilter} onValueChange={setPlanFilter}>
+            <SelectTrigger className="w-40 h-11">
+              <SelectValue placeholder="All plans" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All plans</SelectItem>
+              {plans.map((p) => (
+                <SelectItem key={p.code} value={p.code}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </AdminFilterBar>
+
+      <AdminDataTable
+        rows={filtered}
+        columns={columns}
+        rowKey={(v) => v.id}
+        isLoading={isLoading}
+        onRowClick={openDetail}
+        pageSize={15}
+        emptyTitle="No vendors match these filters"
+        emptyDescription="Try a different status or clear the search."
+      />
+
+      {/* Single-vendor confirmation */}
+      {copy && (
+        <AdminConfirmDialog
+          open={action !== null}
+          onOpenChange={(open) => { if (!open) { setAction(null); setReason(''); } }}
+          title={copy.title}
+          description={copy.description}
+          confirmLabel={copy.confirm}
+          destructive={copy.destructive}
+          isSubmitting={isSubmitting}
+          disabled={action === 'reject' && !reason.trim()}
+          onConfirm={runAction}
+        >
+          {(action === 'reject' || action === 'suspend') && (
+            <div>
+              <Label htmlFor="vendor-reason" className="mb-2">
+                Reason {action === 'reject' ? '*' : '(optional)'}
+              </Label>
+              <Textarea
+                id="vendor-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Explain the decision — the vendor sees this"
+                className="min-h-24"
               />
             </div>
+          )}
+        </AdminConfirmDialog>
+      )}
 
-            {/* Category Filter */}
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full sm:w-48 h-12 touch-target">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="Plumbing">Plumbing</SelectItem>
-                <SelectItem value="Electrical">Electrical</SelectItem>
-                <SelectItem value="Painting">Painting</SelectItem>
-                <SelectItem value="Landscaping">Landscaping</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Status Tabs */}
-      <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="all">All ({statusCounts.all})</TabsTrigger>
-          <TabsTrigger value="pending">Pending ({statusCounts.pending})</TabsTrigger>
-          <TabsTrigger value="approved">Approved ({statusCounts.approved})</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected ({statusCounts.rejected})</TabsTrigger>
-          <TabsTrigger value="suspended">Suspended ({statusCounts.suspended})</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {/* Vendors List */}
-      <div className="space-y-4">
-        {filteredVendors.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Filter className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No vendors found</h3>
-              <p className="text-gray-600">Try adjusting your filters</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredVendors.map((vendor) => (
-            <Card key={vendor.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <Avatar className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500">
-                    <AvatarFallback className="bg-transparent text-white text-xl">
-                      {vendor.businessName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-semibold">{vendor.businessName}</h3>
-                          {vendor.isPremium && (
-                            <Badge className="bg-gradient-to-r from-orange-500 to-pink-500 text-white">Premium</Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600">{vendor.ownerName}</p>
-                      </div>
-                      {getStatusBadge(vendor.status)}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Mail className="w-4 h-4" />
-                        {vendor.email}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        {vendor.phone}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        {vendor.city}, {vendor.state}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4" />
-                        Registered {formatDate(vendor.createdAt)}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">{vendor.vendorType}</Badge>
-                      {vendor.averageRating && vendor.averageRating > 0 && (
-                        <span className="text-sm text-gray-600">
-                          ⭐ {vendor.averageRating.toFixed(1)} ({vendor.totalReviews || 0} reviews)
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setSelectedVendor(vendor);
-                        setActionDialog('view');
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    {vendor.status === 'PENDING' && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                          onClick={() => {
-                            setSelectedVendor(vendor);
-                            setActionDialog('approve');
-                          }}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => {
-                            setSelectedVendor(vendor);
-                            setActionDialog('reject');
-                          }}
-                        >
-                          <XCircle className="w-4 h-4" />
-                        </Button>
-                      </>
-                    )}
-                    {vendor.status === 'APPROVED' && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                        onClick={() => {
-                          setSelectedVendor(vendor);
-                          setActionDialog('suspend');
-                        }}
-                      >
-                        Suspend
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
-
-      {/* Approve Dialog */}
-      <Dialog open={actionDialog === 'approve'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Approve Vendor</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to approve {selectedVendor?.businessName}?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleApprove} 
-              className="bg-green-600 hover:bg-green-700"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Approving...' : 'Approve'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Dialog */}
-      <Dialog open={actionDialog === 'reject'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reject Vendor</DialogTitle>
-            <DialogDescription>
-              Please provide a reason for rejecting {selectedVendor?.businessName}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
+      {/* Bulk confirmation */}
+      <AdminConfirmDialog
+        open={bulkAction !== null}
+        onOpenChange={(open) => { if (!open) { setBulkAction(null); setReason(''); } }}
+        title={
+          bulkAction === 'approve'
+            ? `Approve ${selectedIds.length} vendor${selectedIds.length === 1 ? '' : 's'}?`
+            : `Reject ${selectedIds.length} vendor${selectedIds.length === 1 ? '' : 's'}?`
+        }
+        description={
+          bulkAction === 'approve'
+            ? 'Each storefront goes live and every vendor is notified.'
+            : 'The same reason is saved on each record and sent to every vendor selected.'
+        }
+        confirmLabel={bulkAction === 'approve' ? 'Approve all' : 'Reject all'}
+        destructive={bulkAction === 'reject'}
+        isSubmitting={isSubmitting}
+        disabled={bulkAction === 'reject' && !reason.trim()}
+        onConfirm={runBulk}
+      >
+        {bulkAction === 'reject' && (
+          <div>
+            <Label htmlFor="bulk-reason" className="mb-2">Reason *</Label>
             <Textarea
-              placeholder="Rejection reason..."
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              className="min-h-32"
-              disabled={isSubmitting}
+              id="bulk-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Sent to every vendor in this batch"
+              className="min-h-24"
             />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleReject} 
-              className="bg-red-600 hover:bg-red-700"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Rejecting...' : 'Reject'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+      </AdminConfirmDialog>
 
-      {/* Suspend Dialog */}
-      <Dialog open={actionDialog === 'suspend'} onOpenChange={() => setActionDialog(null)}>
-        <DialogContent>
+      {/* Vendor detail */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Suspend Vendor</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to suspend {selectedVendor?.businessName}? They will not appear in search results.
-            </DialogDescription>
+            <DialogTitle className="flex items-center gap-2 flex-wrap">
+              {selected?.displayName ?? 'Vendor'}
+              {selected && <AdminStatusBadge status={selected.status} />}
+            </DialogTitle>
+            <DialogDescription>{selected?.email}</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setActionDialog(null)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSuspend} 
-              className="bg-orange-600 hover:bg-orange-700"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Suspending...' : 'Suspend'}
-            </Button>
-          </DialogFooter>
+
+          {detailLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-[#C4975A]" />
+            </div>
+          ) : detail ? (
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Fact icon={Mail} label="Email" value={detail.profile.email} />
+                <Fact icon={Phone} label="Phone" value={detail.profile.phone || detail.profile.mobile} />
+                <Fact icon={Building2} label="Type" value={detail.profile.vendorType} />
+                <Fact icon={MapPin} label="Location" value={[detail.profile.city, detail.profile.state].filter(Boolean).join(', ')} />
+                <Fact icon={Calendar} label="Registered" value={formatDate(detail.profile.createdAt)} />
+                <Fact
+                  icon={Star}
+                  label="Subscription"
+                  value={detail.stats?.subscription
+                    ? `${detail.stats.subscription.plan} · ${detail.stats.subscription.status}`
+                    : detail.profile.subscriptionPlan || 'Basic'}
+                />
+              </div>
+
+              {detail.profile.slug && (
+                <Link
+                  href={`/vendors/${detail.profile.slug}`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 text-sm text-[#C4975A] hover:underline"
+                >
+                  View public storefront
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+              )}
+
+              {detail.profile.rejectionReason && (
+                <div className="rounded-xl border border-[#B85C5C]/30 bg-[#B85C5C]/8 p-3">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold text-[#8E4343] mb-1">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Reason on file
+                  </p>
+                  <p className="text-sm text-[#6B5E54] break-words">{detail.profile.rejectionReason}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <MiniStat icon={FileText} label="Quotes" value={detail.stats?.totalQuotes ?? 0} />
+                <MiniStat icon={CheckCircle2} label="Completed" value={detail.stats?.completedQuotes ?? 0} />
+                <MiniStat icon={Package} label="Catalogues" value={detail.stats?.catalogues ?? 0} />
+                <MiniStat icon={MessageSquare} label="Chats" value={detail.stats?.conversations ?? 0} />
+              </div>
+
+              <div className="flex flex-wrap gap-4 text-sm text-[#6B5E54]">
+                {detail.stats?.averageRating != null && (
+                  <span>
+                    Rating: <strong className="text-[#2C2621]">{detail.stats.averageRating}★</strong>{' '}
+                    ({detail.stats.totalReviews} review{detail.stats.totalReviews === 1 ? '' : 's'})
+                  </span>
+                )}
+                {detail.stats?.completionRate != null && (
+                  <span>
+                    Completion rate: <strong className="text-[#2C2621]">{detail.stats.completionRate}%</strong>
+                  </span>
+                )}
+                {!!detail.stats?.flaggedReviews && (
+                  <span className="text-[#B85C5C]">{detail.stats.flaggedReviews} flagged review(s)</span>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-heading font-semibold text-sm text-[#2C2621] mb-2">Recent quotes</h4>
+                {detail.quotes?.length ? (
+                  <div className="space-y-2">
+                    {detail.quotes.map((q: any) => (
+                      <div key={q.id} className="flex items-start justify-between gap-3 rounded-xl border border-[#CDC0B0]/50 p-3">
+                        <div className="min-w-0">
+                          <p className="text-sm text-[#2C2621] break-words">{q.service || 'Untitled request'}</p>
+                          <p className="text-xs text-[#9C8E82]">{q.customerName} · {formatDate(q.createdAt)}</p>
+                        </div>
+                        <AdminStatusBadge status={q.status} className="shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#9C8E82]">No quotes yet.</p>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-heading font-semibold text-sm text-[#2C2621] mb-2">Recent reviews</h4>
+                {detail.reviews?.length ? (
+                  <div className="space-y-2">
+                    {detail.reviews.map((r: any) => (
+                      <div key={r.id} className="rounded-xl border border-[#CDC0B0]/50 p-3">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-sm font-medium text-[#C4975A]">{r.rating}★</span>
+                          <span className="text-xs text-[#9C8E82]">{r.customerName} · {formatDate(r.createdAt)}</span>
+                          {r.flagged && <Badge variant="destructive">Flagged</Badge>}
+                        </div>
+                        <p className="text-sm text-[#6B5E54] break-words">{r.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#9C8E82]">No reviews yet.</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-[#9C8E82] py-6">Could not load vendor details.</p>
+          )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function Fact({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value?: string | null }) {
+  return (
+    <div className="flex items-start gap-2.5">
+      <Icon className="w-4 h-4 text-[#9C8E82] mt-0.5 shrink-0" />
+      <div className="min-w-0">
+        <p className="text-xs text-[#9C8E82]">{label}</p>
+        <p className="text-sm text-[#2C2621] break-words">{value || '—'}</p>
       </div>
+    </div>
+  );
+}
+
+function MiniStat({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: number }) {
+  return (
+    <div className="rounded-xl bg-[#FDFBF7] border border-[#CDC0B0]/40 p-3 text-center">
+      <Icon className="w-4 h-4 text-[#9C8E82] mx-auto mb-1" />
+      <p className="font-heading font-bold text-lg text-[#2C2621] tabular-nums">{value}</p>
+      <p className="text-xs text-[#9C8E82]">{label}</p>
     </div>
   );
 }

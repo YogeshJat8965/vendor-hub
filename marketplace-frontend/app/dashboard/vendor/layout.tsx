@@ -18,6 +18,7 @@ import {
   Share2,
   User,
   ExternalLink,
+  CreditCard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -77,6 +78,11 @@ const navItems: NavItem[] = [
     title: 'Analytics',
     href: '/dashboard/vendor/analytics',
     icon: TrendingUp,
+  },
+  {
+    title: 'Billing',
+    href: '/dashboard/vendor/billing',
+    icon: CreditCard,
   },
 ];
 
