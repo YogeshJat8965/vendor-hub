@@ -147,11 +147,20 @@ export default function VendorProfilePage() {
   useEffect(() => {
     if (slug) {
       fetchVendorData();
-      const favorites = localStorage.getItem('favorites') || '';
-      const slugs = favorites.split(',').filter(Boolean);
-      setIsLiked(slugs.includes(slug));
     }
   }, [slug]);
+
+  // Checked once the vendor (and so their id) is known, and only for a
+  // signed-in user -- favorites live server-side now, keyed by account.
+  useEffect(() => {
+    if (!vendor?.id || !user) {
+      setIsLiked(false);
+      return;
+    }
+    apiClient.get(`/customer/favorites/${vendor.id}`)
+      .then((res) => setIsLiked(Boolean(res.data?.favorited)))
+      .catch(() => {});
+  }, [vendor?.id, user]);
 
   const handleQuoteRequest = (catalogueId?: string, itemId?: string, title?: string, desc?: string) => {
     if (!user) {
@@ -166,28 +175,25 @@ export default function VendorProfilePage() {
     setShowQuoteDialog(true);
   };
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = async () => {
     if (!user) {
       setAuthMessage('Please log in to save this vendor to your favorites.');
       setShowAuthDialog(true);
       return;
     }
+    if (!vendor?.id) return;
 
-    const favorites = localStorage.getItem('favorites') || '';
-    let slugs = favorites.split(',').filter(Boolean);
-    
-    if (isLiked) {
-      slugs = slugs.filter(s => s !== slug);
-      toast.success('Removed from favorites');
-    } else {
-      if (!slugs.includes(slug)) {
-        slugs.push(slug);
-      }
-      toast.success('Added to favorites');
+    // Optimistic -- a favorite toggle should feel instant; reverted on failure.
+    const nextLiked = !isLiked;
+    setIsLiked(nextLiked);
+    try {
+      const res = await apiClient.post(`/customer/favorites/${vendor.id}/toggle`);
+      setIsLiked(Boolean(res.data?.favorited));
+      toast.success(res.data?.favorited ? 'Added to favorites' : 'Removed from favorites');
+    } catch (error) {
+      setIsLiked(!nextLiked);
+      toast.error('Failed to update favorites');
     }
-    
-    localStorage.setItem('favorites', slugs.join(','));
-    setIsLiked(!isLiked);
   };
 
   const handleWriteReview = () => {

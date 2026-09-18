@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   Gift,
   Ban,
-  RotateCcw,
   Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +47,6 @@ interface Subscription {
   billingPeriod: string;
   currentPeriodStart: string;
   currentPeriodEnd: string;
-  autoRenew: boolean;
   cancelledAt?: string | null;
   source: string;
   adminNote?: string | null;
@@ -103,7 +101,7 @@ export default function AdminSubscriptionsPage() {
   const [planFilter, setPlanFilter] = useState('all');
 
   const [detail, setDetail] = useState<SubRow | null>(null);
-  const [actionDialog, setActionDialog] = useState<'cancel' | 'refund' | null>(null);
+  const [actionDialog, setActionDialog] = useState<'cancel' | null>(null);
   const [reason, setReason] = useState('');
 
   const [grantOpen, setGrantOpen] = useState(false);
@@ -185,30 +183,13 @@ export default function AdminSubscriptionsPage() {
     setIsSubmitting(true);
     try {
       await apiClient.put(`/admin/subscriptions/${detail.subscription.id}/cancel`, { reason });
-      toast.success('Auto-renew turned off — vendor keeps access until the period ends');
+      toast.success('Subscription ended — vendor moved to the default plan immediately');
       await fetchAll();
       setActionDialog(null);
       setDetail(null);
       setReason('');
     } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Failed to cancel');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const runRefund = async () => {
-    if (!detail) return;
-    setIsSubmitting(true);
-    try {
-      await apiClient.post(`/admin/subscriptions/${detail.subscription.id}/refund`, { reason });
-      toast.success('Refunded — subscription ended immediately');
-      await fetchAll();
-      setActionDialog(null);
-      setDetail(null);
-      setReason('');
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Failed to refund');
+      toast.error(error?.response?.data?.error || 'Failed to end subscription');
     } finally {
       setIsSubmitting(false);
     }
@@ -252,7 +233,6 @@ export default function AdminSubscriptionsPage() {
       { header: 'Billing period', value: (r) => r.subscription.billingPeriod },
       { header: 'Source', value: (r) => r.subscription.source },
       { header: 'Period end', value: (r) => formatDate(r.subscription.currentPeriodEnd) },
-      { header: 'Auto-renew', value: (r) => (r.subscription.autoRenew ? 'Yes' : 'No') },
     ]);
     if (ok) toast.success(`Exported ${filtered.length} subscription${filtered.length === 1 ? '' : 's'}`);
     else toast.error('Nothing to export — no subscriptions match the current filters');
@@ -335,16 +315,10 @@ export default function AdminSubscriptionsPage() {
           <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setDetail(r); }}>
             <Eye className="w-4 h-4" />
           </Button>
-          {r.subscription.status === 'ACTIVE' && r.subscription.autoRenew && (
-            <Button variant="ghost" size="sm"
+          {r.subscription.status === 'ACTIVE' && (
+            <Button variant="ghost" size="sm" className="text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white"
               onClick={(e) => { e.stopPropagation(); setDetail(r); setActionDialog('cancel'); setReason(''); }}>
               <Ban className="w-4 h-4" />
-            </Button>
-          )}
-          {r.subscription.status === 'ACTIVE' && r.subscription.source === 'PURCHASE' && (
-            <Button variant="ghost" size="sm" className="text-[#B85C5C] hover:bg-[#B85C5C] hover:text-white"
-              onClick={(e) => { e.stopPropagation(); setDetail(r); setActionDialog('refund'); setReason(''); }}>
-              <RotateCcw className="w-4 h-4" />
             </Button>
           )}
         </div>
@@ -356,7 +330,7 @@ export default function AdminSubscriptionsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Subscriptions"
-        description="Every vendor subscription — grant, cancel or refund manually"
+        description="Every vendor subscription — grant one manually, or end one early. Payments are final; there are no refunds."
         actions={
           <>
             <Button variant="outline" onClick={handleExport}>Export CSV</Button>
@@ -436,7 +410,6 @@ export default function AdminSubscriptionsPage() {
                 <Fact label="Billing period" value={detail.subscription.billingPeriod} />
                 <Fact label="Period start" value={formatDate(detail.subscription.currentPeriodStart)} />
                 <Fact label="Period end" value={formatDate(detail.subscription.currentPeriodEnd)} />
-                <Fact label="Auto-renew" value={detail.subscription.autoRenew ? 'Yes' : 'No'} />
                 <Fact label="Source" value={detail.subscription.source === 'ADMIN_GRANT' ? 'Admin grant' : 'Real purchase'} />
               </div>
               {detail.subscription.adminNote && (
@@ -446,15 +419,10 @@ export default function AdminSubscriptionsPage() {
                 </div>
               )}
               <div className="flex gap-2 pt-2">
-                {detail.subscription.status === 'ACTIVE' && detail.subscription.autoRenew && (
-                  <Button variant="outline" className="flex-1" onClick={() => { setActionDialog('cancel'); setReason(''); }}>
-                    Cancel auto-renew
-                  </Button>
-                )}
-                {detail.subscription.status === 'ACTIVE' && detail.subscription.source === 'PURCHASE' && (
+                {detail.subscription.status === 'ACTIVE' && (
                   <Button variant="outline" className="flex-1 text-[#B85C5C] border-[#B85C5C]/30 hover:bg-[#B85C5C] hover:text-white"
-                    onClick={() => { setActionDialog('refund'); setReason(''); }}>
-                    Refund
+                    onClick={() => { setActionDialog('cancel'); setReason(''); }}>
+                    End subscription now
                   </Button>
                 )}
               </div>
@@ -466,31 +434,16 @@ export default function AdminSubscriptionsPage() {
       <AdminConfirmDialog
         open={actionDialog === 'cancel'}
         onOpenChange={(open) => !open && setActionDialog(null)}
-        title={`Cancel auto-renew for ${detail?.vendorName}?`}
-        description="They keep their plan until the current period ends, then drop to the default tier."
-        confirmLabel="Cancel auto-renew"
+        title={`End ${detail?.vendorName}'s subscription now?`}
+        description="Access is revoked immediately and they drop to the default plan — there is no refund for time already paid for."
+        confirmLabel="End subscription"
+        destructive
         isSubmitting={isSubmitting}
         onConfirm={runCancel}
       >
         <div>
-          <Label htmlFor="cancel-reason" className="mb-2">Reason (optional, shown to the vendor)</Label>
+          <Label htmlFor="cancel-reason" className="mb-2">Reason (shown to the vendor)</Label>
           <Textarea id="cancel-reason" value={reason} onChange={(e) => setReason(e.target.value)} className="min-h-20" />
-        </div>
-      </AdminConfirmDialog>
-
-      <AdminConfirmDialog
-        open={actionDialog === 'refund'}
-        onOpenChange={(open) => !open && setActionDialog(null)}
-        title={`Refund ${detail?.vendorName}?`}
-        description="Reverses the payment through the gateway and ends their plan immediately — this is not the same as a scheduled cancellation."
-        confirmLabel="Issue refund"
-        destructive
-        isSubmitting={isSubmitting}
-        onConfirm={runRefund}
-      >
-        <div>
-          <Label htmlFor="refund-reason" className="mb-2">Reason (shown to the vendor)</Label>
-          <Textarea id="refund-reason" value={reason} onChange={(e) => setReason(e.target.value)} className="min-h-20" />
         </div>
       </AdminConfirmDialog>
 

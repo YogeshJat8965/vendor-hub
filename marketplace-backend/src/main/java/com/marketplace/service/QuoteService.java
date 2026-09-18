@@ -28,8 +28,12 @@ public class QuoteService {
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
     private final com.marketplace.repository.UserRepository userRepository;
+    private final PlatformSettingsService platformSettingsService;
 
     public QuoteRequest createQuote(QuoteRequest quote) {
+        if (!platformSettingsService.get().isQuoteRequestsEnabled()) {
+            throw new RuntimeException("Quote requests are currently disabled on this platform");
+        }
         quote.setStatus("NEW");
         quote.setCreatedAt(LocalDateTime.now());
         quote.setUpdatedAt(LocalDateTime.now());
@@ -249,7 +253,9 @@ public class QuoteService {
      */
     @Scheduled(cron = "0 0 * * * *")
     public void autoCompleteStaleDeliveries() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+        // Read per-run rather than cached, so changing the window in Settings
+        // takes effect on the next hourly pass instead of needing a restart.
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(platformSettingsService.get().getAutoCompleteDays());
         List<QuoteRequest> delivered = quoteRepository.findByStatus("DELIVERED");
         for (QuoteRequest quote : delivered) {
             if (quote.getDeliveredAt() != null && quote.getDeliveredAt().isBefore(cutoff)) {

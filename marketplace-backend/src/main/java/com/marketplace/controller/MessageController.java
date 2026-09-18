@@ -4,15 +4,19 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.marketplace.model.Conversation;
 import com.marketplace.model.Message;
+import com.marketplace.model.User;
 import com.marketplace.model.vendor.Vendor;
 import com.marketplace.repository.ConversationRepository;
+import com.marketplace.repository.UserRepository;
 import com.marketplace.repository.VendorRepository;
 import com.marketplace.service.MessagingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +36,7 @@ public class MessageController {
     private final Cloudinary cloudinary;
     private final ConversationRepository conversationRepository;
     private final VendorRepository vendorRepository;
+    private final UserRepository userRepository;
 
     /**
      * WebSocket Endpoint
@@ -111,6 +116,40 @@ public class MessageController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    /**
+     * Starts (or reuses) a direct conversation between the signed-in vendor
+     * and a specific customer, identified by their account id rather than an
+     * email the client would otherwise have to be trusted to supply
+     * correctly. The vendor side is always resolved from the JWT — a vendor
+     * can only ever start a conversation as themselves.
+     *
+     * <p>This is what a vendor's "message this customer" action (e.g. from a
+     * new-favorite notification) actually calls; it reuses whatever thread
+     * already exists between the two rather than opening a second one.
+     */
+    @PostMapping("/api/vendor/conversations/start-with-customer")
+    public ResponseEntity<?> startConversationWithCustomer(@RequestBody Map<String, String> payload, Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Not signed in"));
+        }
+        Vendor vendor = vendorRepository.findById(authentication.getName()).orElse(null);
+        if (vendor == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No vendor account for the signed-in user"));
+        }
+
+        String customerId = payload.get("customerId");
+        if (customerId == null || customerId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "customerId is required"));
+        }
+        User customer = userRepository.findById(customerId).orElse(null);
+        if (customer == null || customer.getEmail() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Customer not found"));
+        }
+
+        Conversation conv = messagingService.getOrCreateDirectConversation(customer.getEmail(), vendor.getEmail());
+        return ResponseEntity.ok(conv);
     }
 
     /**

@@ -140,6 +140,9 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
   const { notifications, decrementInboxCount, refreshInboxCount } = useNotifications();
   const searchParams = useSearchParams();
   const deepLinkQuoteId = searchParams.get('quoteId');
+  // Set by e.g. the "new favorite" notification -- a vendor account id to
+  // open (or start) a direct conversation with, no quote involved.
+  const deepLinkCustomerId = searchParams.get('customerId');
   const [conversations, setConversations] = useState<any[]>([]);
   const [activeConv, setActiveConv] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -180,6 +183,30 @@ export function InboxUI({ userRole, userId }: InboxUIProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Separate from the mount effect above: a notification click (e.g. "new
+  // favorite") navigates here with ?customerId=... via router.push, and if
+  // the Inbox page is already mounted (the vendor was already sitting on
+  // it), Next.js updates the URL's search params without remounting the
+  // page — so a mount-only effect would never see the new value. Keying
+  // this effect on deepLinkCustomerId itself makes it re-run every time,
+  // mounted or not.
+  useEffect(() => {
+    if (!deepLinkCustomerId || userRole !== 'VENDOR') return;
+    (async () => {
+      try {
+        const started = (await apiClient.post('/vendor/conversations/start-with-customer', { customerId: deepLinkCustomerId })).data;
+        const convs = await fetchConversations({ silent: true });
+        const match = convs.find((c: any) => c.id === started.id);
+        if (match) {
+          handleSelectConv(match);
+        }
+      } catch (err) {
+        console.error('Failed to start conversation with customer', err);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkCustomerId]);
 
   // A new message anywhere in the inbox arrives as a MESSAGE-type
   // notification on the shared real-time channel — refetch the list so its

@@ -87,6 +87,7 @@ export default function PricingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [billingPeriod, setBillingPeriod] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
   const [currentPlanCode, setCurrentPlanCode] = useState<string | null>(null);
+  const [currentPlanPricePaise, setCurrentPlanPricePaise] = useState<number | null>(null);
 
   const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
 
@@ -113,7 +114,10 @@ export default function PricingPage() {
     // this page has no "current plan" to highlight.
     if (isAuthenticated && user?.role === 'vendor') {
       apiClient.get('/vendor/plan')
-        .then((res) => setCurrentPlanCode(res.data?.plan?.code ?? null))
+        .then((res) => {
+          setCurrentPlanCode(res.data?.plan?.code ?? null);
+          setCurrentPlanPricePaise(res.data?.plan?.monthlyPricePaise ?? null);
+        })
         .catch(() => {});
     }
   }, [isAuthenticated, user]);
@@ -134,15 +138,20 @@ export default function PricingPage() {
     if (plan.monthlyPricePaise === 0) {
       // Reached only when already signed in as a vendor (the !isAuthenticated
       // branch above returns first for a logged-out visitor). There is
-      // nothing to check out for a free plan — a vendor on a paid tier moves
-      // to it by letting their current subscription lapse (Billing → turn off
-      // auto-renew), not by "buying" it. Opening checkout here would just
-      // fail at the order step.
-      toast.info(`${plan.name} is the default tier — turn off auto-renew in Billing to move to it at the end of your current period.`);
+      // nothing to check out for a free plan, and no way to move to it early
+      // either — it's simply what a vendor falls back to once their current
+      // paid plan expires.
+      toast.info(`${plan.name} is the default tier — you'll move to it automatically once your current plan expires.`);
       return;
     }
     if (billingPeriod === 'YEARLY' && !plan.yearlyPricePaise) {
       toast.error(`${plan.name} does not offer yearly billing`);
+      return;
+    }
+    if (currentPlanPricePaise !== null && plan.monthlyPricePaise < currentPlanPricePaise) {
+      // There is no downgrade path at all — once a vendor moves up, a
+      // cheaper plan only becomes buyable again after the current one expires.
+      toast.info(`Downgrades aren't available — your plan will move to Free automatically when it expires, and you can choose any plan again then.`);
       return;
     }
     setCheckoutPlan(plan);

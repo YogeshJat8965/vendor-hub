@@ -53,8 +53,12 @@ public class Vendor {
     
     private GeoJsonPoint location; // For geospatial queries
     
-    private String status; // ACTIVE, INACTIVE, SUSPENDED
-    
+    private String status; // PENDING, ACTIVE, REJECTED, SUSPENDED
+
+    // Why the account was rejected or suspended. Collected by the admin panel
+    // and shown back to the vendor, so the decision isn't a silent one.
+    private String rejectionReason;
+
     private String logoUrl;
     
     private String bannerUrl;
@@ -99,8 +103,28 @@ public class Vendor {
     private List<String> services;
     
     private List<String> gallery;
-    
+
+    // Extra storefront contact options — writable only while the vendor's
+    // plan has allowsExtraCta (enforced in VendorService.updateVendorByEmail),
+    // and stripped from every public read when it doesn't, so a downgrade
+    // hides them immediately without deleting the vendor's own data.
+    private String whatsappNumber;
+    private String callNumber;
+    private String customCtaLabel;
+    private String customCtaUrl;
+
+    /**
+     * Set per-request from the vendor's resolved plan, never persisted —
+     * mirrors how {@code Catalogue.locked} is computed fresh on every read
+     * rather than stored, so it can never go stale in the database.
+     */
+    @org.springframework.data.annotation.Transient
+    private boolean featuredBadge;
+
+    @org.springframework.data.annotation.Transient
+    private boolean priorityVisibility;
+
     private Instant createdAt;
-    
+
     private Instant updatedAt;
 }

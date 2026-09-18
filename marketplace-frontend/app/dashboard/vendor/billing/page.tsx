@@ -13,6 +13,7 @@ import {
   Clock,
   ArrowUpRight,
   AlertTriangle,
+  Lock,
   Infinity as InfinityIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,8 +40,6 @@ interface Subscription {
   billingPeriod: string;
   currentPeriodStart: string;
   currentPeriodEnd: string;
-  autoRenew: boolean;
-  cancelledAt?: string | null;
 }
 
 interface Plan {
@@ -58,6 +57,8 @@ interface Transaction {
   currency: string;
   status: string;
   failureReason?: string;
+  couponCode?: string | null;
+  couponDiscountPaise?: number;
   createdAt: string;
 }
 
@@ -74,14 +75,12 @@ const STATUS_STYLES: Record<string, string> = {
   SUCCESS: 'text-[#5B8C5A] border-[#5B8C5A]/30',
   FAILED: 'text-[#B85C5C] border-[#B85C5C]/30',
   PENDING: 'text-[#C4975A] border-[#C4975A]/30',
-  REFUNDED: 'text-[#9C8E82] border-[#CDC0B0]',
 };
 
 const STATUS_ICONS: Record<string, typeof CheckCircle2> = {
   SUCCESS: CheckCircle2,
   FAILED: XCircle,
   PENDING: Clock,
-  REFUNDED: XCircle,
 };
 
 export default function VendorBillingPage() {
@@ -91,7 +90,6 @@ export default function VendorBillingPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [history, setHistory] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [cancelling, setCancelling] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
 
   const fetchAll = useCallback(async () => {
@@ -119,24 +117,12 @@ export default function VendorBillingPage() {
     if (user?.email) fetchAll();
   }, [user, fetchAll]);
 
-  const handleCancel = async () => {
-    setCancelling(true);
-    try {
-      await apiClient.put('/vendor/payments/subscription/cancel');
-      toast.success('Auto-renew turned off — you keep your plan until it expires.');
-      await fetchAll();
-    } catch (error: any) {
-      toast.error(error?.response?.data?.error || 'Failed to cancel');
-    } finally {
-      setCancelling(false);
-    }
-  };
-
   const handleExport = () => {
     const ok = exportToCsv('vendorhub-billing-history', history, [
       { header: 'Date', value: (t) => formatDate(t.createdAt) },
       { header: 'Plan', value: (t) => t.planCode },
       { header: 'Amount', value: (t) => `₹${rupees(t.amountPaise)}` },
+      { header: 'Coupon', value: (t) => t.couponCode ?? '' },
       { header: 'Status', value: (t) => t.status },
       { header: 'Failure reason', value: (t) => t.failureReason ?? '' },
     ]);
@@ -152,9 +138,10 @@ export default function VendorBillingPage() {
     );
   }
 
-  // Only paid plans are offered as a one-click "Switch" — moving to a free
-  // plan isn't a purchase, so it goes through Cancel (below) instead, the
-  // same way /pricing routes a vendor there rather than opening checkout.
+  // There is no downgrade and no auto-renewal: a plan is fixed-term. Only a
+  // pricier plan can be bought while one is active (an immediate, prorated
+  // upgrade) — a cheaper plan is shown but disabled with an explanation, and
+  // becomes buyable again only once the current plan naturally expires.
   const otherPlans = plans.filter((p) => p.code !== entitlements.plan.code && p.purchasable && p.monthlyPricePaise > 0);
   const isPaid = entitlements.plan.monthlyPricePaise > 0;
 
@@ -179,43 +166,33 @@ export default function VendorBillingPage() {
             <Link href="/pricing">
               <Button variant="outline" className="rounded-xl">
                 <ArrowUpRight className="w-4 h-4" />
-                Change plan
+                Upgrade plan
               </Button>
             </Link>
           </div>
 
           {subscription && subscription.status === 'ACTIVE' && (
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5 border-t border-[#CDC0B0]/40">
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-[#CDC0B0]/40">
               <div className="flex items-start gap-2.5">
                 <CreditCard className="w-4 h-4 text-[#9C8E82] mt-0.5" />
                 <div>
-                  <p className="text-xs text-[#9C8E82]">Paying</p>
+                  <p className="text-xs text-[#9C8E82]">Paid</p>
                   <p className="text-sm text-[#2C2621] font-medium">
-                    ₹{rupees(subscription.amountPaidPaise)} / {subscription.billingPeriod === 'YEARLY' ? 'year' : 'month'}
+                    ₹{rupees(subscription.amountPaidPaise)} for this {subscription.billingPeriod === 'YEARLY' ? 'year' : 'month'}
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-2.5">
                 <Calendar className="w-4 h-4 text-[#9C8E82] mt-0.5" />
                 <div>
-                  <p className="text-xs text-[#9C8E82]">{subscription.autoRenew ? 'Renews on' : 'Expires on'}</p>
+                  <p className="text-xs text-[#9C8E82]">Expires on</p>
                   <p className="text-sm text-[#2C2621] font-medium">{formatDate(subscription.currentPeriodEnd)}</p>
                 </div>
               </div>
-              <div>
-                {subscription.autoRenew ? (
-                  <Button variant="outline" size="sm" onClick={handleCancel} disabled={cancelling}
-                    className="text-[#B85C5C] border-[#B85C5C]/30 hover:bg-[#B85C5C] hover:text-white rounded-xl">
-                    {cancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Turn off auto-renew
-                  </Button>
-                ) : (
-                  <p className="text-xs text-[#C4975A] flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    Auto-renew is off — you'll drop to Free after this period.
-                  </p>
-                )}
-              </div>
+              <p className="sm:col-span-2 text-xs text-[#9C8E82] flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                There's no auto-renewal — buy again before this date to keep your plan, or you'll move to Free automatically.
+              </p>
             </div>
           )}
 
@@ -264,17 +241,31 @@ export default function VendorBillingPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {otherPlans.map((plan) => (
-                <div key={plan.code} className="flex items-center justify-between rounded-xl border border-[#CDC0B0]/50 p-4">
-                  <div>
-                    <p className="font-heading font-semibold text-[#2C2621]">{plan.name}</p>
-                    <p className="font-body text-sm text-[#9C8E82]">₹{rupees(plan.monthlyPricePaise)}/mo</p>
+              {otherPlans.map((plan) => {
+                const isDowngrade = plan.monthlyPricePaise < entitlements.plan.monthlyPricePaise;
+                return (
+                  <div key={plan.code} className="flex items-center justify-between rounded-xl border border-[#CDC0B0]/50 p-4">
+                    <div>
+                      <p className="font-heading font-semibold text-[#2C2621]">{plan.name}</p>
+                      <p className="font-body text-sm text-[#9C8E82]">₹{rupees(plan.monthlyPricePaise)}/mo</p>
+                      {isDowngrade && (
+                        <p className="font-body text-xs text-[#9C8E82] mt-1 flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Available once {entitlements.plan.name} expires
+                        </p>
+                      )}
+                    </div>
+                    {isDowngrade ? (
+                      <Button size="sm" variant="outline" disabled className="rounded-xl">
+                        Downgrade
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={() => setCheckoutPlan(plan)} className="rounded-xl bg-[#2C2621] hover:bg-[#2C2621]/90 text-white">
+                        Upgrade
+                      </Button>
+                    )}
                   </div>
-                  <Button size="sm" onClick={() => setCheckoutPlan(plan)} className="rounded-xl bg-[#2C2621] hover:bg-[#2C2621]/90 text-white">
-                    Switch
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -302,7 +293,10 @@ export default function VendorBillingPage() {
                       <Icon className={`w-5 h-5 shrink-0 ${STATUS_STYLES[t.status]?.split(' ')[0] ?? 'text-[#9C8E82]'}`} />
                       <div className="min-w-0">
                         <p className="font-body text-sm text-[#2C2621]">{t.planCode} plan</p>
-                        <p className="font-body text-xs text-[#9C8E82]">{formatDate(t.createdAt)}</p>
+                        <p className="font-body text-xs text-[#9C8E82]">
+                          {formatDate(t.createdAt)}
+                          {t.couponCode && ` · Coupon ${t.couponCode} (−₹${rupees(t.couponDiscountPaise ?? 0)})`}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right shrink-0">

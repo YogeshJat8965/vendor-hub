@@ -61,6 +61,7 @@ export default function CustomerDashboardPage() {
     pendingQuotes: 0,
     completedQuotes: 0,
     totalQuotes: 0,
+    favoritesCount: 0,
   });
 
   useEffect(() => {
@@ -72,9 +73,11 @@ export default function CustomerDashboardPage() {
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
-      // Fetch customer quotes
-      const response = await apiClient.get(`/quotes/customer?email=${user?.email}`);
-      const quotesData = response.data || [];
+      const [quotesRes, favoritesRes] = await Promise.all([
+        apiClient.get(`/quotes/customer?email=${user?.email}`),
+        apiClient.get('/customer/favorites').catch(() => ({ data: [] })),
+      ]);
+      const quotesData = quotesRes.data || [];
       setQuotes(quotesData);
 
       // Calculate stats
@@ -87,6 +90,7 @@ export default function CustomerDashboardPage() {
         pendingQuotes: pending,
         completedQuotes: completed,
         totalQuotes: quotesData.length,
+        favoritesCount: (favoritesRes.data || []).length,
       });
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
@@ -144,7 +148,7 @@ export default function CustomerDashboardPage() {
     },
     {
       title: 'Favorites',
-      value: localStorage.getItem('favorites')?.split(',').filter(Boolean).length.toString() || '0',
+      value: stats.favoritesCount.toString(),
       change: 'Saved professionals',
       icon: Heart,
       color: 'text-[#2C2621]',

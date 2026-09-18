@@ -28,6 +28,7 @@ public class ReviewService {
     private final QuoteRequestRepository quoteRequestRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final PlatformSettingsService platformSettingsService;
 
     /**
      * Can this customer review this vendor right now? Used by the frontend
@@ -122,6 +123,12 @@ public class ReviewService {
      * someone else's name.
      */
     public Review createReview(String customerUserId, ReviewCreateDto dto) {
+        // Checked first: if reviews are switched off platform-wide there is no
+        // point validating eligibility only to refuse at the end.
+        if (!platformSettingsService.get().isReviewsEnabled()) {
+            throw new RuntimeException("Reviews are currently disabled on this platform");
+        }
+
         User customer = userRepository.findById(customerUserId)
                 .orElseThrow(() -> new RuntimeException("Only customer accounts can submit reviews"));
 

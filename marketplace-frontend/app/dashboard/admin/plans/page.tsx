@@ -57,6 +57,12 @@ interface Plan {
   featuredBadge: boolean;
   priorityVisibility: boolean;
   allowsExtraCta: boolean;
+  allowsProfileViewsCount: boolean;
+  allowsQuoteTrend: boolean;
+  allowsViewsTrend: boolean;
+  allowsRatingTrend: boolean;
+  allowsConversionInsights: boolean;
+  allowsFavoritesInsights: boolean;
   isDefault: boolean;
   updatedAt?: string;
 }
@@ -85,6 +91,15 @@ const FEATURE_FIELDS = [
   { key: 'featuredBadge', label: 'Featured badge', hint: 'Show a Featured badge on listings and the storefront' },
   { key: 'priorityVisibility', label: 'Priority visibility', hint: 'Rank above lower tiers in the default listing order' },
   { key: 'allowsExtraCta', label: 'Call / WhatsApp / custom CTA', hint: 'Extra contact buttons beyond Get Quote' },
+] as const;
+
+const ANALYTICS_FIELDS = [
+  { key: 'allowsProfileViewsCount', label: 'Profile views count', hint: 'Show the total profile-views number on Analytics' },
+  { key: 'allowsQuoteTrend', label: 'Quote requests trend chart', hint: 'Chart of quote requests over time' },
+  { key: 'allowsViewsTrend', label: 'Profile views trend chart', hint: 'Chart of profile views over time' },
+  { key: 'allowsRatingTrend', label: 'Rating trend chart', hint: 'Chart of the rolling average rating over time' },
+  { key: 'allowsConversionInsights', label: 'Conversion rate insight', hint: 'Views-to-quotes conversion percentage' },
+  { key: 'allowsFavoritesInsights', label: 'Favorites feed + notifications', hint: 'See who favorited them, and get notified the moment it happens' },
 ] as const;
 
 const rupees = (paise: number) => (paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 });
@@ -529,6 +544,25 @@ export default function AdminPlansPage() {
             </div>
           </AdminSectionCard>
 
+          {/* Analytics */}
+          <AdminSectionCard title="Analytics" icon={Eye}>
+            <div className="divide-y divide-[#CDC0B0]/40">
+              {ANALYTICS_FIELDS.map(({ key, label, hint }) => (
+                <FeatureToggle
+                  key={key}
+                  label={label}
+                  hint={hint}
+                  checked={active[key] as boolean}
+                  onChange={(v) => update(active.code, key, v as never)}
+                />
+              ))}
+            </div>
+            <p className="font-body text-xs text-[#9C8E82] mt-3">
+              What this tier's vendors see on their own Analytics page. Anything off here shows as a locked, blurred
+              preview with an upgrade prompt rather than disappearing outright.
+            </p>
+          </AdminSectionCard>
+
           {/* Live comparison preview */}
           <AdminSectionCard title="Customer preview" icon={Eye}>
             <p className="font-body text-sm text-[#6B5E54] mb-4">
@@ -569,6 +603,20 @@ export default function AdminPlansPage() {
                     </tr>
                   ))}
                   {FEATURE_FIELDS.map(({ key, label }) => (
+                    <tr key={key}>
+                      <td className="px-3 py-2 font-body text-sm text-[#2C2621]">{label}</td>
+                      {rows.map(({ plan }) => (
+                        <td key={plan.code} className="px-3 py-2">
+                          {drafts[plan.code][key] ? (
+                            <Check className="w-4 h-4 text-[#5B8C5A]" aria-label="Included" />
+                          ) : (
+                            <X className="w-4 h-4 text-[#CDC0B0]" aria-label="Not included" />
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                  {ANALYTICS_FIELDS.map(({ key, label }) => (
                     <tr key={key}>
                       <td className="px-3 py-2 font-body text-sm text-[#2C2621]">{label}</td>
                       {rows.map(({ plan }) => (

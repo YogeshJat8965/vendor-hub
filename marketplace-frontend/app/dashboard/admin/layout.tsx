@@ -18,7 +18,8 @@ import {
   BarChart3,
   Truck,
   Layers,
-  CreditCard
+  CreditCard,
+  Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -63,6 +64,7 @@ const navSections = [
     label: 'Configuration',
     items: [
       { name: 'Plans', href: '/dashboard/admin/plans', icon: Layers },
+      { name: 'Coupons', href: '/dashboard/admin/coupons', icon: Tag },
       { name: 'Categories', href: '/dashboard/admin/categories', icon: FolderTree },
       { name: 'Settings', href: '/dashboard/admin/settings', icon: Settings },
     ],

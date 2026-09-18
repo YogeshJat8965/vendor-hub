@@ -74,11 +74,9 @@ const navItems: NavItem[] = [
     href: '/dashboard/vendor/reviews',
     icon: Star,
   },
-  {
-    title: 'Analytics',
-    href: '/dashboard/vendor/analytics',
-    icon: TrendingUp,
-  },
+  // Analytics is hidden for now (built and working, just not launched yet) —
+  // re-add this entry to bring it back:
+  // { title: 'Analytics', href: '/dashboard/vendor/analytics', icon: TrendingUp },
   {
     title: 'Billing',
     href: '/dashboard/vendor/billing',

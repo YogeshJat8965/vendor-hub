@@ -11,4 +11,5 @@ public interface ConversationRepository extends MongoRepository<Conversation, St
     List<Conversation> findByCustomerIdOrderByLastMessageTimeDesc(String customerId);
     List<Conversation> findByVendorIdOrderByLastMessageTimeDesc(String vendorId);
     Optional<Conversation> findByQuoteRequestId(String quoteRequestId);
+    Optional<Conversation> findFirstByCustomerIdAndVendorIdOrderByLastMessageTimeDesc(String customerId, String vendorId);
 }

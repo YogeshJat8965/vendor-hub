@@ -56,10 +56,15 @@ public class CatalogueController {
         }
     }
 
+    /**
+     * Public listing — shaped by the vendor's plan. A vendor holding more
+     * catalogues than their plan permits keeps all of them stored; only the
+     * allowed ones are served here, and Premium-only fields are stripped.
+     */
     @GetMapping("/catalogues/vendor/{vendorId}")
     public ResponseEntity<?> getCataloguesPublic(@PathVariable String vendorId) {
         try {
-            return ResponseEntity.ok(catalogueService.getVendorCatalogues(vendorId));
+            return ResponseEntity.ok(catalogueService.getPublicCataloguesByVendorId(vendorId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -68,7 +73,13 @@ public class CatalogueController {
     @GetMapping("/catalogues/{id}")
     public ResponseEntity<?> getCatalogueById(@PathVariable String id) {
         try {
-            return ResponseEntity.ok(catalogueService.getCatalogueById(id));
+            Catalogue catalogue = catalogueService.getPublicCatalogueById(id);
+            if (catalogue == null) {
+                // Exists, but the owning vendor's plan no longer allows it to
+                // be public — indistinguishable from "not found" to a visitor.
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(catalogue);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

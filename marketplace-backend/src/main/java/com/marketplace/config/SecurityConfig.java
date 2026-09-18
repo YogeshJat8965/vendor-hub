@@ -66,6 +66,18 @@ public class SecurityConfig {
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                // The pricing page is public, so anyone can compare plans
+                // before deciding to sign up.
+                .requestMatchers(HttpMethod.GET, "/api/plans").permitAll()
+                // The mock "charge" endpoint stands in for a gateway's own
+                // hosted checkout page, which runs on the gateway's domain, not
+                // ours — so it is naturally unauthenticated. The webhook is how
+                // a real gateway calls back server-to-server, also outside any
+                // user session; both are protected by payment-signature
+                // verification instead of a login, exactly like a real
+                // integration.
+                .requestMatchers(HttpMethod.POST, "/api/payments/mock/charge").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/payments/webhook").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/explore/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/vendors/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/catalogues/**").permitAll()

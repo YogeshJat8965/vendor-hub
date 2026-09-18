@@ -6,6 +6,14 @@ spring:
     mongodb:
       uri: ${MONGODB_URI:mongodb+srv://yogeshjat8965_db_user:rSqxEps5KTz7o2Qp@vendorhub.whs5yyc.mongodb.net/marketplace?retryWrites=true&w=majority}
       database: marketplace
+      # Left at Spring Data's default (false): the `vendors` collection already
+      # carries hand-named indexes (slug_idx, geo_idx) that predate this app's
+      # @Indexed annotations, and turning this on made Spring try to create a
+      # second index on the same key under its own auto-generated name,
+      # crashing startup with "Index already exists with a different name".
+      # PaymentTransaction's uniqueness on gatewayPaymentId — the one index
+      # this phase actually depends on — is created explicitly and narrowly
+      # instead; see config/PaymentIndexInitializer.
   
   servlet:
     multipart:

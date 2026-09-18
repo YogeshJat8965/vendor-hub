@@ -35,6 +35,7 @@ interface PlatformSettings {
   reviewsEnabled: boolean;
   quoteRequestsEnabled: boolean;
   autoCompleteDays: number;
+  renewalReminderDaysBeforeExpiry: number[];
   updatedAt?: string | null;
   updatedBy?: string | null;
 }
@@ -48,6 +49,7 @@ const DEFAULTS: PlatformSettings = {
   reviewsEnabled: true,
   quoteRequestsEnabled: true,
   autoCompleteDays: 7,
+  renewalReminderDaysBeforeExpiry: [7, 3, 1],
 };
 
 /** A labelled switch row that states what flipping it actually does to the product. */
@@ -92,6 +94,10 @@ export default function AdminSettingsPage() {
   const [saved, setSaved] = useState<PlatformSettings>(DEFAULTS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  // A free-text buffer for the reminder-days input, so a trailing "," or
+  // space while typing isn't immediately stripped by re-deriving from the
+  // parsed number array on every keystroke.
+  const [reminderDaysText, setReminderDaysText] = useState('7, 3, 1');
 
   const fetchSettings = useCallback(async () => {
     try {
@@ -105,6 +111,7 @@ export default function AdminSettingsPage() {
       };
       setSettings(loaded);
       setSaved(loaded);
+      setReminderDaysText(loaded.renewalReminderDaysBeforeExpiry.join(', '));
     } catch (error) {
       console.error('Failed to fetch settings:', error);
       toast.error('Failed to load settings');
@@ -149,6 +156,7 @@ export default function AdminSettingsPage() {
       };
       setSettings(persisted);
       setSaved(persisted);
+      setReminderDaysText(persisted.renewalReminderDaysBeforeExpiry.join(', '));
       toast.success('Settings saved — these take effect immediately');
     } catch (error: any) {
       console.error('Failed to save settings:', error);
@@ -174,7 +182,7 @@ export default function AdminSettingsPage() {
         actions={
           <>
             {isDirty && (
-              <Button variant="outline" onClick={() => setSettings(saved)} disabled={isSaving}>
+              <Button variant="outline" onClick={() => { setSettings(saved); setReminderDaysText(saved.renewalReminderDaysBeforeExpiry.join(', ')); }} disabled={isSaving}>
                 <RotateCcw className="w-4 h-4" />
                 Discard
               </Button>
@@ -320,11 +328,35 @@ export default function AdminSettingsPage() {
               </div>
               <p className="font-body text-sm text-[#6B5E54] mt-0.5">
                 Plans, prices and every limit are configured on the{' '}
-                <Link href="/dashboard/admin/plans" className="text-[#C4975A] underline">Plans</Link> page. Real
-                revenue, subscribers and refunds are on{' '}
+                <Link href="/dashboard/admin/plans" className="text-[#C4975A] underline">Plans</Link> page. Coupons are on{' '}
+                <Link href="/dashboard/admin/coupons" className="text-[#C4975A] underline">Coupons</Link>. Real
+                revenue and subscribers are on{' '}
                 <Link href="/dashboard/admin/subscriptions" className="text-[#C4975A] underline">Subscriptions</Link>.
+                Payments are final — there are no refunds and no downgrades once a vendor moves to a pricier plan.
               </p>
             </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#CDC0B0]/40">
+            <Label htmlFor="reminderDays" className="mb-2">Expiry reminders (days before, comma-separated)</Label>
+            <Input
+              id="reminderDays"
+              value={reminderDaysText}
+              onChange={(e) => {
+                setReminderDaysText(e.target.value);
+                const parsed = e.target.value
+                  .split(',')
+                  .map((v) => Number(v.trim()))
+                  .filter((v) => Number.isFinite(v) && v > 0);
+                update('renewalReminderDaysBeforeExpiry', parsed);
+              }}
+              placeholder="7, 3, 1"
+              className="h-11 max-w-xs"
+            />
+            <p className="font-body text-xs text-[#6B5E54] mt-2">
+              There's no auto-renewal, so this is a vendor's only warning that a paid plan is about to lapse. Each
+              value fires one reminder, that many days before the plan expires. Leave empty to turn reminders off.
+            </p>
           </div>
 
           <div className="flex items-start gap-3 opacity-60 pt-4 border-t border-[#CDC0B0]/40">

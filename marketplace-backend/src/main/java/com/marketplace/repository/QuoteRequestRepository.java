@@ -2,6 +2,7 @@ package com.marketplace.repository;
 
 import com.marketplace.model.QuoteRequest;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface QuoteRequestRepository extends MongoRepository<QuoteRequest, String> {
@@ -9,4 +10,11 @@ public interface QuoteRequestRepository extends MongoRepository<QuoteRequest, St
     List<QuoteRequest> findByCustomerEmail(String customerEmail);
     List<QuoteRequest> findByStatus(String status);
     List<QuoteRequest> findByVendorSlugAndCustomerEmail(String vendorSlug, String customerEmail);
+    List<QuoteRequest> findByVendorSlugAndCreatedAtAfter(String vendorSlug, LocalDateTime after);
+
+    // Admin panel: pipeline counts and the quote-volume time series.
+    long countByStatus(String status);
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    List<QuoteRequest> findByCreatedAtAfter(LocalDateTime after);
+    List<QuoteRequest> findTop20ByOrderByCreatedAtDesc();
 }

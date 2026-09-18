@@ -21,6 +21,9 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VendorRepository vendorRepository;
     private final JwtService jwtService;
+    private final PlatformSettingsService platformSettingsService;
+    private final NotificationService notificationService;
+    private final PlanService planService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
     public String customerSignup(SignupDto dto) {
@@ -42,10 +45,14 @@ public class AuthService {
     }
 
     public String vendorSignup(VendorRegistrationDto dto) {
+        var settings = platformSettingsService.get();
+        if (!settings.isVendorRegistrationEnabled()) {
+            throw new RuntimeException("Vendor registration is currently closed");
+        }
         if (vendorRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("Email already in use");
         }
-        
+
         String slug = SlugGenerator.generateSlug(dto.getStoreName());
         if (vendorRepository.existsBySlug(slug)) {
             throw new RuntimeException("Store name already taken");
@@ -62,13 +69,29 @@ public class AuthService {
         vendor.setCity(dto.getCity());
         vendor.setPincode(dto.getPincode());
         vendor.setRole("VENDOR");
-        vendor.setStatus("ACTIVE");
-        vendor.setSubscriptionPlan("BASIC");
+        // Previously hardcoded to ACTIVE, which meant no vendor could ever be
+        // PENDING and the admin approval queue could never receive anything.
+        // The default keeps that behaviour; an admin can now turn it off.
+        vendor.setStatus(settings.isAutoApproveVendors() ? "ACTIVE" : "PENDING");
+        // The free tier, resolved from the plan configuration rather than a
+        // hardcoded code — an admin renaming or replacing the default plan must
+        // not leave signup pointing at a plan that no longer exists.
+        vendor.setSubscriptionPlan(planService.getDefaultPlan().getCode());
         vendor.setOauth2Provider("EMAIL");
         vendor.setCreatedAt(Instant.now());
         vendor.setUpdatedAt(Instant.now());
-        
+
         Vendor saved = vendorRepository.save(vendor);
+
+        if (!settings.isAutoApproveVendors()) {
+            notificationService.notify(saved.getId(), "ACCOUNT", "Account under review",
+                    "Thanks for registering. An admin is reviewing your account and you'll be notified once it's approved.",
+                    "/dashboard/vendor");
+            notificationService.notifyAdmins("VENDOR", "New vendor awaiting approval",
+                    saved.getStoreName() + " has registered and is waiting for approval.",
+                    "/dashboard/admin/vendors");
+        }
+
         return jwtService.generateToken(saved.getId(), saved.getEmail(), saved.getRole(), saved.getStoreName());
     }
     

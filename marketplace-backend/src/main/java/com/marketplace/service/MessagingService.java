@@ -39,6 +39,26 @@ public class MessagingService {
                 });
     }
 
+    /**
+     * Finds or starts a conversation between this vendor and customer that
+     * isn't tied to any particular quote — e.g. a vendor reaching out after a
+     * customer favorited them. Reuses whatever thread already exists between
+     * the two (quote-based or not) rather than starting a second, parallel
+     * one, so a vendor and customer always land in the same ongoing chat.
+     */
+    public Conversation getOrCreateDirectConversation(String customerEmail, String vendorEmail) {
+        return conversationRepository.findFirstByCustomerIdAndVendorIdOrderByLastMessageTimeDesc(customerEmail, vendorEmail)
+                .orElseGet(() -> {
+                    Conversation newConv = new Conversation();
+                    newConv.setCustomerId(customerEmail);
+                    newConv.setVendorId(vendorEmail);
+                    newConv.setCreatedAt(Instant.now());
+                    newConv.setUpdatedAt(Instant.now());
+                    newConv.setLastMessageTime(Instant.now());
+                    return conversationRepository.save(newConv);
+                });
+    }
+
     public Message saveMessage(Message message) {
         message.setTimestamp(Instant.now());
         message.setRead(false);

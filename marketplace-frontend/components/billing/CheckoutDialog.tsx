@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Loader2,
   CreditCard,
   CheckCircle2,
   XCircle,
   Clock,
-  Copy,
   ShieldCheck,
+  Tag,
+  X,
 } from 'lucide-react';
 import {
   Dialog,
@@ -43,7 +44,7 @@ const TEST_CARDS = [
   { number: '4000 0000 0000 0119', label: 'Pending, then settles' },
 ];
 
-type Stage = 'form' | 'processing' | 'success' | 'declined' | 'pending';
+type Stage = 'initializing' | 'form' | 'processing' | 'success' | 'declined' | 'pending';
 
 export function CheckoutDialog({
   plan,
@@ -58,7 +59,7 @@ export function CheckoutDialog({
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
 }) {
-  const [stage, setStage] = useState<Stage>('form');
+  const [stage, setStage] = useState<Stage>('initializing');
   const [cardNumber, setCardNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -66,14 +67,39 @@ export function CheckoutDialog({
   // doesn't need a new order or a new charge — the same payment just hasn't
   // settled yet.
   const [pendingRef, setPendingRef] = useState<{ orderId: string; gatewayPaymentId: string; signature: string } | null>(null);
+  // The order is created as soon as the dialog opens (not when Pay is
+  // clicked) so an upgrade's prorated credit — the unused portion of the
+  // current period — is known and shown before the vendor commits to paying.
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [gatewayOrderId, setGatewayOrderId] = useState<string | null>(null);
+  const [amountDuePaise, setAmountDuePaise] = useState<number | null>(null);
+  const [creditAppliedPaise, setCreditAppliedPaise] = useState(0);
 
-  const price = billingPeriod === 'YEARLY' && plan.yearlyPricePaise ? plan.yearlyPricePaise : plan.monthlyPricePaise;
+  // Coupon: the order is recreated (a fresh, cheap operation) whenever a
+  // coupon is applied or removed, since the amount due can only be resolved
+  // server-side — the client never computes a discount itself.
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [couponDiscountPaise, setCouponDiscountPaise] = useState(0);
+  const [couponError, setCouponError] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+  const fullPrice = billingPeriod === 'YEARLY' && plan.yearlyPricePaise ? plan.yearlyPricePaise : plan.monthlyPricePaise;
+  const price = amountDuePaise ?? fullPrice;
 
   const reset = () => {
-    setStage('form');
+    setStage('initializing');
     setCardNumber('');
     setErrorMessage('');
     setPendingRef(null);
+    setOrderId(null);
+    setGatewayOrderId(null);
+    setAmountDuePaise(null);
+    setCreditAppliedPaise(0);
+    setCouponInput('');
+    setAppliedCoupon(null);
+    setCouponDiscountPaise(0);
+    setCouponError('');
   };
 
   const handleClose = (isOpen: boolean) => {
@@ -81,17 +107,95 @@ export function CheckoutDialog({
     onOpenChange(isOpen);
   };
 
-  const pay = async () => {
-    setStage('processing');
-    setErrorMessage('');
+  // Creates (or recreates, for a coupon change) the order. When the total
+  // due is fully covered by credit and/or a coupon, the backend activates
+  // immediately with no gateway step at all — the dialog goes straight to
+  // the success state.
+  const startOrder = async (couponCode: string | null) => {
     try {
       const order = (await apiClient.post('/vendor/payments/orders', {
         planCode: plan.code,
         billingPeriod,
+        couponCode: couponCode || undefined,
       })).data;
+      setOrderId(order.orderId);
+      setGatewayOrderId(order.gatewayOrderId ?? null);
+      setAmountDuePaise(order.amountPaise);
+      setCreditAppliedPaise(order.creditAppliedPaise || 0);
+      setAppliedCoupon(order.couponCode ?? null);
+      setCouponDiscountPaise(order.couponDiscountPaise || 0);
+      if (order.alreadyActivated) {
+        setStage('success');
+        toast.success(`You're now on the ${plan.name} plan`);
+      } else {
+        setStage('form');
+      }
+      return true;
+    } catch (error: any) {
+      console.error('Could not start checkout:', error);
+      setErrorMessage(error?.response?.data?.error || 'Could not start checkout. Please try again.');
+      setStage('declined');
+      return false;
+    }
+  };
 
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setStage('initializing');
+    setErrorMessage('');
+    (async () => {
+      if (cancelled) return;
+      await startOrder(null);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, plan.code, billingPeriod]);
+
+  const applyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setApplyingCoupon(true);
+    setCouponError('');
+    try {
+      const order = (await apiClient.post('/vendor/payments/orders', {
+        planCode: plan.code,
+        billingPeriod,
+        couponCode: couponInput.trim(),
+      })).data;
+      setOrderId(order.orderId);
+      setGatewayOrderId(order.gatewayOrderId ?? null);
+      setAmountDuePaise(order.amountPaise);
+      setCreditAppliedPaise(order.creditAppliedPaise || 0);
+      setAppliedCoupon(order.couponCode ?? null);
+      setCouponDiscountPaise(order.couponDiscountPaise || 0);
+      if (order.alreadyActivated) {
+        setStage('success');
+        toast.success(`You're now on the ${plan.name} plan`);
+      } else {
+        toast.success(`Coupon ${order.couponCode} applied`);
+      }
+    } catch (error: any) {
+      setCouponError(error?.response?.data?.error || 'That coupon could not be applied.');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const removeCoupon = async () => {
+    setApplyingCoupon(true);
+    setCouponError('');
+    setCouponInput('');
+    await startOrder(null);
+    setApplyingCoupon(false);
+  };
+
+  const pay = async () => {
+    if (!orderId || !gatewayOrderId) return;
+    setStage('processing');
+    setErrorMessage('');
+    try {
       const charge = (await apiClient.post('/payments/mock/charge', {
-        gatewayOrderId: order.gatewayOrderId,
+        gatewayOrderId,
         cardNumber: cardNumber.replace(/\s+/g, ''),
       })).data;
 
@@ -100,7 +204,7 @@ export function CheckoutDialog({
       // history and the audit trail; skipping it here would make every
       // declined attempt invisible everywhere except this dialog.
       const verify = (await apiClient.post('/vendor/payments/verify', {
-        orderId: order.orderId,
+        orderId,
         gatewayPaymentId: charge.gatewayPaymentId,
         signature: charge.signature,
       })).data;
@@ -109,7 +213,7 @@ export function CheckoutDialog({
         setStage('success');
         toast.success(`You're now on the ${plan.name} plan`);
       } else if (verify.status === 'PENDING') {
-        setPendingRef({ orderId: order.orderId, gatewayPaymentId: charge.gatewayPaymentId, signature: charge.signature });
+        setPendingRef({ orderId, gatewayPaymentId: charge.gatewayPaymentId, signature: charge.signature });
         setStage('pending');
       } else {
         setErrorMessage(verify.message || 'Payment could not be completed.');
@@ -160,14 +264,66 @@ export function CheckoutDialog({
           </DialogDescription>
         </DialogHeader>
 
+        {stage === 'initializing' && (
+          <div className="flex flex-col items-center justify-center py-10">
+            <Loader2 className="w-10 h-10 animate-spin text-[#C4975A] mb-4" />
+            <p className="font-body text-sm text-[#6B5E54]">Preparing your order…</p>
+          </div>
+        )}
+
         {stage === 'form' && (
           <div className="space-y-5">
             <div className="rounded-xl bg-[#FDFBF7] border border-[#CDC0B0]/40 p-4 flex items-center justify-between">
               <div>
                 <p className="font-body text-sm text-[#6B5E54]">{plan.name} plan</p>
                 <p className="font-body text-xs text-[#9C8E82]">{billingPeriod === 'YEARLY' ? 'Billed yearly' : 'Billed monthly'}</p>
+                {creditAppliedPaise > 0 && (
+                  <p className="font-body text-xs text-[#5B8C5A] mt-1">
+                    ₹{rupees(creditAppliedPaise)} credited from your current plan's unused time
+                  </p>
+                )}
+                {appliedCoupon && (
+                  <p className="font-body text-xs text-[#5B8C5A] mt-1">
+                    Coupon {appliedCoupon}: −₹{rupees(couponDiscountPaise)}
+                  </p>
+                )}
               </div>
-              <p className="font-heading text-2xl font-bold text-[#2C2621]">₹{rupees(price)}</p>
+              <div className="text-right">
+                {(creditAppliedPaise > 0 || couponDiscountPaise > 0) && (
+                  <p className="font-body text-xs text-[#9C8E82] line-through">₹{rupees(fullPrice)}</p>
+                )}
+                <p className="font-heading text-2xl font-bold text-[#2C2621]">₹{rupees(price)}</p>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="couponCode" className="mb-2 flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5" /> Coupon code
+              </Label>
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between rounded-lg border border-[#5B8C5A]/40 bg-[#5B8C5A]/8 px-3 h-11">
+                  <span className="font-mono text-sm text-[#2C2621]">{appliedCoupon}</span>
+                  <button type="button" onClick={removeCoupon} disabled={applyingCoupon}
+                    className="text-[#9C8E82] hover:text-[#B85C5C] transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    id="couponCode"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Have a code?"
+                    className="h-11 font-mono tracking-wide"
+                  />
+                  <Button type="button" variant="outline" onClick={applyCoupon}
+                    disabled={!couponInput.trim() || applyingCoupon} className="h-11 shrink-0">
+                    {applyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                  </Button>
+                </div>
+              )}
+              {couponError && <p className="font-body text-xs text-[#B85C5C] mt-1.5">{couponError}</p>}
             </div>
 
             <div>
@@ -205,7 +361,7 @@ export function CheckoutDialog({
 
             <Button
               onClick={pay}
-              disabled={!cardNumber.trim()}
+              disabled={!cardNumber.trim() || !gatewayOrderId}
               className="w-full h-12 rounded-xl bg-[#C4975A] hover:bg-[#B38549] text-white"
             >
               Pay ₹{rupees(price)}

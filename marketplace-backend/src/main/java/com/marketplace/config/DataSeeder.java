@@ -33,7 +33,6 @@ public class DataSeeder implements CommandLineRunner {
         seedReviews();
         seedPageViews();
         seedNotifications();
-        seedSubscriptions();
         seedCollaborations();
         
         log.info("✅ Database seeding completed!");
@@ -246,36 +245,16 @@ public class DataSeeder implements CommandLineRunner {
         return notification;
     }
 
-    private void seedSubscriptions() {
-        long count = subscriptionRepository.count();
-        if (count > 0) {
-            log.info("Subscriptions already exist. Skipping seeding. Count: {}", count);
-            return;
-        }
-
-        log.info("Seeding subscriptions...");
-
-        List<Subscription> subscriptions = Arrays.asList(
-                createSubscription("johns-electricians", "BASIC", "ACTIVE", 29.99),
-                createSubscription("alifebot", "PREMIUM", "ACTIVE", 99.99),
-                createSubscription("demo-vendor", "BASIC", "TRIAL", 0.0)
-        );
-
-        subscriptionRepository.saveAll(subscriptions);
-        log.info("Successfully seeded {} subscriptions", subscriptions.size());
-    }
-
-    private Subscription createSubscription(String vendorSlug, String plan, String status, Double price) {
-        Subscription subscription = new Subscription();
-        subscription.setVendorSlug(vendorSlug);
-        subscription.setPlan(plan);
-        subscription.setStatus(status);
-        subscription.setPrice(price);
-        subscription.setStartDate(java.time.LocalDate.now().minusMonths(1));
-        subscription.setEndDate(java.time.LocalDate.now().plusMonths(11));
-        subscription.setAutoRenew(true);
-        return subscription;
-    }
+    /*
+     * Subscription seeding was removed when real plans arrived.
+     *
+     * It used to create three demo subscriptions with invented prices
+     * ($29.99 / $99.99) that matched no real plan. Once SubscriptionService
+     * began resolving entitlements from this collection, those rows would have
+     * silently granted two vendors a paid tier they never bought — so demo
+     * data is no longer written here. Subscriptions are created only by a real
+     * purchase or an explicit admin grant.
+     */
 
     private void seedCollaborations() {
         long count = collaborationRepository.count();

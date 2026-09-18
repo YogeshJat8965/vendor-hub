@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface PageViewRepository extends MongoRepository<PageView, String> {
     List<PageView> findByVendorSlug(String vendorSlug);
+    List<PageView> findByVendorSlugAndViewedAtAfter(String vendorSlug, LocalDateTime after);
     long countByVendorSlugAndViewedAtAfter(String vendorSlug, LocalDateTime after);
 }

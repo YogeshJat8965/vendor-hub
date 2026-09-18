@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 
 interface Vendor {
+  id: string;
   slug: string;
   businessName: string;
   vendorType: string;
@@ -18,7 +19,7 @@ interface Vendor {
   state: string;
   rating: number;
   reviewCount: number;
-  profileImage?: string;
+  logoUrl?: string;
 }
 
 export default function CustomerFavoritesPage() {
@@ -33,29 +34,8 @@ export default function CustomerFavoritesPage() {
   const fetchFavoriteVendors = async () => {
     try {
       setIsLoading(true);
-      const favorites = localStorage.getItem('favorites');
-      if (!favorites) {
-        setVendors([]);
-        return;
-      }
-
-      const slugs = favorites.split(',').filter(Boolean);
-      if (slugs.length === 0) {
-        setVendors([]);
-        return;
-      }
-
-      // Fetch vendor details for each slug
-      const vendorPromises = slugs.map(slug =>
-        apiClient.get(`/explore/${slug}/profile`).catch(() => null)
-      );
-      
-      const results = await Promise.all(vendorPromises);
-      const validVendors = results
-        .filter(res => res !== null)
-        .map(res => res.data);
-      
-      setVendors(validVendors);
+      const response = await apiClient.get('/customer/favorites');
+      setVendors(response.data || []);
     } catch (error) {
       console.error('Failed to fetch favorite vendors:', error);
       toast.error('Failed to load favorite vendors');
@@ -65,14 +45,16 @@ export default function CustomerFavoritesPage() {
     }
   };
 
-  const handleRemoveFavorite = (slug: string) => {
-    const favorites = localStorage.getItem('favorites') || '';
-    const slugs = favorites.split(',').filter(Boolean);
-    const newSlugs = slugs.filter(s => s !== slug);
-    localStorage.setItem('favorites', newSlugs.join(','));
-    
-    setVendors(prevVendors => prevVendors.filter(v => v.slug !== slug));
-    toast.success('Removed from favorites');
+  const handleRemoveFavorite = async (vendorId: string, slug: string) => {
+    // Optimistic removal -- reverted on failure.
+    setVendors((prev) => prev.filter((v) => v.slug !== slug));
+    try {
+      await apiClient.post(`/customer/favorites/${vendorId}/toggle`);
+      toast.success('Removed from favorites');
+    } catch (error) {
+      toast.error('Failed to remove favorite');
+      fetchFavoriteVendors();
+    }
   };
 
   const filteredVendors = vendors.filter(vendor =>
@@ -142,7 +124,7 @@ export default function CustomerFavoritesPage() {
               >
                 <Card className="group hover:shadow-warm-lg transition-all duration-300 relative overflow-hidden border-[#CDC0B0] bg-white rounded-3xl h-full flex flex-col">
                   <button
-                    onClick={() => handleRemoveFavorite(vendor.slug)}
+                    onClick={() => handleRemoveFavorite(vendor.id, vendor.slug)}
                     className="absolute top-4 right-4 z-10 p-2.5 rounded-full bg-white/80 backdrop-blur-sm text-[#B85C5C] hover:bg-white hover:text-[#A34F4F] transition-all shadow-warm-sm border border-[#CDC0B0]/50"
                     aria-label="Remove from favorites"
                   >
@@ -153,9 +135,9 @@ export default function CustomerFavoritesPage() {
                     <CardContent className="p-0 flex-1 flex flex-col">
                       {/* Vendor Image */}
                       <div className="relative h-48 bg-[#EEDDCC] overflow-hidden border-b border-[#CDC0B0]/30">
-                        {vendor.profileImage ? (
+                        {vendor.logoUrl ? (
                           <img
-                            src={vendor.profileImage}
+                            src={vendor.logoUrl}
                             alt={vendor.businessName}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           />
