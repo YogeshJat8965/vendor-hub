@@ -106,7 +106,6 @@ export function Hero() {
                 <span className="text-[#C4975A] text-4xl sm:text-5xl lg:text-6xl whitespace-nowrap drop-shadow-lg">
                   {words[index].substring(0, subIndex)}
                 </span>
-                <span className="animate-pulse text-[#C4975A] font-light text-4xl sm:text-5xl lg:text-6xl ml-1 drop-shadow-lg">|</span>
               </div>
             </h1>
 
@@ -147,16 +146,23 @@ export function Hero() {
         className="absolute bottom-[10px] right-6 md:bottom-26 md:right-3 z-30"
       >
         <div className="relative p-[1px] rounded-2xl overflow-hidden shadow-warm-xl">
-          {/* Animated rotating gradient border */}
+          {/* Animated rotating gradient border — sized to twice the box and
+              GPU-hinted via will-change so the browser composites the
+              rotation instead of repainting it, and slowed down slightly so
+              it reads as a gentle sweep rather than a spin. */}
           <div
-            className="absolute inset-0"
+            className="absolute inset-[-50%]"
             style={{
               background: "conic-gradient(from 0deg, #C4975A, #EEDDCC, #C4975A, #2C2621, #C4975A)",
-              animation: "spin 4s linear infinite",
+              animation: "spin 7s linear infinite",
+              willChange: "transform",
             }}
           />
-          {/* Inner content */}
-          <div className="relative bg-[#2C2621]/70 backdrop-blur-lg rounded-2xl px-5 py-3 flex flex-col items-center justify-center">
+          {/* Inner content — a solid (not blurred) backdrop, since a
+              backdrop-blur layered directly over that rotating gradient
+              forced a full blur recompute every frame, which is what made
+              the whole badge feel janky rather than smooth. */}
+          <div className="relative bg-[#241F1A] rounded-2xl px-5 py-3 flex flex-col items-center justify-center">
             <span
               className="font-body text-xs md:text-sm font-medium tracking-widest uppercase text-center"
               style={{
@@ -164,7 +170,8 @@ export function Hero() {
                 backgroundSize: "200% auto",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-                animation: "shimmer 3s linear infinite",
+                animation: "shimmer 3.5s linear infinite",
+                willChange: "background-position",
               }}
             >
               <span className="block mb-1">Handpicked &amp;</span>

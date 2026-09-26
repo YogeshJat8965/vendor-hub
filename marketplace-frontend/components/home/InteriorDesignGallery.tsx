@@ -15,35 +15,15 @@ const images = [
 
 function GalleryCard({ img, index }: { img: typeof images[0]; index: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  // Still used for the text/tag micro-animations below — just not for the
+  // card itself anymore, so the photo is never hidden or rotated away
+  // waiting for a scroll-triggered reveal.
   const isInView = useInView(cardRef, { once: false, margin: '-100px' });
-
-  const isLeft = img.side === 'left';
-
-  const variants = {
-    hidden: isLeft
-      ? { opacity: 0, x: -200, rotateY: 0 }
-      : { opacity: 0, x: 200, rotateY: 90 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      rotateY: 0,
-      transition: {
-        duration: 0.9,
-        delay: index * 0.15,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      },
-    },
-  };
 
   return (
     <motion.div
       ref={cardRef}
-      variants={variants}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-      className={`relative rounded-3xl overflow-hidden group shadow-warm-lg bg-[#2C2621] aspect-[4/3] ${index % 2 === 0 ? 'md:translate-y-12' : 'md:-translate-y-4'
-        }`}
-      style={{ perspective: 1200 }}
+      className="relative rounded-3xl overflow-hidden group shadow-warm-lg bg-[#2C2621] aspect-[4/3]"
       whileHover={{ scale: 1.03 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
@@ -53,8 +33,7 @@ function GalleryCard({ img, index }: { img: typeof images[0]; index: number }) {
         alt={img.title}
         fill
         priority
-        loading="eager"
-        sizes="(max-width: 768px) 100vw, 50vw"
+        sizes="(max-width: 640px) 100vw, 50vw"
         className="object-cover transition-transform duration-700 group-hover:scale-110"
       />
 
@@ -141,8 +120,12 @@ export function InteriorDesignGallery() {
           </motion.p>
         </div>
 
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Gallery Grid — 2 columns from `sm` (640px), not `md` (768px), so
+            a tablet in portrait always shows the full grid without needing
+            to rotate to landscape. Capped narrower than the section itself
+            so the cards read as slightly smaller, and no per-card vertical
+            offset, so every card sits at the same top edge. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
           {images.map((img, idx) => (
             <GalleryCard key={img.id} img={img} index={idx} />
           ))}

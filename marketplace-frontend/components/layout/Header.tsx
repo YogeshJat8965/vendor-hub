@@ -40,7 +40,7 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-baseline space-x-1 group">
+          <Link href="/" className="flex items-baseline space-x-1 group shrink-0">
             <motion.div
               whileHover={{ scale: 1.02 }}
               className="text-3xl font-heading font-bold text-[#2C2621]"
@@ -50,17 +50,21 @@ export function Header() {
             <span className="font-accent text-xl text-[#C4975A] group-hover:text-[#2C2621] transition-colors duration-300 hidden sm:inline-block">marketplace</span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          {/* Desktop Navigation — kicks in at lg (1024px), not md (768px): at
+              tablet widths there isn't room for five nav links plus the logo
+              and action buttons on one line, which used to wrap "How It
+              Works" onto two lines and push "Get Started" off-screen. The
+              mobile menu below now covers the whole phone-to-tablet range. */}
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-7">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-base font-body font-medium transition-all duration-300 relative group ${
-                    isActive 
-                      ? 'text-[#2C2621]' 
+                  className={`text-base font-body font-medium whitespace-nowrap transition-all duration-300 relative group ${
+                    isActive
+                      ? 'text-[#2C2621]'
                       : 'text-[#6B5E54] hover:text-[#2C2621]'
                   }`}
                 >
@@ -72,7 +76,7 @@ export function Header() {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
             {isAuthenticated ? (
               <>
                 <Button
@@ -113,8 +117,8 @@ export function Header() {
             )}
           </div>
 
-          {/* Mobile Menu */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Mobile Menu — covers phone through tablet widths (below lg) */}
+          <div className="lg:hidden flex items-center gap-2">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="touch-target text-[#2C2621]">
