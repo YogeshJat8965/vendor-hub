@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const words = [
   "Interior Designer",
@@ -12,27 +13,41 @@ const words = [
   "Renovation Specialist"
 ];
 
+// Hero background slideshow — replaces the previous 2-video background (see
+// the commented-out block below, kept in case we ever want video again).
+// All 11 images stay mounted at once (same pattern the videos used — two
+// <video> tags both present, toggled via opacity) so each one is already
+// loaded and decoded by the time its turn comes up, instead of popping in
+// mid-crossfade.
+const heroImages = [
+  '/hero images/heroimg1.jpg',
+  '/hero images/living room design.jpg',
+  '/hero images/Electrician Wiring an Open Panel.png',
+  '/hero images/heroimg2.jpg',
+  '/hero images/bedroom .jpg',
+  '/hero images/Master Craftsman at the Miter Saw.png',
+  '/hero images/heroimg3.jpg',
+  '/hero images/bathroom.jpg',
+  '/hero images/Architectural Drafting Plans and Pencil Notes.png',
+  '/hero images/Interior Renovation in Progress.png',
+  '/hero images/Modern Home with Colorful Garden.png',
+];
+
+const HERO_IMAGE_INTERVAL_MS = 5000;
+
 export function Hero() {
   const [index, setIndex] = useState(0);
   const [subIndex, setSubIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const video1Ref = useRef<HTMLVideoElement>(null);
-  const video2Ref = useRef<HTMLVideoElement>(null);
-  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  const handleVideoEnded = (index: number) => {
-    const nextIndex = index === 0 ? 1 : 0;
-    setActiveVideoIndex(nextIndex);
-    
-    if (nextIndex === 0 && video1Ref.current) {
-      video1Ref.current.currentTime = 0;
-      video1Ref.current.play();
-    } else if (nextIndex === 1 && video2Ref.current) {
-      video2Ref.current.currentTime = 0;
-      video2Ref.current.play();
-    }
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, HERO_IMAGE_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (subIndex === words[index].length + 1 && !isDeleting) {
@@ -52,7 +67,8 @@ export function Hero() {
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
-      {/* Background Video */}
+      {/* Background Video — replaced with an image slideshow below. Left
+          here, commented out, in case we switch back to video later.
       <div className="absolute inset-0 z-0 bg-[#2C2621]">
         <video
           ref={video1Ref}
@@ -66,7 +82,7 @@ export function Hero() {
         >
           <source src="/1stVideoHeroSection.mp4" type="video/mp4" />
         </video>
-        
+
         <video
           ref={video2Ref}
           muted
@@ -78,6 +94,36 @@ export function Hero() {
         >
           <source src="/2ndvideoHeroSectionKitchen.mp4" type="video/mp4" />
         </video>
+      </div>
+      */}
+
+      {/* Background Image Slideshow — every image stays mounted (all marked
+          `priority` so all 11 are fetched up front, never a lazy pop-in
+          mid-crossfade) and only `opacity` is animated via Framer Motion, so
+          the outgoing and incoming image dissolve into each other at the
+          same time rather than one visibly "cutting" to the next.
+          `object-cover` so the photo fills the section edge-to-edge (no
+          letterbox bars) — it crops to fit rather than shrinking to fit. */}
+      <div className="absolute inset-0 z-0 bg-[#2C2621]">
+        {heroImages.map((src, i) => (
+          <motion.div
+            key={src}
+            className="absolute inset-0"
+            style={{ zIndex: i === activeImageIndex ? 10 : 0 }}
+            initial={false}
+            animate={{ opacity: i === activeImageIndex ? 1 : 0 }}
+            transition={{ duration: 2.4, ease: [0.45, 0, 0.15, 1] }}
+          >
+            <Image
+              src={src}
+              alt="VendorHub — interior design and home renovation professionals"
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+          </motion.div>
+        ))}
         {/* Dark Overlay to ensure text readability */}
         <div className="absolute inset-0 bg-[#2C2621]/65 z-20" />
       </div>
@@ -100,10 +146,10 @@ export function Hero() {
               Elevate Your Living Space
             </motion.p>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-heading font-bold text-white leading-[1.1] mb-6 h-[2.5em] sm:h-[2.2em] drop-shadow-xl">
+            <h1 className="text-4xl sm:text-4xl lg:text-6xl font-heading font-bold text-white leading-[1.1] mb-6 h-[2.5em] sm:h-[2.2em] drop-shadow-xl">
               Find Your Perfect <br />
               <div className="flex items-center justify-center mt-2">
-                <span className="text-[#C4975A] text-4xl sm:text-5xl lg:text-6xl whitespace-nowrap drop-shadow-lg">
+                <span className="text-[#C4975A] text-3xl sm:text-4xl lg:text-5xl whitespace-nowrap drop-shadow-lg">
                   {words[index].substring(0, subIndex)}
                 </span>
               </div>

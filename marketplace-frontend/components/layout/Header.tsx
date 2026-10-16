@@ -50,71 +50,77 @@ export function Header() {
             <span className="font-accent text-xl text-[#C4975A] group-hover:text-[#2C2621] transition-colors duration-300 hidden sm:inline-block">marketplace</span>
           </Link>
 
-          {/* Desktop Navigation — kicks in at lg (1024px), not md (768px): at
-              tablet widths there isn't room for five nav links plus the logo
-              and action buttons on one line, which used to wrap "How It
-              Works" onto two lines and push "Get Started" off-screen. The
-              mobile menu below now covers the whole phone-to-tablet range. */}
-          <nav className="hidden lg:flex items-center gap-5 xl:gap-7">
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`text-base font-body font-medium whitespace-nowrap transition-all duration-300 relative group ${
-                    isActive
-                      ? 'text-[#2C2621]'
-                      : 'text-[#6B5E54] hover:text-[#2C2621]'
-                  }`}
-                >
-                  {link.label}
-                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#CDB79E] transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-3 shrink-0">
-            {isAuthenticated ? (
-              <>
-                <Button
-                  variant="outline"
-                  className="gap-2 rounded-xl"
-                  asChild
-                >
-                  <Link href={
-                    user?.role?.toLowerCase() === 'customer'
-                      ? '/dashboard/customer'
-                      : user?.role?.toLowerCase() === 'vendor'
-                      ? '/dashboard/vendor'
-                      : '/dashboard/admin'
-                  }>
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
+          {/* Nav links + action buttons grouped into one right-hand cluster
+              (rather than three separate flex children under
+              justify-between, which used to let the nav drift toward the
+              middle) — logo stays pinned left, everything else hugs the
+              right edge. Kicks in at lg (1024px), not md (768px): at tablet
+              widths there isn't room for five nav links plus the logo and
+              action buttons on one line, which used to wrap "How It Works"
+              onto two lines and push "Get Started" off-screen. The mobile
+              menu below now covers the whole phone-to-tablet range. */}
+          <div className="hidden lg:flex items-center gap-8 xl:gap-10">
+            <nav className="flex items-center gap-5 xl:gap-7">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`text-base font-body font-medium whitespace-nowrap transition-all duration-300 relative group ${
+                      isActive
+                        ? 'text-[#2C2621]'
+                        : 'text-[#6B5E54] hover:text-[#2C2621]'
+                    }`}
+                  >
+                    {link.label}
+                    <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#CDB79E] transition-all duration-300 ${isActive ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
                   </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="gap-2 text-[#B85C5C] hover:bg-[#B85C5C]/10 hover:text-[#B85C5C]"
-                  onClick={() => setShowLogoutDialog(true)}
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
-                <NotificationBell />
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" className="text-[#2C2621]" asChild>
-                  <Link href="/login">Login</Link>
-                </Button>
-                <Button asChild className="bg-[#2C2621] text-white hover:bg-[#2C2621]/90 rounded-xl px-6">
-                  <Link href="/signup">Get Started</Link>
-                </Button>
-              </>
-            )}
+                );
+              })}
+            </nav>
+
+            {/* Desktop Actions */}
+            <div className="flex items-center gap-3 shrink-0">
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    variant="outline"
+                    className="gap-2 rounded-xl"
+                    asChild
+                  >
+                    <Link href={
+                      user?.role?.toLowerCase() === 'customer'
+                        ? '/dashboard/customer'
+                        : user?.role?.toLowerCase() === 'vendor'
+                        ? '/dashboard/vendor'
+                        : '/dashboard/admin'
+                    }>
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="gap-2 text-[#B85C5C] hover:bg-[#B85C5C]/10 hover:text-[#B85C5C]"
+                    onClick={() => setShowLogoutDialog(true)}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
+                  <NotificationBell />
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" className="text-[#2C2621]" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button asChild className="bg-[#2C2621] text-white hover:bg-[#2C2621]/90 rounded-xl px-6">
+                    <Link href="/signup">Get Started</Link>
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Mobile Menu — covers phone through tablet widths (below lg) */}
@@ -126,7 +132,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-white border-l-[#CDC0B0]/50">
-                <div className="flex flex-col space-y-6 mt-8">
+                <div className="flex flex-col space-y-6 mt-8 px-6">
                   <div className="flex items-baseline space-x-1 pb-4 border-b border-[#CDC0B0]/30">
                     <div className="text-2xl font-heading font-bold text-[#2C2621]">VendorHub</div>
                     <span className="font-accent text-lg text-[#C4975A]">marketplace</span>

@@ -176,7 +176,7 @@ export default function ForVendorsPage() {
                     key={benefit.title}
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
+                    viewport={{ once: false, margin: "-50px" }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                     className="relative bg-white rounded-3xl p-8 sm:p-10 border border-[#CDC0B0]/40 shadow-sm hover:shadow-xl hover:shadow-[#C4975A]/10 hover:-translate-y-2 hover:border-[#C4975A]/60 transition-all duration-500 group overflow-hidden"
                   >

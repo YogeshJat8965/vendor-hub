@@ -14,18 +14,20 @@ const images = [
 ];
 
 function GalleryCard({ img, index }: { img: typeof images[0]; index: number }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  // Still used for the text/tag micro-animations below — just not for the
-  // card itself anymore, so the photo is never hidden or rotated away
-  // waiting for a scroll-triggered reveal.
-  const isInView = useInView(cardRef, { once: false, margin: '-100px' });
-
   return (
     <motion.div
-      ref={cardRef}
       className="relative rounded-3xl overflow-hidden group shadow-warm-lg bg-[#2C2621] aspect-[4/3]"
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: false, margin: '-60px' }}
       whileHover={{ scale: 1.03 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      transition={{
+        // One clean reveal per card, barely staggered — fast enough that
+        // the grid feels like it appears together, not one-by-one with a
+        // noticeable lag, while still reading as a sequence left-to-right.
+        default: { duration: 0.5, delay: index * 0.07, ease: [0.22, 1, 0.36, 1] },
+        scale: { type: 'spring', stiffness: 300, damping: 20, delay: 0 },
+      }}
     >
       {/* Image */}
       <Image
@@ -39,14 +41,9 @@ function GalleryCard({ img, index }: { img: typeof images[0]; index: number }) {
 
       {/* Category Tag */}
       <div className="absolute top-4 left-4 z-20">
-        <motion.span
-          initial={{ opacity: 0, y: -10 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.6 + index * 0.15 }}
-          className="inline-block px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white font-body text-xs tracking-widest uppercase"
-        >
+        <span className="inline-block px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white font-body text-xs tracking-widest uppercase">
           {img.category}
-        </motion.span>
+        </span>
       </div>
 
       {/* Gradient Overlay (always visible at bottom) */}
@@ -57,18 +54,12 @@ function GalleryCard({ img, index }: { img: typeof images[0]; index: number }) {
 
       {/* Bottom Content */}
       <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.5 + index * 0.15, duration: 0.6 }}
-        >
-          <h3 className="text-xl md:text-2xl font-heading font-bold text-white mb-2 drop-shadow-lg">
-            {img.title}
-          </h3>
-          <p className="text-[#EEDDCC] font-body text-sm line-clamp-1 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-            {img.description}
-          </p>
-        </motion.div>
+        <h3 className="text-xl md:text-2xl font-heading font-bold text-white mb-2 drop-shadow-lg">
+          {img.title}
+        </h3>
+        <p className="text-[#EEDDCC] font-body text-sm line-clamp-1 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+          {img.description}
+        </p>
       </div>
 
       {/* Shine Effect on Hover */}

@@ -50,7 +50,7 @@ export function Testimonials() {
               key={index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
               className="bg-white p-8 rounded-3xl shadow-warm-sm border border-[#CDC0B0]/30 relative"
             >
